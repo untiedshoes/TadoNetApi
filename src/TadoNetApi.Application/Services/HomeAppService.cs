@@ -1,0 +1,38 @@
+using TadoNetApi.Domain.Entities;
+using TadoNetApi.Domain.Interfaces;
+
+namespace TadoNetApi.Application.Services;
+
+/// <summary>
+/// Application service for managing homes.
+/// Orchestrates domain operations through IHomeService.
+/// </summary>
+public class HomeAppService
+{
+    private readonly IHomeService _homeService;
+
+    /// <summary>
+    /// Initializes a new instance of HomeAppService.
+    /// </summary>
+    /// <param name="homeService">The domain home service to use.</param>
+    public HomeAppService(IHomeService homeService)
+    {
+        _homeService = homeService;
+    }
+
+    /// <summary>
+    /// Retrieves all homes accessible by the user.
+    /// </summary>
+    public Task<List<Home>> GetHomesAsync() => _homeService.GetHomesAsync();
+
+    /// <summary>
+    /// Retrieves a specific home by ID.
+    /// </summary>
+    public Task<Home?> GetHomeAsync(int homeId) => _homeService.GetHomeAsync(homeId);
+
+    /// <summary>
+    /// Sets the presence state of a home.
+    /// </summary>
+    public Task SetHomePresenceAsync(int homeId, string presence) =>
+        _homeService.SetHomePresenceAsync(homeId, presence);
+}

@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/TadoNetApi.Application/TadoNetApi.Application.csproj" />
+    <Project Path="src/TadoNetApi.Domain/TadoNetApi.Domain.csproj" />
+    <Project Path="src/TadoNetApi.Infrastructure/TadoNetApi.Infrastructure.csproj" />
+    <Project Path="src/TadoNetApi.Playground/TadoNetApi.Playground.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/TadoNetApi.Application.Tests/TadoNetApi.Application.Tests.csproj" />
+    <Project Path="tests/TadoNetApi.Domain.Tests/TadoNetApi.Domain.Tests.csproj" />
+    <Project Path="tests/TadoNetApi.Infrastructure.Tests/TadoNetApi.Infrastructure.Tests.csproj" />
+  </Folder>
+</Solution>

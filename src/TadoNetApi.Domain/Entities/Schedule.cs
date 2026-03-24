@@ -16,4 +16,10 @@ public class Schedule
 
     /// <summary>End time of the schedule.</summary>
     public DateTime EndTime { get; set; }
+
+    /// <summary>Indicates whether the schedule is active.</summary>
+    public bool IsActive { get; set; }
+
+    /// <summary>ID of the zone this schedule belongs to.</summary>
+    public int ZoneId { get; set; } 
 }

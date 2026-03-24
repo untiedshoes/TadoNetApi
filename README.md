@@ -8,7 +8,7 @@ It follows **SOLID principles**, with full separation of concerns, layered archi
 
 ---
 
-## 🌟 Features
+## Features
 
 - Authenticate with Tado using config-based credentials  
 - Fetch **user, homes, zones, devices, and weather**  
@@ -20,7 +20,7 @@ It follows **SOLID principles**, with full separation of concerns, layered archi
 
 ---
 
-## 📁 Architecture Overview
+## Architecture Overview
 
 ```text
 TadoNetApi/
@@ -42,7 +42,7 @@ TadoNetApi/
 
 ---
 
-## 🏗 Layer Responsibilities
+## Layer Responsibilities
 
 | Layer | Responsibility |
 |-------|----------------|
@@ -52,7 +52,6 @@ TadoNetApi/
 | Extensions | Dependency injection wiring; provides a single entry point to register all services in DI containers; keeps Program.cs clean. |
 | Playground | Example console application demonstrating usage of `TadoNetApi`; manual testing of API flows; integrates DI and prints Domain objects; showcases overlays and zone control. |
 | Tests | **Unit tests** with xUnit and Moq (isolated Domain/Application logic) and **integration tests** (real API calls); validates entity mapping, service behavior, and use cases. |
----
 
 ---
 
@@ -62,8 +61,6 @@ TadoNetApi/
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)  
 - Tado V3 account and credentials  
-
----
 
 ### 2. Clone the repo
 
@@ -100,7 +97,7 @@ This will:
 
 ---
 
-### 🧪 Testing
+### Testing
 - Unit tests are located in the tests folder
 - Uses xUnit + Moq
 - Tests cover domain logic, mappers, and service behavior
@@ -112,7 +109,7 @@ dotnet test
 
 ---
 
-### ⚠️ Notes
+### Notes
 
 - API calls are rate-limit aware with automatic retries
 - Playground demonstrates real-world usage of all services

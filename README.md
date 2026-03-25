@@ -1,11 +1,16 @@
 # TadoNetApi
 
-![Build](https://github.com/untiedshoes/TadoNetApi/actions/workflows/dotnet.yml/badge.svg)
-![Tests](https://img.shields.io/github/workflow/status/untiedshoes/TadoNetApi/CI)
-![NuGet](https://img.shields.io/nuget/v/TadoNetApi)
-![License](https://img.shields.io/github/license/untiedshoes/TadoNetApi)
+[![.NET](https://img.shields.io/badge/.NET-10.0-blue?logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
+[![Build Status](https://github.com/untiedshoes/TadoNetApi/actions/workflows/dotnet.yml/badge.svg)](https://github.com/untiedshoes/TadoNetApi/actions/workflows/dotnet.yml)
+[![Tests](https://img.shields.io/github/actions/workflow/status/untiedshoes/TadoNetApi/dotnet.yml?branch=main&label=unit%20tests&logo=xunit)](https://github.com/untiedshoes/TadoNetApi/actions/workflows/dotnet.yml)
+[![NuGet Version](https://img.shields.io/nuget/v/TadoNetApi.svg?logo=nuget)](https://www.nuget.org/packages/TadoNetApi)
+[![License](https://img.shields.io/github/license/untiedshoes/TadoNetApi.svg)](LICENSE)
+[![Code Quality](https://img.shields.io/badge/code%20quality-A-brightgreen.svg)](#) <!-- Optional, placeholder for future SonarCloud/CodeFactor integration -->
 
-> `TadoNetApi` is a .NET 10 library providing a Clean Architecture implementation for Tado Smart Heating. It allows full interaction with homes, zones, devices, schedules, and weather, including OAuth2 authentication, overlays, and API throttling. Designed with SOLID principles, it includes comprehensive unit and integration tests.
+> `TadoNetApi` is a .NET 10 library providing a Clean Architecture implementation for the Tado Smart Heating system.  
+It allows full interaction with Tado homes, zones, devices, schedules, and weather, including OAuth2 device authorization, overlays, and API throttling.  
+
+The library is designed with **SOLID principles** and **reliability in mind**, featuring retry-aware HTTP clients, cancellation token support, and comprehensive unit and integration tests.
 
 ---
 
@@ -39,9 +44,9 @@ TadoNetApi/
 │
 ├─ Playground/      # Example console app demonstrating API usage
 ├─ Tests/
-│  ├─ Domain/           # Tests for domain entities (optional, mostly validation)
+│  ├─ Domain/           # Tests for domain entities
 │  ├─ Services/         # Tests for service classes (HomeService, ZoneService, etc.)
-│  ├─ Mocks/            # Mock implementations for ITadoHttpClient, etc.
+│  ├─ Mocks/            # Mock implementations for ITadoHttpClient & ITadoAuthService.
 │  ├─ TadoNetApi.Tests.csproj
 └─ .gitignore
 ```
@@ -127,7 +132,6 @@ dotnet test
 
 ## References
 
-- Original inspiration: [TadoApi by Koen Zomers](https://github.com/KoenZomers/TadoApi)
 - [Tado API v2 Spec (community)](https://github.com/kritsel/tado-openapispec-v2)
 - [.NET Clean Architecture guidelines](https://learn.microsoft.com/dotnet/architecture/modern-web-apps-azure/common-web-application-architectures)
 

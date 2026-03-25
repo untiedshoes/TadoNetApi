@@ -1,10 +1,11 @@
 # TadoNetApi
 
-[![.NET](https://img.shields.io/badge/.NET-10-blue)](https://dotnet.microsoft.com/)  
-[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)  
+![Build](https://github.com/untiedshoes/TadoNetApi/actions/workflows/dotnet.yml/badge.svg)
+![Tests](https://img.shields.io/github/workflow/status/untiedshoes/TadoNetApi/CI)
+![NuGet](https://img.shields.io/nuget/v/TadoNetApi)
+![License](https://img.shields.io/github/license/untiedshoes/TadoNetApi)
 
-> `TadoNetApi` is a .NET 10 library that provides a strongly-typed, Clean Architecture implementation for interacting with the Tado Smart Heating API
-. It supports homes, zones, devices, schedules, weather, overlays, and full authentication using Tado’s OAuth2 device flow.
+> `TadoNetApi` is a .NET 10 library providing a Clean Architecture implementation for Tado Smart Heating. It allows full interaction with homes, zones, devices, schedules, and weather, including OAuth2 authentication, overlays, and API throttling. Designed with SOLID principles, it includes comprehensive unit and integration tests.
 
 ---
 

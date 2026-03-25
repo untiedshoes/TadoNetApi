@@ -1,53 +1,149 @@
+using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Net.Http.Json;
-using System.Threading;
-using System.Threading.Tasks;
-using TadoNetApi.Infrastructure.Auth;
-using TadoNetApi.Infrastructure.Config;
+using System.Text;
+using System.Text.Json;
+using Microsoft.Extensions.Logging;
+using TadoNetApi.Infrastructure.Exceptions;
 
 namespace TadoNetApi.Infrastructure.Http
 {
     /// <summary>
-    /// Handles HTTP requests to the Tado API, including authentication and base URL setup.
+    /// Central HTTP client for communicating with the Tado API.
+    /// 
+    /// Responsibilities:
+    /// - Sending HTTP requests (GET, POST, etc.)
+    /// - Handling response deserialization
+    /// - Logging request/response activity
+    /// - Translating HTTP errors into domain-friendly exceptions
+    /// 
+    /// NOTE:
+    /// Authentication is NOT handled here directly.
+    /// It is delegated to <see cref="AuthDelegatingHandler"/> via HttpClient pipeline.
     /// </summary>
-    public class TadoHttpClient
+    public class TadoHttpClient : ITadoHttpClient
     {
         private readonly HttpClient _httpClient;
-        private readonly TadoAuthService _authService;
+        private readonly ILogger<TadoHttpClient> _logger;
 
-        public TadoHttpClient(HttpClient httpClient, TadoAuthService authService)
+        /// <summary>
+        /// Shared JSON serializer options for all API responses.
+        /// - Case insensitive to match Tado API responses
+        /// </summary>
+        private static readonly JsonSerializerOptions _serializerOptions = new()
+        {
+            PropertyNameCaseInsensitive = true
+        };
+
+        /// <summary>
+        /// Constructs the TadoHttpClient.
+        /// HttpClient is injected via DI and configured with:
+        /// - BaseAddress
+        /// - DelegatingHandlers (Auth, retry, etc.)
+        /// </summary>
+        public TadoHttpClient(HttpClient httpClient, ILogger<TadoHttpClient> logger)
         {
             _httpClient = httpClient;
-            _httpClient.BaseAddress = new Uri(TadoApiEndpoints.ApiBaseUrl);
-            _authService = authService;
+            _logger = logger;
         }
 
         /// <summary>
-        /// Performs an authenticated GET request and deserializes the JSON response.
+        /// Performs a GET request to the specified endpoint and deserializes the response.
         /// </summary>
-        public async Task<T?> GetAsync<T>(string url, CancellationToken cancellationToken = default)
+        public async Task<T?> GetAsync<T>(
+            string endpoint,
+            CancellationToken cancellationToken = default)
         {
-            await _authService.EnsureAuthenticatedAsync(cancellationToken);
-            _httpClient.DefaultRequestHeaders.Authorization =
-                new AuthenticationHeaderValue("Bearer", await _authService.GetAccessTokenAsync(cancellationToken));
+            var request = new HttpRequestMessage(HttpMethod.Get, endpoint);
 
-            return await _httpClient.GetFromJsonAsync<T>(url, cancellationToken);
+            return await SendAsync<T>(request, cancellationToken);
         }
 
         /// <summary>
-        /// Performs an authenticated POST request with a JSON payload and deserializes the response.
+        /// Performs a POST request with a JSON body and deserializes the response.
         /// </summary>
-        public async Task<TResponse?> PostAsync<TRequest, TResponse>(string url, TRequest payload, CancellationToken cancellationToken = default)
+        public async Task<TResponse?> PostAsync<TRequest, TResponse>(
+            string endpoint,
+            TRequest body,
+            CancellationToken cancellationToken = default)
         {
-            await _authService.EnsureAuthenticatedAsync(cancellationToken);
-            _httpClient.DefaultRequestHeaders.Authorization =
-                new AuthenticationHeaderValue("Bearer", await _authService.GetAccessTokenAsync(cancellationToken));
+            var request = new HttpRequestMessage(HttpMethod.Post, endpoint)
+            {
+                Content = new StringContent(
+                    JsonSerializer.Serialize(body),
+                    Encoding.UTF8,
+                    "application/json")
+            };
 
-            var response = await _httpClient.PostAsJsonAsync(url, payload, cancellationToken);
-            response.EnsureSuccessStatusCode();
+            return await SendAsync<TResponse>(request, cancellationToken);
+        }
 
-            return await response.Content.ReadFromJsonAsync<TResponse>(cancellationToken: cancellationToken);
+        /// <summary>
+        /// Core HTTP execution pipeline.
+        /// 
+        /// This method:
+        /// - Sends the HTTP request
+        /// - Logs request/response details
+        /// - Handles non-success status codes
+        /// - Deserializes JSON responses
+        /// - Wraps errors in TadoApiException
+        /// 
+        /// IMPORTANT:
+        /// Authentication headers are already applied before this point
+        /// via AuthDelegatingHandler in the HttpClient pipeline.
+        /// </summary>
+        private async Task<T?> SendAsync<T>(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                // Log outgoing request
+                _logger.LogInformation(
+                    "Sending HTTP request: {Method} {Url}",
+                    request.Method,
+                    request.RequestUri);
+
+                // Execute request through HttpClient pipeline
+                using var response = await _httpClient.SendAsync(request, cancellationToken);
+
+                var content = await response.Content.ReadAsStringAsync(cancellationToken);
+
+                // Handle non-success responses
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogError(
+                        "Tado API request failed. Status: {StatusCode}, Response: {Response}",
+                        response.StatusCode,
+                        content);
+
+                    // Wrap external API failure in a controlled exception
+                    throw new TadoApiException(response.StatusCode, content);
+                }
+
+                // Deserialize JSON response
+                var result = JsonSerializer.Deserialize<T>(content, _serializerOptions);
+
+                if (result == null)
+                {
+                    throw new TadoApiException(response.StatusCode, "Failed to deserialize response.");
+                }
+
+                return result;
+            }
+            catch (TaskCanceledException ex)
+            {
+                // Timeout or cancellation
+                _logger.LogError(ex, "HTTP request timed out.");
+
+                throw new TadoApiException(HttpStatusCode.RequestTimeout, "Request timed out");
+            }
+            catch (HttpRequestException ex)
+            {
+                // Network or connection failure
+                _logger.LogError(ex, "HTTP request error while calling Tado API.");
+
+                throw new TadoApiException(HttpStatusCode.ServiceUnavailable, ex.Message);
+            }
         }
     }
 }

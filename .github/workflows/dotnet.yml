@@ -1,0 +1,45 @@
+name: TadoNetApi CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-test:
+    name: Build & Test Solution
+    runs-on: windows-latest
+
+    steps:
+      # -----------------------
+      # Checkout repository
+      # -----------------------
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # -----------------------
+      # Setup .NET SDK
+      # -----------------------
+      - name: Setup .NET 10 SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 10.0.x
+
+      # -----------------------
+      # Restore dependencies for entire solution
+      # -----------------------
+      - name: Restore dependencies
+        run: dotnet restore TadoNetApi.slnx
+
+      # -----------------------
+      # Build solution
+      # -----------------------
+      - name: Build solution
+        run: dotnet build TadoNetApi.slnx --no-restore --configuration Debug
+
+      # -----------------------
+      # Run all test projects
+      # -----------------------
+      - name: Run backend tests
+        run: dotnet test TadoNetApi.slnx --no-build --verbosity normal

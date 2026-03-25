@@ -9,5 +9,5 @@ public class TadoScheduleResponse
     public double TargetTemperature { get; set; }
     public string StartTime { get; set; } = string.Empty; // ISO 8601 or HH:mm format
     public string EndTime { get; set; } = string.Empty;   // ISO 8601 or HH:mm format
-    public bool IsActive { get; set; } = false;
+    public bool? IsActive { get; set; } = false;
 }

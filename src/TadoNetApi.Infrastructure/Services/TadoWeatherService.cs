@@ -11,9 +11,9 @@ namespace TadoNetApi.Infrastructure.Services;
 /// </summary>
 public class TadoWeatherService : IWeatherService
 {
-    private readonly TadoHttpClient _httpClient;
+    private readonly ITadoHttpClient _httpClient;
 
-    public TadoWeatherService(TadoHttpClient httpClient)
+    public TadoWeatherService(ITadoHttpClient httpClient)
     {
         _httpClient = httpClient;
     }

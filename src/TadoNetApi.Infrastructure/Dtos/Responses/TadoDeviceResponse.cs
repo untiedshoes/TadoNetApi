@@ -24,6 +24,4 @@ public class TadoDeviceResponse
 
     [JsonPropertyName("childLock")]
     public bool? ChildLock { get; set; }
-
-    
 }

@@ -13,6 +13,7 @@ public static class ScheduleMapper
             ZoneId = zoneId,
             Name = dto.Name,
             TargetTemperature = dto.TargetTemperature,
+            IsActive = dto.IsActive ?? false,
             StartTime = DateTime.Parse(dto.StartTime),
             EndTime = DateTime.Parse(dto.EndTime)
         };

@@ -12,9 +12,9 @@ namespace TadoNetApi.Infrastructure.Services;
 /// </summary>
 public class TadoZoneOverlayService : IZoneOverlayService
 {
-    private readonly TadoHttpClient _httpClient;
+    private readonly ITadoHttpClient _httpClient;
 
-    public TadoZoneOverlayService(TadoHttpClient httpClient)
+    public TadoZoneOverlayService(ITadoHttpClient httpClient)
     {
         _httpClient = httpClient;
     }

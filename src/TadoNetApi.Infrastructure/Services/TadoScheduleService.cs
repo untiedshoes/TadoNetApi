@@ -12,9 +12,9 @@ namespace TadoNetApi.Infrastructure.Services;
 /// </summary>
 public class TadoScheduleService : IScheduleService
 {
-    private readonly TadoHttpClient _httpClient;
+    private readonly ITadoHttpClient _httpClient;
 
-    public TadoScheduleService(TadoHttpClient httpClient)
+    public TadoScheduleService(ITadoHttpClient httpClient)
     {
         _httpClient = httpClient;
     }
@@ -51,4 +51,5 @@ public class TadoScheduleService : IScheduleService
 
         return response?.Name ?? "Unknown";
     }
+
 }

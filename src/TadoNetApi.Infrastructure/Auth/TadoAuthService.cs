@@ -12,7 +12,7 @@ namespace TadoNetApi.Infrastructure.Auth
     /// <summary>
     /// Handles Tado OAuth2 Device Authorization and token management.
     /// </summary>
-    public class TadoAuthService
+    public class TadoAuthService : ITadoAuthService
     {
         private readonly HttpClient _httpClient;
         private readonly TadoApiConfig _config;

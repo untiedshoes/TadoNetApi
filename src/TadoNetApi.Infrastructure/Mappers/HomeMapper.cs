@@ -19,6 +19,8 @@ public static class HomeMapper
             ShortName = dto.ShortName ?? string.Empty,
             Presence = string.Empty, // Not returned in this endpoint
             Address = dto.TimeZone ?? string.Empty, // temporary mapping
+            CountryCode = dto.CountryCode ?? string.Empty,
+            IsActive = dto.IsActive,
             OpenWindowDetectionEnabled = dto.OpenWindowDetectionEnabled
         };
     }

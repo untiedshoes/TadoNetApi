@@ -37,7 +37,11 @@ TadoNetApi/
 │  └─ Services/     # Concrete implementations of Domain interfaces (Home, Zone, Device, Schedule, Weather, Overlay)
 │
 ├─ Playground/      # Example console app demonstrating API usage
-├─ tests/           # xUnit + Moq unit tests and integration tests
+├─ Tests/
+│  ├─ Domain/           # Tests for domain entities (optional, mostly validation)
+│  ├─ Services/         # Tests for service classes (HomeService, ZoneService, etc.)
+│  ├─ Mocks/            # Mock implementations for ITadoHttpClient, etc.
+│  ├─ TadoNetApi.Tests.csproj
 └─ .gitignore
 ```
 

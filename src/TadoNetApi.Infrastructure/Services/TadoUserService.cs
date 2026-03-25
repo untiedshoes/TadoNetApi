@@ -11,9 +11,9 @@ namespace TadoNetApi.Infrastructure.Services;
 /// </summary>
 public class TadoUserService : IUserService
 {
-    private readonly TadoHttpClient _httpClient;
+    private readonly ITadoHttpClient _httpClient;
 
-    public TadoUserService(TadoHttpClient httpClient)
+    public TadoUserService(ITadoHttpClient httpClient)
     {
         _httpClient = httpClient;
     }

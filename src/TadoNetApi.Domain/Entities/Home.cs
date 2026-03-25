@@ -28,4 +28,8 @@ public class Home
 
     /// <summary>Collection of zones within the home.</summary>
     public List<Zone> Zones { get; set; } = new();
+
+    public string CountryCode { get; set; } = string.Empty;
+
+    public bool IsActive { get; set; }
 }

@@ -12,9 +12,9 @@ namespace TadoNetApi.Infrastructure.Services;
 /// </summary>
 public class TadoZoneService : IZoneService
 {
-    private readonly TadoHttpClient _httpClient;
+    private readonly ITadoHttpClient _httpClient;
 
-    public TadoZoneService(TadoHttpClient httpClient)
+    public TadoZoneService(ITadoHttpClient httpClient)
     {
         _httpClient = httpClient;
     }

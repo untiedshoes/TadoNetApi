@@ -28,6 +28,10 @@ public class TadoHomeResponse
     [JsonPropertyName("countryCode")]
     public string? CountryCode { get; set; }
 
+    /// <summary>Indicates if the home is active.</summary>
+    [JsonPropertyName("isActive")]
+    public bool IsActive { get; set; }
+
     /// <summary>The API version.</summary>
     [JsonPropertyName("version")]
     public string? Version { get; set; }

@@ -12,9 +12,9 @@ namespace TadoNetApi.Infrastructure.Services;
 /// </summary>
 public class TadoDeviceService : IDeviceService
 {
-    private readonly TadoHttpClient _httpClient;
+    private readonly ITadoHttpClient _httpClient;
 
-    public TadoDeviceService(TadoHttpClient httpClient)
+    public TadoDeviceService(ITadoHttpClient httpClient)
     {
         _httpClient = httpClient;
     }

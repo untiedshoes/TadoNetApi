@@ -12,9 +12,9 @@ namespace TadoNetApi.Infrastructure.Services;
 /// </summary>
 public class TadoHomeService : IHomeService
 {
-    private readonly TadoHttpClient _httpClient;
+    private readonly ITadoHttpClient _httpClient;
 
-    public TadoHomeService(TadoHttpClient httpClient)
+    public TadoHomeService(ITadoHttpClient httpClient)
     {
         _httpClient = httpClient;
     }

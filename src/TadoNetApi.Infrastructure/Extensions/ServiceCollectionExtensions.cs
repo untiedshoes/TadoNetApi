@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using TadoNetApi.Infrastructure.Auth;
 using TadoNetApi.Infrastructure.Config;
 using TadoNetApi.Infrastructure.Http;
+using TadoNetApi.Infrastructure.Extensions;
 
 namespace TadoNetApi.Infrastructure.Extensions
 {
@@ -19,13 +20,15 @@ namespace TadoNetApi.Infrastructure.Extensions
 
             // Handlers
             services.AddTransient<AuthDelegatingHandler>();
+            services.AddTransient<RetryDelegatingHandler>();
 
             // HttpClient
             services.AddHttpClient<ITadoHttpClient, TadoHttpClient>(client =>
             {
                 client.BaseAddress = new Uri(TadoApiEndpoints.ApiBaseUrl);
             })
-            .AddHttpMessageHandler<AuthDelegatingHandler>();
+            .AddHttpMessageHandler<AuthDelegatingHandler>()
+            .AddHttpMessageHandler<RetryDelegatingHandler>();
 
             return services;
         }

@@ -3,12 +3,10 @@
 [![.NET](https://img.shields.io/badge/.NET-10.0-blue?logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
 [![Build Status](https://github.com/untiedshoes/TadoNetApi/actions/workflows/dotnet.yml/badge.svg)](https://github.com/untiedshoes/TadoNetApi/actions/workflows/dotnet.yml)
 [![Tests](https://img.shields.io/github/actions/workflow/status/untiedshoes/TadoNetApi/dotnet.yml?branch=main&label=unit%20tests&logo=xunit)](https://github.com/untiedshoes/TadoNetApi/actions/workflows/dotnet.yml)
-[![NuGet Version](https://img.shields.io/nuget/v/TadoNetApi.svg?logo=nuget)](https://www.nuget.org/packages/TadoNetApi)
 [![License](https://img.shields.io/github/license/untiedshoes/TadoNetApi.svg)](LICENSE)
 [![Code Quality](https://img.shields.io/badge/code%20quality-A-brightgreen.svg)](#) <!-- Optional, placeholder for future SonarCloud/CodeFactor integration -->
 
-> `TadoNetApi` is a .NET 10 library providing a Clean Architecture implementation for the Tado Smart Heating system.  
-It allows full interaction with Tado homes, zones, devices, schedules, and weather, including OAuth2 device authorization, overlays, and API throttling.  
+> `TadoNetApi` is a .NET 10 library providing a Clean Architecture implementation for the Tado Smart Heating system. It allows full interaction with Tado homes, zones, devices, schedules, and weather, including OAuth2 device authorization, overlays, and API throttling.  
 
 The library is designed with **SOLID principles** and **reliability in mind**, featuring retry-aware HTTP clients, cancellation token support, and comprehensive unit and integration tests.
 
@@ -81,16 +79,11 @@ cd TadoNetApi
 ```
 
 ### 3. Configure your Tado credentials
-Edit TadoApiConfig.cs:
+Set your Tado credentials as environment variables:
 
-```csharp
-var tadoConfig = new TadoApiConfig
-{
-    Username = "your-email@example.com",
-    Password = "your-password",
-    MaxRetries = 5,
-    InitialRetryDelayMs = 1000
-};
+```bash
+export TADO_USERNAME="your-email@example.com"
+export TADO_PASSWORD="your-password"
 ```
 
 ### 4. Run the Playground
@@ -105,6 +98,51 @@ This will:
 - Fetch the user, homes, zones, devices, weather
 - Display current overlays
 - Set example target temperatures
+
+### Usage (Playground Example)
+
+```csharp
+using System;
+using Microsoft.Extensions.DependencyInjection;
+using TadoNetApi.Infrastructure.Config;
+using TadoNetApi.Infrastructure.Extensions;
+using TadoNetApi.Infrastructure.Http;
+
+class Program
+{
+    static async Task Main()
+    {
+        Console.WriteLine("Starting Tado Playground...");
+
+        // Read from environment
+        var config = new TadoApiConfig
+        {
+            Username = Environment.GetEnvironmentVariable("TADO_USERNAME") ?? "",
+            Password = Environment.GetEnvironmentVariable("TADO_PASSWORD") ?? ""
+        };
+
+        // DI container
+        var services = new ServiceCollection()
+            .AddTadoInfrastructure(config)
+            .BuildServiceProvider();
+
+        // Resolve HttpClient
+        var tadoClient = services.GetRequiredService<ITadoHttpClient>();
+
+        try
+        {
+            var user = await tadoClient.GetAsync("me");
+            Console.WriteLine("Fetching user...");
+            Console.WriteLine(user);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("An error occurred:");
+            Console.WriteLine(ex.Message);
+        }
+    }
+}
+```
 
 ---
 
@@ -123,10 +161,11 @@ dotnet test
 ### Notes
 
 - API calls are rate-limit aware with automatic retries
+- Currently supports OAuth2 device authorization flow.
+- Ensure your Tado account is active and credentials are correct.
 - Playground demonstrates real-world usage of all services
 - Fully compatible with CancellationToken for safe async calls
 - Designed for extensibility to add additional Tado endpoints
-
 
 ---
 

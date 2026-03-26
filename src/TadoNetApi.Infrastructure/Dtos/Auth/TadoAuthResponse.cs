@@ -1,9 +1,8 @@
+using System;
 using System.Text.Json.Serialization;
+
 namespace TadoNetApi.Infrastructure.Dtos.Auth
 {
-    /// <summary>
-    /// Represents the response from Tado's token endpoint after successful device authorization.
-    /// </summary>
     public class TadoAuthResponse
     {
         [JsonPropertyName("access_token")]

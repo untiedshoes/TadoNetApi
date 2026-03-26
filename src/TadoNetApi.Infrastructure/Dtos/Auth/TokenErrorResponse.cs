@@ -1,9 +1,7 @@
 using System.Text.Json.Serialization;
+
 namespace TadoNetApi.Infrastructure.Dtos.Auth
 {
-    /// <summary>
-    /// Represents an error response from Tado's token endpoint during device authorization.
-    /// </summary>
     public class TokenErrorResponse
     {
         [JsonPropertyName("error")]

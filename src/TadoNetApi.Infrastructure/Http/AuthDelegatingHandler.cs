@@ -20,14 +20,14 @@ namespace TadoNetApi.Infrastructure.Http
     /// </summary>
     public class AuthDelegatingHandler : DelegatingHandler
     {
-        private readonly TadoAuthService _authService;
+        private readonly ITadoAuthService _authService;
 
         /// <summary>
         /// Constructs the handler with the TadoAuthService dependency.
         /// </summary>
-        public AuthDelegatingHandler(TadoAuthService authService)
+        public AuthDelegatingHandler(ITadoAuthService authService)
         {
-            _authService = authService;
+            _authService = authService ?? throw new ArgumentNullException(nameof(authService));
         }
 
         /// <summary>

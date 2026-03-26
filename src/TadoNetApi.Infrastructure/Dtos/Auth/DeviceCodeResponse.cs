@@ -2,9 +2,6 @@ using System.Text.Json.Serialization;
 
 namespace TadoNetApi.Infrastructure.Dtos.Auth
 {
-    /// <summary>
-    /// Represents the response from Tado's device authorization endpoint.
-    /// </summary>
     public class DeviceCodeResponse
     {
         [JsonPropertyName("device_code")]

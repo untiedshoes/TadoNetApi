@@ -15,9 +15,7 @@ namespace TadoNetApi.Tests.Mocks
             var mock = new Mock<ITadoAuthService>();
             mock.Setup(a => a.GetAccessTokenAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(token);
-            mock.Setup(a => a.IsAuthenticated).Returns(true);
-            mock.Setup(a => a.EnsureAuthenticatedAsync(It.IsAny<CancellationToken>()))
-                .Returns(Task.CompletedTask);
+
             return mock;
         }
 
@@ -29,9 +27,7 @@ namespace TadoNetApi.Tests.Mocks
             var mock = new Mock<ITadoAuthService>();
             mock.Setup(a => a.GetAccessTokenAsync(It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new UnauthorizedAccessException("Invalid credentials"));
-            mock.Setup(a => a.IsAuthenticated).Returns(false);
-            mock.Setup(a => a.EnsureAuthenticatedAsync(It.IsAny<CancellationToken>()))
-                .ThrowsAsync(new UnauthorizedAccessException("Invalid credentials"));
+
             return mock;
         }
     }

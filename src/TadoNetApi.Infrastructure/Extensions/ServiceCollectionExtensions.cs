@@ -1,8 +1,10 @@
+using System;
 using Microsoft.Extensions.DependencyInjection;
+using TadoNetApi.Domain.Interfaces;
 using TadoNetApi.Infrastructure.Auth;
 using TadoNetApi.Infrastructure.Config;
 using TadoNetApi.Infrastructure.Http;
-using TadoNetApi.Infrastructure.Extensions;
+using TadoNetApi.Infrastructure.Services;
 
 namespace TadoNetApi.Infrastructure.Extensions
 {
@@ -12,23 +14,32 @@ namespace TadoNetApi.Infrastructure.Extensions
             this IServiceCollection services,
             TadoApiConfig config)
         {
-            // Config
             services.AddSingleton(config);
 
-            // Auth
-            services.AddSingleton<TadoAuthService>();
+            // Auth service and HTTP client
+            services.AddHttpClient<ITadoAuthService, TadoAuthService>();
+            services.AddSingleton<ITadoAuthService, TadoAuthService>();
 
-            // Handlers
+            // Delegating handlers
             services.AddTransient<AuthDelegatingHandler>();
             services.AddTransient<RetryDelegatingHandler>();
 
-            // HttpClient
+            // Typed HttpClient with auth + retry
             services.AddHttpClient<ITadoHttpClient, TadoHttpClient>(client =>
             {
                 client.BaseAddress = new Uri(TadoApiEndpoints.ApiBaseUrl);
+                client.Timeout = TimeSpan.FromSeconds(30);
             })
             .AddHttpMessageHandler<AuthDelegatingHandler>()
             .AddHttpMessageHandler<RetryDelegatingHandler>();
+
+            // Domain services
+            services.AddTransient<IHomeService, TadoHomeService>();
+            services.AddTransient<IUserService, TadoUserService>();
+            services.AddTransient<IDeviceService, TadoDeviceService>();
+            services.AddTransient<IZoneService, TadoZoneService>();
+            services.AddTransient<IWeatherService, TadoWeatherService>();
+            services.AddTransient<IScheduleService, TadoScheduleService>();
 
             return services;
         }

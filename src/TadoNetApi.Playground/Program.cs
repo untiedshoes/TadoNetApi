@@ -25,8 +25,11 @@ class Program
             return;
         }
 
+        // ----------------------------
+        // Setup DI and Logging
+        // ----------------------------
         var services = new ServiceCollection();
-        services.AddLogging(builder => builder.AddConsole());
+        services.AddLogging(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Information));
         services.AddTadoInfrastructure(config);
 
         var provider = services.BuildServiceProvider();
@@ -44,9 +47,39 @@ class Program
 
         try
         {
-            var user = await userService.GetUserAsync(cancellationToken);
-            Console.WriteLine($"👤 User: {user?.Name} ({user?.Email})");
+            // ----------------------------
+            // Retry-aware user fetch
+            // ----------------------------
+            var maxAttempts = 5;
+            int attempt = 0;
+            while (true)
+            {
+                attempt++;
+                try
+                {
+                    var user = await userService.GetUserAsync(cancellationToken);
+                    Console.WriteLine($"👤 User: {user?.Name} ({user?.Email})");
+                    break;
+                }
+                catch (Exception ex) when (ex is System.Net.Http.HttpRequestException ||
+                                           ex.Message.Contains("503") ||
+                                           ex.Message.Contains("429"))
+                {
+                    Console.WriteLine($"⚠️ Attempt {attempt}/{maxAttempts} failed: {ex.Message}");
+                    if (attempt >= maxAttempts)
+                    {
+                        Console.WriteLine("❌ Maximum retries reached. Cannot fetch user.");
+                        throw;
+                    }
+                    int delay = config.InitialRetryDelayMs * attempt; // linear backoff
+                    Console.WriteLine($"⏳ Waiting {delay}ms before retrying...");
+                    await Task.Delay(delay, cancellationToken);
+                }
+            }
 
+            // ----------------------------
+            // Fetch homes
+            // ----------------------------
             var homes = await homeService.GetHomesAsync(cancellationToken);
             foreach (var home in homes)
             {

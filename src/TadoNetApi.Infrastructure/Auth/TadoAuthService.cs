@@ -43,7 +43,7 @@ namespace TadoNetApi.Infrastructure.Auth
             }
         }
 
-        private async Task<TadoAuthResponse> RequestTokenAsync(CancellationToken cancellationToken)
+        public async Task<TadoAuthResponse> RequestTokenAsync(CancellationToken cancellationToken)
         {
             var formData = new MultipartFormDataContent
             {

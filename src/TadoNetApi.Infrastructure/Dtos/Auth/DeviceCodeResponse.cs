@@ -13,6 +13,9 @@ namespace TadoNetApi.Infrastructure.Dtos.Auth
         [JsonPropertyName("verification_uri")]
         public string VerificationUri { get; set; } = string.Empty;
 
+        [JsonPropertyName("verification_uri_complete")]
+        public string? VerificationUriComplete { get; set; }
+
         [JsonPropertyName("expires_in")]
         public int ExpiresIn { get; set; }
 

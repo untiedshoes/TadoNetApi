@@ -14,17 +14,25 @@ namespace TadoNetApi.Infrastructure.Extensions
             this IServiceCollection services,
             TadoApiConfig config)
         {
+            // ----------------------------
+            // Config
+            // ----------------------------
             services.AddSingleton(config);
 
-            // Auth service and HTTP client
+            // ----------------------------
+            // Auth Service (typed HttpClient)
+            // ----------------------------
             services.AddHttpClient<ITadoAuthService, TadoAuthService>();
-            services.AddSingleton<ITadoAuthService, TadoAuthService>();
 
-            // Delegating handlers
+            // ----------------------------
+            // Handlers
+            // ----------------------------
             services.AddTransient<AuthDelegatingHandler>();
             services.AddTransient<RetryDelegatingHandler>();
 
-            // Typed HttpClient with auth + retry
+            // ----------------------------
+            // Main API client
+            // ----------------------------
             services.AddHttpClient<ITadoHttpClient, TadoHttpClient>(client =>
             {
                 client.BaseAddress = new Uri(TadoApiEndpoints.ApiBaseUrl);
@@ -33,7 +41,9 @@ namespace TadoNetApi.Infrastructure.Extensions
             .AddHttpMessageHandler<AuthDelegatingHandler>()
             .AddHttpMessageHandler<RetryDelegatingHandler>();
 
+            // ----------------------------
             // Domain services
+            // ----------------------------
             services.AddTransient<IHomeService, TadoHomeService>();
             services.AddTransient<IUserService, TadoUserService>();
             services.AddTransient<IDeviceService, TadoDeviceService>();

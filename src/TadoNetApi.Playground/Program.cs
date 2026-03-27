@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using TadoNetApi.Domain.Interfaces;
 using TadoNetApi.Infrastructure.Config;
 using TadoNetApi.Infrastructure.Extensions;
+using TadoNetApi.Infrastructure.Auth;
 
 class Program
 {
@@ -21,25 +22,21 @@ class Program
 
         if (string.IsNullOrEmpty(config.Username) || string.IsNullOrEmpty(config.Password))
         {
-            Console.WriteLine("❌ Missing Tado credentials.");
+            Console.WriteLine("❌ Missing Tado credentials in environment variables.");
             return;
         }
 
-        // ----------------------------
-        // Setup DI and Logging
-        // ----------------------------
+        // Setup DI and logging
         var services = new ServiceCollection();
-        services.AddLogging(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Information));
+        services.AddLogging(builder => builder.AddConsole());
         services.AddTadoInfrastructure(config);
 
         var provider = services.BuildServiceProvider();
 
-        var homeService = provider.GetRequiredService<IHomeService>();
+        // Resolve services
+        var authService = provider.GetRequiredService<ITadoAuthService>();
         var userService = provider.GetRequiredService<IUserService>();
-        var deviceService = provider.GetRequiredService<IDeviceService>();
-        var zoneService = provider.GetRequiredService<IZoneService>();
-        var weatherService = provider.GetRequiredService<IWeatherService>();
-        var scheduleService = provider.GetRequiredService<IScheduleService>();
+        var homeService = provider.GetRequiredService<IHomeService>();
 
         var cancellationToken = CancellationToken.None;
 
@@ -47,46 +44,42 @@ class Program
 
         try
         {
-            // ----------------------------
-            // Retry-aware user fetch
-            // ----------------------------
-            var maxAttempts = 5;
-            int attempt = 0;
-            while (true)
-            {
-                attempt++;
-                try
-                {
-                    var user = await userService.GetUserAsync(cancellationToken);
-                    Console.WriteLine($"👤 User: {user?.Name} ({user?.Email})");
-                    break;
-                }
-                catch (Exception ex) when (ex is System.Net.Http.HttpRequestException ||
-                                           ex.Message.Contains("503") ||
-                                           ex.Message.Contains("429"))
-                {
-                    Console.WriteLine($"⚠️ Attempt {attempt}/{maxAttempts} failed: {ex.Message}");
-                    if (attempt >= maxAttempts)
-                    {
-                        Console.WriteLine("❌ Maximum retries reached. Cannot fetch user.");
-                        throw;
-                    }
-                    int delay = config.InitialRetryDelayMs * attempt; // linear backoff
-                    Console.WriteLine($"⏳ Waiting {delay}ms before retrying...");
-                    await Task.Delay(delay, cancellationToken);
-                }
-            }
+            // 1️⃣ Start device authorization
+            Console.WriteLine("🔑 Requesting device authorisation...");
+            var deviceCodeInfo = await authService.StartDeviceAuthorisationAsync(cancellationToken);
 
-            // ----------------------------
-            // Fetch homes
-            // ----------------------------
+            // Prefer verification_uri_complete if available, fallback to verification_uri
+            var verificationUri = !string.IsNullOrEmpty(deviceCodeInfo.VerificationUriComplete)
+                                  ? deviceCodeInfo.VerificationUriComplete
+                                  : deviceCodeInfo.VerificationUri;
+
+            Console.WriteLine($"📋 Please visit {verificationUri} and enter the code: {deviceCodeInfo.UserCode}");
+            Console.WriteLine("⏳ Waiting for user authorisation...");
+
+            // 2️⃣ Poll token endpoint until user approves, respecting Tado's interval & expiration
+            var token = await authService.WaitForDeviceTokenAsync(
+                deviceCodeInfo.DeviceCode,
+                intervalSeconds: deviceCodeInfo.Interval,
+                maxWaitSeconds: deviceCodeInfo.ExpiresIn,
+                cancellationToken: cancellationToken);
+
+            Console.WriteLine("✅ Device authorised successfully!");
+
+            // 3️⃣ Call API using authenticated token
+            var user = await userService.GetUserAsync(cancellationToken);
+            Console.WriteLine($"👤 User: {user?.Name} ({user?.Email})");
+
             var homes = await homeService.GetHomesAsync(cancellationToken);
             foreach (var home in homes)
             {
                 Console.WriteLine($"🏠 Home: {home.Name} (ID: {home.Id})");
             }
 
-            Console.WriteLine("✅ Playground complete!");
+            Console.WriteLine("🎉 Playground complete!");
+        }
+        catch (TimeoutException)
+        {
+            Console.WriteLine("⚠️ Device authorisation timed out. Make sure you enter the code in the browser promptly.");
         }
         catch (Exception ex)
         {

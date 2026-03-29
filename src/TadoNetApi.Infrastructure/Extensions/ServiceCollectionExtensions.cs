@@ -20,9 +20,24 @@ namespace TadoNetApi.Infrastructure.Extensions
             services.AddSingleton(config);
 
             // ----------------------------
-            // Auth Service (typed HttpClient)
+            // HttpClient for AUTH (named client)
             // ----------------------------
-            services.AddHttpClient<ITadoAuthService, TadoAuthService>();
+            services.AddHttpClient("TadoAuth", client =>
+            {
+                client.Timeout = TimeSpan.FromSeconds(30);
+            });
+
+            // ----------------------------
+            // Auth Service (Singleton IMPORTANT)
+            // ----------------------------
+            services.AddSingleton<ITadoAuthService>(sp =>
+            {
+                var factory = sp.GetRequiredService<IHttpClientFactory>();
+                var logger = sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<TadoAuthService>>();
+                var cfg = sp.GetRequiredService<TadoApiConfig>();
+
+                return new TadoAuthService(factory, cfg, logger);
+            });
 
             // ----------------------------
             // Handlers
@@ -31,7 +46,7 @@ namespace TadoNetApi.Infrastructure.Extensions
             services.AddTransient<RetryDelegatingHandler>();
 
             // ----------------------------
-            // Main API client
+            // Main API HttpClient
             // ----------------------------
             services.AddHttpClient<ITadoHttpClient, TadoHttpClient>(client =>
             {

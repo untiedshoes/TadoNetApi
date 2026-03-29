@@ -5,17 +5,19 @@ namespace TadoNetApi.Infrastructure.Dtos.Responses;
 public class TadoUserResponse
 {
     [JsonPropertyName("id")]
-    public int Id { get; set; }
+    public string Id { get; set; } = string.Empty;
 
     [JsonPropertyName("name")]
     public string Name { get; set; } = null!;
 
     [JsonPropertyName("email")]
-    public string Email { get; set; } = null!;
+    public string? Email { get; set; } = null!;
 
-    [JsonPropertyName("homeId")]
-    public int HomeId { get; set; }
+    [JsonPropertyName("homes")]
+    public List<TadoHomeResponse> Homes { get; set; } = new();
 
     [JsonPropertyName("locale")]
-    public string? Locale { get; set; }
+    public string? Locale { get; set; } 
+
+
 }

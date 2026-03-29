@@ -5,18 +5,28 @@ namespace TadoNetApi.Domain.Entities;
 /// </summary>
 public class User
 {
-    /// <summary>User's unique identifier.</summary>
-    public int Id { get; set; }
+    /// <summary>
+    /// Gets the unique identifier of the user.
+    /// </summary>
+    public string  Id { get; set; } = string.Empty;
 
-    /// <summary>User's email address.</summary>
-    public string Email { get; set; } = string.Empty;
+    /// <summary>
+    /// Gets the name of the user.
+    /// </summary>
+    public string Name { get; init; } = string.Empty;
 
-    /// <summary>User's display name.</summary>
-    public string Name { get; set; } = string.Empty;
+    /// <summary> 
+    /// Gets the email address of the user.
+    /// </summary>  
+    public string? Email { get; set; } = string.Empty;
 
-    /// <summary>Identifier of the home associated with the user.</summary>
-    public int HomeId { get; set; }
+    /// <summary>
+    /// Gets the list of homes associated with the user.
+    /// </summary>
+    public List<Home> Homes { get; set; } = new List<Home>();
 
-    /// <summary>User's locale (e.g., "en-US").</summary>
+    /// <summary>
+    /// Gets the locale of the user (e.g., "en_GB").
+    /// </summary>
     public string? Locale { get; set; }
 }

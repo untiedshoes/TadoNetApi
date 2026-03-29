@@ -37,6 +37,7 @@ class Program
         var authService = provider.GetRequiredService<ITadoAuthService>();
         var userService = provider.GetRequiredService<IUserService>();
         var homeService = provider.GetRequiredService<IHomeService>();
+        var zoneService = provider.GetRequiredService<IZoneService>();
 
         var cancellationToken = CancellationToken.None;
 
@@ -56,7 +57,7 @@ class Program
             Console.WriteLine($"📋 Please visit {verificationUri} and enter the code: {deviceCodeInfo.UserCode}");
             Console.WriteLine("⏳ Waiting for user authorisation...");
 
-            // 2️⃣ Poll token endpoint until user approves, respecting Tado's interval & expiration
+            // 2 Poll token endpoint until user approves, respecting Tado's interval & expiration
             var token = await authService.WaitForDeviceTokenAsync(
                 deviceCodeInfo.DeviceCode,
                 intervalSeconds: deviceCodeInfo.Interval,
@@ -65,15 +66,34 @@ class Program
 
             Console.WriteLine("✅ Device authorised successfully!");
 
-            // 3️⃣ Call API using authenticated token
-            var user = await userService.GetUserAsync(cancellationToken);
+            // 3 Call API using authenticated token
+            var user = await userService.GetMeAsync(cancellationToken);
+            var homeId = user.Homes?.FirstOrDefault()?.Id ?? throw new Exception("User has no associated homes.");
             Console.WriteLine($"👤 User: {user?.Name} ({user?.Email})");
 
-            var homes = await homeService.GetHomesAsync(cancellationToken);
-            foreach (var home in homes)
+            var home = await homeService.GetHomeAsync(homeId, cancellationToken);
+
+            if (!string.IsNullOrEmpty(home?.Name))
             {
                 Console.WriteLine($"🏠 Home: {home.Name} (ID: {home.Id})");
+            } else {
+                Console.WriteLine($"⚠️ Could not retrieve home information for User: {user?.Name} ({user?.Email})");
             }
+
+            // 4 Get the Zones
+            var zones = await zoneService.GetZonesAsync(homeId, cancellationToken);
+            if (zones.Count == 0)
+            {
+                Console.WriteLine("⚠️ No zones found for the home.");
+                return;
+            } else
+            {
+                foreach (var zone in zones)
+                {
+                    Console.WriteLine($"   - Zone: {zone.Name} (ID: {zone.Id}, Type: {zone.Type})");
+                }
+            }
+        
 
             Console.WriteLine("🎉 Playground complete!");
         }

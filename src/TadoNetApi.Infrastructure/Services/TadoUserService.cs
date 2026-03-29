@@ -19,7 +19,7 @@ public class TadoUserService : IUserService
     }
 
     /// <inheritdoc/>
-    public async Task<User?> GetUserAsync(CancellationToken cancellationToken = default)
+    public async Task<User?> GetMeAsync(CancellationToken cancellationToken = default)
     {
         var dto = await _httpClient.GetAsync<TadoUserResponse>("me", cancellationToken);
         return dto == null ? null : UserMapper.ToDomain(dto);

@@ -10,5 +10,5 @@ public interface IUserService
     /// <summary>
     /// Retrieves information about the current user.
     /// </summary>
-    Task<User?> GetUserAsync(CancellationToken cancellationToken = default);
+    Task<User?> GetMeAsync(CancellationToken cancellationToken = default);
 }

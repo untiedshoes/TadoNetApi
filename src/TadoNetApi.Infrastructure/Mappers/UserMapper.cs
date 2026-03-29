@@ -12,7 +12,7 @@ public static class UserMapper
             Id = response.Id,
             Name = response.Name,
             Email = response.Email,
-            HomeId = response.HomeId,
+            Homes = response.Homes.Select(HomeMapper.ToDomain).ToList(),
             Locale = response.Locale
         };
     }

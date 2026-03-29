@@ -22,5 +22,5 @@ public class UserAppService
     /// <summary>
     /// Retrieves information about the current user.
     /// </summary>
-    public Task<User?> GetUserAsync() => _userService.GetUserAsync();
+    public Task<User?> GetMeAsync() => _userService.GetMeAsync();
 }

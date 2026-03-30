@@ -92,11 +92,7 @@ namespace TadoNetApi.Infrastructure.Auth
             return result;
         }
 
-        public async Task<TadoAuthResponse> WaitForDeviceTokenAsync(
-            string deviceCode,
-            int pollingIntervalSeconds = 5,
-            int expiresInSeconds = 300,
-            CancellationToken cancellationToken = default)
+        public async Task<TadoAuthResponse> WaitForDeviceTokenAsync(string deviceCode, int pollingIntervalSeconds = 5, int expiresInSeconds = 300, CancellationToken cancellationToken = default)
         {
             var startTime = DateTime.UtcNow;
 

@@ -4,24 +4,15 @@ namespace TadoNetApi.Infrastructure.Dtos.Responses;
 
 public class TadoDeviceResponse
 {
-    [JsonPropertyName("id")]
-    public int Id { get; set; }
-
-    [JsonPropertyName("name")]
-    public string Name { get; set; } = null!;
-
-    [JsonPropertyName("email")]
-    public string Email { get; set; } = null!;
-
-    [JsonPropertyName("homeId")]
-    public int HomeId { get; set; }
-
     [JsonPropertyName("serialNo")]
-    public string? SerialNo { get; set; }
+    public string SerialNo { get; set; } = string.Empty;
+
+    [JsonPropertyName("shortSerialNo")]
+    public string ShortSerialNo { get; set; } = string.Empty;
 
     [JsonPropertyName("deviceType")]
-    public string? DeviceType { get; set; } 
+    public string DeviceType { get; set; } = string.Empty;
 
-    [JsonPropertyName("childLock")]
-    public bool? ChildLock { get; set; }
+    [JsonPropertyName("currentFwVersion")]
+    public string CurrentFwVersion { get; set; } = string.Empty;
 }

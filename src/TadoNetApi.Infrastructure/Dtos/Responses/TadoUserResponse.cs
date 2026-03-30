@@ -18,6 +18,4 @@ public class TadoUserResponse
 
     [JsonPropertyName("locale")]
     public string? Locale { get; set; } 
-
-
 }

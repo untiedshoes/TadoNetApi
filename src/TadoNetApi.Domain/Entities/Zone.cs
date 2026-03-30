@@ -25,4 +25,9 @@ public class Zone
 
     /// <summary>Whether the heating is currently on in the zone.</summary>
     public bool IsHeating { get; set; }
+
+    public ZoneSettings? Setting { get; set; }
+
+    public ZoneState? State { get; set; }
+
 }

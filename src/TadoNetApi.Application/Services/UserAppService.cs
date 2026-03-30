@@ -22,5 +22,5 @@ public class UserAppService
     /// <summary>
     /// Retrieves information about the current user.
     /// </summary>
-    public Task<User?> GetMeAsync() => _userService.GetMeAsync();
+    public Task<User?> GetMeAsync(CancellationToken cancellationToken) => _userService.GetMeAsync(cancellationToken);
 }

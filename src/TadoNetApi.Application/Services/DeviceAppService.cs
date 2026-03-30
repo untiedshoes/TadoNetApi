@@ -18,18 +18,13 @@ public class DeviceAppService
     /// <summary>
     /// Retrieves all devices in a specific zone.
     /// </summary>
-    public Task<List<Device>> GetDevicesAsync(int homeId, int zoneId) =>
-        _deviceService.GetDevicesAsync(homeId, zoneId);
+    public Task<List<Device>> GetDevicesAsync(int homeId, int zoneId, CancellationToken cancellationToken) =>
+        _deviceService.GetDevicesAsync(homeId, zoneId, cancellationToken);
 
     /// <summary>
     /// Retrieves a specific device by ID.
     /// </summary>
-    public Task<Device?> GetDeviceAsync(int homeId, int zoneId, int deviceId) =>
-        _deviceService.GetDeviceAsync(homeId, zoneId, deviceId);
-
-    /// <summary>
-    /// Sets the child lock state for a device.
-    /// </summary>
-    public Task SetDeviceChildLockAsync(int homeId, int zoneId, int deviceId, bool lockEnabled) =>
-        _deviceService.SetDeviceChildLockAsync(homeId, zoneId, deviceId, lockEnabled);
+    public Task<Device?> GetDeviceAsync(int homeId, int zoneId, int deviceId, CancellationToken cancellationToken) =>
+        _deviceService.GetDeviceAsync(homeId, zoneId, deviceId, cancellationToken);
+    
 }

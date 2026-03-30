@@ -5,6 +5,7 @@ using TadoNetApi.Infrastructure.Auth;
 using TadoNetApi.Infrastructure.Config;
 using TadoNetApi.Infrastructure.Http;
 using TadoNetApi.Infrastructure.Services;
+using TadoNetApi.Application.Services;
 
 namespace TadoNetApi.Infrastructure.Extensions
 {
@@ -65,6 +66,14 @@ namespace TadoNetApi.Infrastructure.Extensions
             services.AddTransient<IZoneService, TadoZoneService>();
             services.AddTransient<IWeatherService, TadoWeatherService>();
             services.AddTransient<IScheduleService, TadoScheduleService>();
+
+            // ----------------------------
+            // Application services
+            // ---------------------------- 
+            services.AddTransient<HomeAppService>();
+            services.AddTransient<UserAppService>();
+            services.AddTransient<ZoneAppService>();
+            services.AddTransient<DeviceAppService>();
 
             return services;
         }

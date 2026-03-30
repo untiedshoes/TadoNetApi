@@ -18,18 +18,37 @@ public class ZoneAppService
     /// <summary>
     /// Retrieves all zones within a specific home.
     /// </summary>
-    public Task<List<Zone>> GetZonesAsync(int homeId) => _zoneService.GetZonesAsync(homeId);
+    public Task<List<Zone>> GetZonesAsync(int homeId, CancellationToken cancellationToken) => _zoneService.GetZonesAsync(homeId, cancellationToken);
 
     /// <summary>
     /// Retrieves a specific zone by ID within a home.
     /// </summary>
-    public Task<Zone?> GetZoneAsync(int homeId, int zoneId) => _zoneService.GetZoneAsync(homeId, zoneId);
+    public Task<Zone?> GetZoneAsync(int homeId, int zoneId, CancellationToken cancellationToken) => _zoneService.GetZoneAsync(homeId, zoneId, cancellationToken);
 
     /// <summary>
     /// Retrieves the current state of a zone.
     /// </summary>
-    public Task<ZoneState> GetZoneStateAsync(int homeId, int zoneId) =>
-        _zoneService.GetZoneStateAsync(homeId, zoneId);
+    public Task<ZoneState> GetZoneStateAsync(int homeId, int zoneId, CancellationToken cancellationToken) =>
+        _zoneService.GetZoneStateAsync(homeId, zoneId, cancellationToken);
+
+    /// <summary>
+    /// Retrieves all zones within a home along with their current state (temperature, humidity, heating status).
+    /// </summary>
+    public async Task<List<Zone>> GetZonesWithStateAsync(int homeId)
+    {
+        var zones = await _zoneService.GetZonesAsync(homeId);
+
+        foreach (var zone in zones)
+        {
+            var state = await _zoneService.GetZoneStateAsync(homeId, zone.Id);
+
+            zone.CurrentTemperature = state.Temperature;
+            zone.Humidity = state.Humidity;
+            zone.IsHeating = state.Power == "ON";
+        }
+
+        return zones;
+    }
 
     /// <summary>
     /// Sets the target temperature for a zone.

@@ -20,8 +20,20 @@ namespace TadoNetApi.Tests.Services
             // Arrange
             var tadoDevices = new List<TadoDeviceResponse>
             {
-                new TadoDeviceResponse { Id = 1, Name = "Thermostat", ChildLock = false },
-                new TadoDeviceResponse { Id = 2, Name = "Radiator", ChildLock = true }
+                new TadoDeviceResponse
+                {
+                    SerialNo = "123456789",
+                    ShortSerialNo = "123456",
+                    DeviceType = "THERMOSTAT",
+                    CurrentFwVersion = "1.0.0"
+                },
+                new TadoDeviceResponse
+                {
+                    SerialNo = "987654321",
+                    ShortSerialNo = "987654",
+                    DeviceType = "RADIATOR",
+                    CurrentFwVersion = "1.0.0"
+                }
             };
 
             // Simulate 2 transient failures before returning devices
@@ -34,11 +46,12 @@ namespace TadoNetApi.Tests.Services
             var devices = await service.GetDevicesAsync(homeId: 1, zoneId: 1, cancellationToken: CancellationToken.None);
 
             // Assert
+            Assert.NotNull(devices);
             Assert.Equal(2, devices.Count);
-            Assert.Equal("Thermostat", devices[0].Name);
-            Assert.False(devices[0].ChildLock);
-            Assert.Equal("Radiator", devices[1].Name);
-            Assert.True(devices[1].ChildLock);
+            Assert.Equal("123456789", devices[0].SerialNo);
+            Assert.Equal("THERMOSTAT", devices[0].DeviceType);
+            Assert.Equal("987654321", devices[1].SerialNo);
+            Assert.Equal("RADIATOR", devices[1].DeviceType);    
         }
     }
 }

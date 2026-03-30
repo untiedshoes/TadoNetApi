@@ -7,6 +7,7 @@ using TadoNetApi.Domain.Interfaces;
 using TadoNetApi.Infrastructure.Config;
 using TadoNetApi.Infrastructure.Extensions;
 using TadoNetApi.Infrastructure.Auth;
+using TadoNetApi.Application.Services;
 
 class Program
 {
@@ -35,9 +36,10 @@ class Program
 
         // Resolve services
         var authService = provider.GetRequiredService<ITadoAuthService>();
-        var userService = provider.GetRequiredService<IUserService>();
-        var homeService = provider.GetRequiredService<IHomeService>();
-        var zoneService = provider.GetRequiredService<IZoneService>();
+        var userService = provider.GetRequiredService<UserAppService>();
+        var homeService = provider.GetRequiredService<HomeAppService>();
+        var zoneService = provider.GetRequiredService<ZoneAppService>();
+        var deviceService = provider.GetRequiredService<DeviceAppService>();
 
         var cancellationToken = CancellationToken.None;
 
@@ -88,12 +90,16 @@ class Program
                 return;
             } else
             {
+                Console.WriteLine($"📊 {zones.Count} Zones for Home '{home.Name}' found:");
                 foreach (var zone in zones)
                 {
-                    Console.WriteLine($"   - Zone: {zone.Name} (ID: {zone.Id}, Type: {zone.Type})");
+                    var state = await zoneService.GetZoneStateAsync(homeId, zone.Id, cancellationToken);
+                    zone.CurrentTemperature = state.Temperature;
+                    zone.Humidity = state.Humidity;
+                    zone.IsHeating = state.Power == "ON";
+                    Console.WriteLine($"   - Zone: {zone.Name} (ID: {zone.Id}, Type: {zone.Type}, Zone Target Temperature: {zone.CurrentTemperature}°C, Zone Current Temperature: {zone.CurrentTemperature}°C, Zone Humidity: {zone.Humidity}%, Heating: {zone.IsHeating})");
                 }
             }
-        
 
             Console.WriteLine("🎉 Playground complete!");
         }

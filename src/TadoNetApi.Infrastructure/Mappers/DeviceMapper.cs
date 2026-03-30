@@ -15,11 +15,10 @@ public static class DeviceMapper
     {
         return new Device
         {
-            Id = dto.Id,
-            Name = dto.Name,
-            SerialNo = dto.SerialNo ?? string.Empty,
-            DeviceType = dto.DeviceType ?? string.Empty,
-            ChildLock = dto.ChildLock ?? false
+            SerialNo = dto.SerialNo,
+            ShortSerialNo = dto.ShortSerialNo,
+            DeviceType = dto.DeviceType,
+            CurrentFwVersion = dto.CurrentFwVersion
         };
     }
     

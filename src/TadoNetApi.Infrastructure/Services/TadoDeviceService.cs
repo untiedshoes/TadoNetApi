@@ -33,18 +33,4 @@ public class TadoDeviceService : IDeviceService
         return dto == null ? null : DeviceMapper.ToDomain(dto);
     }
 
-    /// <inheritdoc/>
-    public async Task SetDeviceChildLockAsync(int homeId, int zoneId, int deviceId, bool lockEnabled)
-    {
-        var request = new SetChildLockRequest
-        {
-            ChildLock = lockEnabled
-        };
-
-        await _httpClient.PostAsync<SetChildLockRequest, object>(
-            $"homes/{homeId}/zones/{zoneId}/devices/{deviceId}/childLock",
-            request
-        );
-    }
-
 }

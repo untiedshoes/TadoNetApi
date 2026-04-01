@@ -13,9 +13,7 @@ namespace TadoNetApi.Tests.Domain
             {
                 Id = 1,
                 Name = "Living Room",
-                CurrentTemperature = 21.5,
-                TargetTemperature = 22,
-                IsHeating = true
+                CurrentType = "HEATING"
             };
 
             // Act
@@ -24,9 +22,7 @@ namespace TadoNetApi.Tests.Domain
             // Assert
             Assert.Equal(1, zone.Id);
             Assert.Equal("Living Room", zone.Name);
-            Assert.Equal(21.5, zone.CurrentTemperature);
-            Assert.Equal(22, zone.TargetTemperature);
-            Assert.True(zone.IsHeating);
+            Assert.Equal("HEATING", zone.CurrentType);
         }
     }
 }

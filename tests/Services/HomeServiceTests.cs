@@ -21,8 +21,7 @@ namespace TadoNetApi.Tests.Services
                 new TadoHomeResponse
                 {
                     Id = 1,
-                    Name = "My Home",
-                    Timezone = "Europe/London"
+                    Name = "My Home"
                 }
             };
 
@@ -38,7 +37,6 @@ namespace TadoNetApi.Tests.Services
             Assert.Single(homes);
             Assert.Equal(1, homes[0].Id);
             Assert.Equal("My Home", homes[0].Name);
-            Assert.Equal("Europe/London", homes[0].Timezone);
         }
     }
 }

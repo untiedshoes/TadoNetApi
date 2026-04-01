@@ -1,33 +1,63 @@
-namespace TadoNetApi.Domain.Entities;
-
-/// <summary>
-/// Represents a Zone in the domain.
-/// </summary>
-public class Zone
+namespace TadoNetApi.Domain.Entities
 {
-    /// <summary>The unique identifier of the zone.</summary>
-    public int Id { get; set; }
+    /// <summary>
+    /// Information about one zone
+    /// </summary>
+    public class Zone
+    {
+        /// <summary>
+        /// The unique identifier of the zone
+        /// </summary>
+        public long? Id { get; set; }
 
-    /// <summary>The name of the zone.</summary>
-    public string Name { get; set; } = string.Empty;
+        /// <summary>
+        /// The name of the zone
+        /// </summary>
+        public string? Name { get; set; }
 
-    /// <summary>The type of zone (e.g., HEATING, HOT_WATER).</summary>
-    public string Type { get; set; } = string.Empty;
+        /// <summary>
+        /// The current type of the zone (e.g., HEATING, HOT_WATER)
+        /// </summary>
+        public string? CurrentType { get; set; }
 
-    /// <summary>The target temperature for the zone.</summary>
-    public double TargetTemperature { get; set; }
+        /// <summary>
+        /// The date and time when the zone was created
+        /// </summary>
+        public DateTime? DateCreated { get; set; }
 
-    /// <summary>The current measured temperature in the zone.</summary>
-    public double CurrentTemperature { get; set; }
+        /// <summary>
+        /// The types of devices associated with the zone
+        /// </summary>
+        public string[]? DeviceTypes { get; set; }
 
-    /// <summary>The current humidity in the zone.</summary>
-    public double Humidity { get; set; }
+        /// <summary>
+        /// The list of devices in the zone
+        /// </summary>
+        public Device[]? Devices { get; set; }
 
-    /// <summary>Whether the heating is currently on in the zone.</summary>
-    public bool IsHeating { get; set; }
+        /// <summary>
+        /// Indicates whether a report is available for the zone
+        /// </summary>
+        public bool? ReportAvailable { get; set; }
 
-    public ZoneSettings? Setting { get; set; }
+        /// <summary>
+        /// Indicates whether the zone supports the Dazzle feature
+        /// </summary>
+        public bool? SupportsDazzle { get; set; }
 
-    public ZoneState? State { get; set; }
+        /// <summary>
+        /// Indicates whether the Dazzle feature is enabled
+        /// </summary>
+        public bool? DazzleEnabled { get; set; }
 
+        /// <summary>
+        /// The current Dazzle mode configuration
+        /// </summary>
+        public DazzleMode? DazzleMode { get; set; }
+
+        /// <summary>
+        /// The open window detection settings for the zone
+        /// </summary>
+        public OpenWindowDetection? OpenWindowDetection { get; set; }
+    }
 }

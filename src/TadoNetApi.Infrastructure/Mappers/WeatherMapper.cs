@@ -1,25 +1,29 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using TadoNetApi.Domain.Entities;
 using TadoNetApi.Infrastructure.Dtos.Responses;
 
-namespace TadoNetApi.Infrastructure.Mappers;
-
-/// <summary>
-/// Maps Tado API weather DTOs to domain entities.
-/// </summary>
-public static class WeatherMapper
+namespace TadoNetApi.Infrastructure.Mappers
 {
     /// <summary>
-    /// Maps TadoWeatherResponse to Weather domain entity.
+    /// Provides mapping from TadoWeatherResponse DTO to Weather domain entity.
     /// </summary>
-    public static Weather ToDomain(TadoWeatherResponse dto)
+    public static class WeatherMapper
     {
-        return new Weather
+        public static Weather ToDomain(this TadoWeatherResponse dto)
         {
-            Temperature = dto.Temperature ?? 0,
-            Humidity = dto.Humidity ?? 0,
-            WindSpeed = dto.WindSpeed ?? 0,
-            Rain = dto.Rain ?? 0,
-            Condition = dto.Condition ?? string.Empty
-        };
+            if (dto == null) throw new ArgumentNullException(nameof(dto));
+
+            return new Weather
+            {
+                SolarIntensity = dto.SolarIntensity?.ToDomain(),
+                OutsideTemperature = dto.OutsideTemperature?.ToDomain(),
+                WeatherState = dto.WeatherState?.ToDomain()
+            };
+        }
+
+        public static List<Weather> ToDomainList(this IEnumerable<TadoWeatherResponse> dtos)
+            => dtos.Select(ToDomain).ToList();
     }
 }

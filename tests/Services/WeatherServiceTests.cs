@@ -18,8 +18,7 @@ namespace TadoNetApi.Tests.Services
             // Arrange
             var tadoWeather = new TadoWeatherResponse
             {
-                Temperature = 15.5, // Celsius
-                Humidity = 50
+                OutsideTemperature = new TadoOutsideTemperatureResponse { Celsius = 15.5 }
             };
 
             var mockHttp = MockTadoHttpClient.CreateGet(tadoWeather);
@@ -31,8 +30,7 @@ namespace TadoNetApi.Tests.Services
             var weather = await service.GetWeatherAsync(1);
 
             // Assert
-            Assert.Equal(15.5, weather.Temperature);
-            Assert.Equal(50, weather.Humidity);
+            Assert.Equal(15.5, weather.OutsideTemperature?.Celsius);
         }
     }
 }

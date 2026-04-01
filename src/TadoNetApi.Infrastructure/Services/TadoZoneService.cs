@@ -1,63 +1,115 @@
+using System.Net;
+using TadoNetApi.Application.Services;
 using TadoNetApi.Domain.Entities;
-using TadoNetApi.Domain.Interfaces;
-using TadoNetApi.Infrastructure.Dtos.Requests;
 using TadoNetApi.Infrastructure.Dtos.Responses;
+using TadoNetApi.Infrastructure.Exceptions;
 using TadoNetApi.Infrastructure.Http;
 using TadoNetApi.Infrastructure.Mappers;
+using TadoNetApi.Domain.Interfaces;
 
-namespace TadoNetApi.Infrastructure.Services;
-
-/// <summary>
-/// Concrete implementation of IZoneService using the Tado API.
-/// </summary>
-public class TadoZoneService : IZoneService
+namespace TadoNetApi.Infrastructure.Services
 {
-    private readonly ITadoHttpClient _httpClient;
-
-    public TadoZoneService(ITadoHttpClient httpClient)
+    /// <summary>
+    /// Tado REST API implementation for interacting with zones.
+    /// </summary>
+    public class TadoZoneService : IZoneService
     {
-        _httpClient = httpClient;
-    }
+        private readonly ITadoHttpClient _httpClient;
 
-    /// <inheritdoc/>
-    public async Task<List<Zone>> GetZonesAsync(int homeId, CancellationToken cancellationToken = default)
-    {
-        var dtos = await _httpClient.GetAsync<List<TadoZoneResponse>>($"homes/{homeId}/zones", cancellationToken);
-        return dtos == null ? new List<Zone>() : ZoneMapper.ToDomainList(dtos);
-    }
-
-    /// <inheritdoc/>
-    public async Task<Zone> GetZoneAsync(int homeId, int zoneId, CancellationToken cancellationToken = default)
-    {
-        var dto = await _httpClient.GetAsync<TadoZoneResponse>($"homes/{homeId}/zones/{zoneId}", cancellationToken);
-        if (dto == null)
-            throw new Exception("Zone not found");
-
-        return ZoneMapper.ToDomain(dto);
-    }
-
-    /// <inheritdoc/>
-    public async Task<ZoneState> GetZoneStateAsync(int homeId, int zoneId, CancellationToken cancellationToken = default)
-    {
-        var dto = await _httpClient.GetAsync<TadoZoneResponse>($"homes/{homeId}/zones/{zoneId}", cancellationToken);
-        if (dto == null)
-            throw new Exception("Zone not found");
-
-        return ZoneMapper.ToDomainState(dto);
-    }
-
-    /// <inheritdoc/>
-    public async Task SetZoneTemperatureAsync(int homeId, int zoneId, double temperature, CancellationToken cancellationToken = default)
-    {
-        var request = new SetZoneTemperatureRequest
+        public TadoZoneService(ITadoHttpClient httpClient)
         {
-            Temperature = temperature
-        };
+            _httpClient = httpClient;
+        }
 
-        await _httpClient.PostAsync<SetZoneTemperatureRequest, object>(
-            $"homes/{homeId}/zones/{zoneId}/overlay",
-            request,
-            cancellationToken
-        );
+        /// <summary>
+        /// Returns a list of zones in the specified home.
+        /// </summary>
+        public async Task<IReadOnlyList<Zone>> GetZonesAsync(int homeId, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync<List<TadoZoneResponse>>(
+                    $"homes/{homeId}/zones",
+                    cancellationToken) ?? new List<TadoZoneResponse>();
+
+                return response.Select(z => z.ToDomain()).ToList();
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new TadoApiException(HttpStatusCode.ServiceUnavailable,
+                    $"Failed to retrieve zones: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Returns detailed information about a specific zone.
+        /// </summary>
+        public async Task<Zone> GetZoneAsync(int homeId, int zoneId, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync<TadoZoneResponse>(
+                    $"homes/{homeId}/zones/{zoneId}",
+                    cancellationToken);
+
+                if (response == null)
+                    throw new TadoApiException(HttpStatusCode.NotFound, $"Zone {zoneId} not found.");
+
+                return ZoneMapper.ToDomain(response);
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new TadoApiException(HttpStatusCode.ServiceUnavailable,
+                    $"Failed to retrieve zone: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Returns the current state of a zone (current temperature, humidity, etc.)
+        /// </summary>
+        public async Task<State> GetZoneStateAsync(int homeId, int zoneId, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync<TadoStateResponse>(
+                    $"homes/{homeId}/zones/{zoneId}/state",
+                    cancellationToken) ?? new TadoStateResponse();
+
+                if (response == null)
+                    throw new TadoApiException(HttpStatusCode.NotFound, $"Zone state for zone {zoneId} not found.");
+
+                return StateMapper.ToDomain(response);
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new TadoApiException(HttpStatusCode.ServiceUnavailable,
+                    $"Failed to retrieve zone state: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Returns the summarized state of a zone (target temperature, overlay, etc.)
+        /// </summary>
+        public async Task<ZoneSummary?> GetZoneSummaryAsync(int homeId, int zoneId, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync<TadoZoneSummaryResponse>(
+                    $"homes/{homeId}/zones/{zoneId}/overlay",
+                    cancellationToken);
+
+                return ZoneSummaryMapper.ToDomain(response);
+            }
+            catch (TadoApiException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+            {
+                // No overlay active for this zone
+                return null;
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new TadoApiException(HttpStatusCode.ServiceUnavailable,
+                    $"Failed to retrieve zone summary: {ex.Message}");
+            }
+        }
     }
 }

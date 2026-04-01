@@ -1,8 +1,10 @@
+using System.Net;
 using TadoNetApi.Domain.Entities;
 using TadoNetApi.Domain.Interfaces;
 using TadoNetApi.Infrastructure.Dtos.Responses;
 using TadoNetApi.Infrastructure.Http;
 using TadoNetApi.Infrastructure.Mappers;
+using TadoNetApi.Infrastructure.Exceptions;
 
 namespace TadoNetApi.Infrastructure.Services;
 
@@ -21,10 +23,10 @@ public class TadoWeatherService : IWeatherService
     /// <inheritdoc/>
     public async Task<Weather> GetWeatherAsync(int homeId, CancellationToken cancellationToken = default)
     {
-        var dto = await _httpClient.GetAsync<TadoWeatherResponse>($"homes/{homeId}/weather", cancellationToken);
-        if (dto == null)
-            throw new Exception("Weather not found");
+        var response = await _httpClient.GetAsync<TadoWeatherResponse>($"homes/{homeId}/weather", cancellationToken);
+        if (response == null)
+            throw new TadoApiException(HttpStatusCode.NotFound, $"Weather not found");
 
-        return WeatherMapper.ToDomain(dto);
+        return WeatherMapper.ToDomain(response);
     }
 }

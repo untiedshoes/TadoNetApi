@@ -13,8 +13,7 @@ namespace TadoNetApi.Tests.Domain
             var home = new Home
             {
                 Id = 1,
-                Name = "Test Home",
-                Timezone = "Europe/Lodon"
+                Name = "Test Home"
             };
 
             // Act
@@ -23,7 +22,6 @@ namespace TadoNetApi.Tests.Domain
             // Assert
             Assert.Equal(1, home.Id);
             Assert.Equal("Test Home", home.Name);
-            Assert.Equal("Europe/Lodon", home.Timezone);
         }
     }
 }

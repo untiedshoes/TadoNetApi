@@ -1,22 +1,23 @@
-namespace TadoNetApi.Domain.Entities;
-
-/// <summary>
-/// Represents the current weather conditions for a home.
-/// </summary>
-public class Weather
+namespace TadoNetApi.Domain.Entities
 {
-    /// <summary>Current temperature in Celsius.</summary>
-    public double Temperature { get; set; }
+    /// <summary>
+    /// The current weather
+    /// </summary>
+    public partial class Weather
+    {
+        /// <summary>
+        /// The current solar intensity
+        /// </summary>
+        public SolarIntensity? SolarIntensity { get; set; }
 
-    /// <summary>Current humidity as a percentage.</summary>
-    public double Humidity { get; set; }
+        /// <summary>
+        /// The current outside temperature
+        /// </summary>
+        public OutsideTemperature? OutsideTemperature { get; set; }
 
-    /// <summary>Wind speed in m/s.</summary>
-    public double WindSpeed { get; set; }
-
-    /// <summary>Rain volume in mm (if any).</summary>
-    public double Rain { get; set; }
-
-    /// <summary>Weather description or condition (e.g., Sunny, Cloudy).</summary>
-    public string Condition { get; set; } = string.Empty;
+        /// <summary>
+        /// The current weather state (e.g., SUNNY, CLOUDY)
+        /// </summary>
+        public WeatherState? WeatherState { get; set; }
+    }
 }

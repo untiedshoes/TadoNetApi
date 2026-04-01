@@ -1,21 +1,52 @@
 using System.Text.Json.Serialization;
 
-namespace TadoNetApi.Infrastructure.Dtos.Responses;
-
-public class TadoUserResponse
+namespace TadoNetApi.Infrastructure.Dtos.Responses
 {
-    [JsonPropertyName("id")]
-    public string Id { get; set; } = string.Empty;
+    /// <summary>
+    /// Contains information about a user
+    /// </summary>
+    public class TadoUserResponse
+    {
+        /// <summary>
+        /// The full name of the user
+        /// </summary>
+        [JsonPropertyName("name")]
+        public string? Name { get; set; }
 
-    [JsonPropertyName("name")]
-    public string Name { get; set; } = null!;
+        /// <summary>
+        /// The email address of the user
+        /// </summary>
+        [JsonPropertyName("email")]
+        public string? Email { get; set; }
 
-    [JsonPropertyName("email")]
-    public string? Email { get; set; } = null!;
+        /// <summary>
+        /// The username used by the user
+        /// </summary>
+        [JsonPropertyName("username")]
+        public string? Username { get; set; }
 
-    [JsonPropertyName("homes")]
-    public List<TadoHomeResponse> Homes { get; set; } = new();
+        /// <summary>
+        /// The unique identifier of the user
+        /// </summary>
+        [JsonPropertyName("id")]
+        public string? Id { get; set; }
 
-    [JsonPropertyName("locale")]
-    public string? Locale { get; set; } 
+        /// <summary>
+        /// The list of homes associated with the user
+        /// </summary>
+        [JsonPropertyName("homes")]
+        public TadoHomeResponse[]? Homes { get; set; }
+
+        /// <summary>
+        /// The locale or language preference of the user
+        /// </summary>
+        [JsonPropertyName("locale")]
+        public string? Locale { get; set; }
+
+        /// <summary>
+        /// The list of mobile devices linked to the user
+        /// </summary>
+        [JsonPropertyName("mobileDevices")]
+        public MobileDevice.TadoMobileItemResponse[]? MobileDevices { get; set; }
+    }
 }

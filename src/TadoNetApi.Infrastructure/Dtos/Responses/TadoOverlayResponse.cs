@@ -1,18 +1,22 @@
 using System.Text.Json.Serialization;
 
-namespace TadoNetApi.Infrastructure.Dtos.Responses;
-
-/// <summary>
-/// Response from Tado API for a zone overlay.
-/// </summary>
-public class TadoOverlayResponse
+namespace TadoNetApi.Infrastructure.Dtos.Responses
 {
-    [JsonPropertyName("type")]
-    public string? Type { get; set; }
+    /// <summary>
+    /// Represents the current overlay state of a Tado device
+    /// </summary>
+    public partial class TadoOverlayResponse
+    {
+        /// <summary>
+        /// The current setting applied to the Tado device
+        /// </summary>
+        [JsonPropertyName("setting")]
+        public TadoSettingResponse? Setting { get; set; }
 
-    [JsonPropertyName("temperature")]
-    public double? Temperature { get; set; }
-
-    [JsonPropertyName("endTime")]
-    public DateTime? EndTime { get; set; }
+        /// <summary>
+        /// Information on when the current setting will end
+        /// </summary>
+        [JsonPropertyName("termination")]
+        public TadoTerminationResponse? Termination { get; set; }
+    }
 }

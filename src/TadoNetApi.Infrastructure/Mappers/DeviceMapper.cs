@@ -1,29 +1,39 @@
 using TadoNetApi.Domain.Entities;
 using TadoNetApi.Infrastructure.Dtos.Responses;
 
-namespace TadoNetApi.Infrastructure.Mappers;
-
-/// <summary>
-/// Maps Tado API Device DTOs to Domain entities.
-/// </summary>
-public static class DeviceMapper
+namespace TadoNetApi.Infrastructure.Mappers
 {
     /// <summary>
-     /// Maps a TadoDeviceResponse to a Domain Device entity.
-     /// </summary>
-    public static Device ToDomain(TadoDeviceResponse dto)
+    /// Provides mapping extensions from Tado API DTOs to domain entities.
+    /// </summary>
+    public static class DeviceMapper
     {
-        return new Device
-        {
-            SerialNo = dto.SerialNo,
-            ShortSerialNo = dto.ShortSerialNo,
-            DeviceType = dto.DeviceType,
-            CurrentFwVersion = dto.CurrentFwVersion
-        };
-    }
-    
-    public static List<Device> ToDomainList(List<TadoDeviceResponse> dtos)
-    {
-        return dtos.Select(ToDomain).ToList();
+        /// <summary>
+        /// Maps a <see cref="TadoDeviceResponse"/> to a <see cref="Device"/> domain entity.
+        /// </summary>
+        /// <param name="dto">The API DTO to map.</param>
+        /// <returns>A fully mapped domain <see cref="Device"/>.</returns>
+        public static Device ToDomain(this TadoDeviceResponse dto) =>
+            new Device
+            {
+                DeviceType = dto.DeviceType,
+                SerialNo = dto.SerialNo,
+                ShortSerialNo = dto.ShortSerialNo,
+                CurrentFwVersion = dto.CurrentFwVersion,
+                ConnectionState = dto.ConnectionState?.ToDomain(),
+                Characteristics = dto.Characteristics?.ToDomain(),
+                Duties = dto.Duties,
+                MountingState = dto.MountingState?.ToDomain(),
+                BatteryState = dto.BatteryState,
+                ChildLockEnabled = dto.ChildLockEnabled
+            };
+
+        /// <summary>
+        /// Maps a list of <see cref="TadoDeviceResponse"/> to a list of <see cref="Device"/> domain entities.
+        /// </summary>
+        /// <param name="dtos">The list of API DTOs.</param>
+        /// <returns>A list of domain <see cref="Device"/> entities.</returns>
+        public static List<Device> ToDomainList(this IEnumerable<TadoDeviceResponse> dtos) =>
+            dtos.Select(d => d.ToDomain()).ToList();
     }
 }

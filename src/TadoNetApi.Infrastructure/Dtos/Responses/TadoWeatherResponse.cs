@@ -1,24 +1,28 @@
 using System.Text.Json.Serialization;
 
-namespace TadoNetApi.Infrastructure.Dtos.Responses;
-
-/// <summary>
-/// DTO representing the weather response from the Tado API.
-/// </summary>
-public class TadoWeatherResponse
+namespace TadoNetApi.Infrastructure.Dtos.Responses
 {
-    [JsonPropertyName("temperature")]
-    public double? Temperature { get; set; }
+    /// <summary>
+    /// The current weather
+    /// </summary>
+    public partial class TadoWeatherResponse
+    {
+        /// <summary>
+        /// The current solar intensity
+        /// </summary>
+        [JsonPropertyName("solarIntensity")]
+        public TadoSolarIntensityResponse? SolarIntensity { get; set; }
 
-    [JsonPropertyName("humidity")]
-    public double? Humidity { get; set; }
+        /// <summary>
+        /// The current outside temperature
+        /// </summary>
+        [JsonPropertyName("outsideTemperature")]
+        public TadoOutsideTemperatureResponse? OutsideTemperature { get; set; }
 
-    [JsonPropertyName("windSpeed")]
-    public double? WindSpeed { get; set; }
-
-    [JsonPropertyName("rain")]
-    public double? Rain { get; set; }
-
-    [JsonPropertyName("condition")]
-    public string? Condition { get; set; }
+        /// <summary>
+        /// The current weather state (e.g., SUNNY, CLOUDY)
+        /// </summary>
+        [JsonPropertyName("weatherState")]
+        public TadoWeatherStateResponse? WeatherState { get; set; }
+    }
 }

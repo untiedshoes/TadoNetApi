@@ -1,30 +1,30 @@
 using TadoNetApi.Domain.Entities;
 using TadoNetApi.Domain.Interfaces;
 
-namespace TadoNetApi.Application.Services;
-
-/// <summary>
-/// Application service for managing devices within zones.
-/// </summary>
-public class DeviceAppService
+namespace TadoNetApi.Application.Services
 {
-    private readonly IDeviceService _deviceService;
-
-    public DeviceAppService(IDeviceService deviceService)
+    /// <summary>
+    /// Application-level service for devices. Wraps <see cref="IDeviceService"/> for easier consumption.
+    /// </summary>
+    public class DeviceAppService
     {
-        _deviceService = deviceService;
+        private readonly IDeviceService _deviceService;
+
+        public DeviceAppService(IDeviceService deviceService)
+        {
+            _deviceService = deviceService;
+        }
+
+        /// <summary>
+        /// Retrieves all devices for a given home and zone.
+        /// </summary>
+        public Task<IReadOnlyList<Device>> GetDevicesAsync(int homeId, CancellationToken cancellationToken = default)
+            => _deviceService.GetDevicesAsync(homeId, cancellationToken);
+
+        /// <summary>
+        /// Retrieves a single device by ID.
+        /// </summary>
+        public Task<Device> GetDeviceAsync(int homeId, int deviceId, CancellationToken cancellationToken = default)
+            => _deviceService.GetDeviceAsync(homeId, deviceId, cancellationToken);
     }
-
-    /// <summary>
-    /// Retrieves all devices in a specific zone.
-    /// </summary>
-    public Task<List<Device>> GetDevicesAsync(int homeId, int zoneId, CancellationToken cancellationToken) =>
-        _deviceService.GetDevicesAsync(homeId, zoneId, cancellationToken);
-
-    /// <summary>
-    /// Retrieves a specific device by ID.
-    /// </summary>
-    public Task<Device?> GetDeviceAsync(int homeId, int zoneId, int deviceId, CancellationToken cancellationToken) =>
-        _deviceService.GetDeviceAsync(homeId, zoneId, deviceId, cancellationToken);
-    
 }

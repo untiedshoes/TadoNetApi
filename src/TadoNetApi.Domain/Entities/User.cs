@@ -1,32 +1,43 @@
-namespace TadoNetApi.Domain.Entities;
-
-/// <summary>
-/// Represents a Tado user associated with a home.
-/// </summary>
-public class User
+namespace TadoNetApi.Domain.Entities
 {
     /// <summary>
-    /// Gets the unique identifier of the user.
+    /// Contains information about a user
     /// </summary>
-    public string  Id { get; set; } = string.Empty;
+    public class User
+    {
+        /// <summary>
+        /// The full name of the user
+        /// </summary>
+        public string? Name { get; set; }
 
-    /// <summary>
-    /// Gets the name of the user.
-    /// </summary>
-    public string Name { get; init; } = string.Empty;
+        /// <summary>
+        /// The email address of the user
+        /// </summary>
+        public string? Email { get; set; }
 
-    /// <summary> 
-    /// Gets the email address of the user.
-    /// </summary>  
-    public string? Email { get; set; } = string.Empty;
+        /// <summary>
+        /// The username used by the user
+        /// </summary>
+        public string? Username { get; set; }
 
-    /// <summary>
-    /// Gets the list of homes associated with the user.
-    /// </summary>
-    public List<Home> Homes { get; set; } = new List<Home>();
+        /// <summary>
+        /// The unique identifier of the user
+        /// </summary>
+        public string? Id { get; set; }
 
-    /// <summary>
-    /// Gets the locale of the user (e.g., "en_GB").
-    /// </summary>
-    public string? Locale { get; set; }
+        /// <summary>
+        /// The list of homes associated with the user
+        /// </summary>
+        public Home[]? Homes { get; set; }
+
+        /// <summary>
+        /// The locale or language preference of the user
+        /// </summary>
+        public string? Locale { get; set; }
+
+        /// <summary>
+        /// The list of mobile devices linked to the user
+        /// </summary>
+        public MobileDevice.Item[]? MobileDevices { get; set; }
+    }
 }

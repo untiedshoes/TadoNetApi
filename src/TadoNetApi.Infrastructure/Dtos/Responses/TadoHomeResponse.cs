@@ -1,19 +1,22 @@
 using System.Text.Json.Serialization;
 
-namespace TadoNetApi.Infrastructure.Dtos.Responses;
-
-/// <summary>
-/// Represents the raw Home response from the Tado API.
-/// Mirrors the JSON structure returned by the API.
-/// </summary>
-public class TadoHomeResponse
+namespace TadoNetApi.Infrastructure.Dtos.Responses
 {
-    [JsonPropertyName("id")]
-    public int Id { get; set; }
+    /// <summary>
+    /// Contains information about a home where Tado is being used
+    /// </summary>
+    public class TadoHomeResponse
+    {
+        /// <summary>
+        /// The unique identifier of the home
+        /// </summary>
+        [JsonPropertyName("id")]
+        public long? Id { get; set; }
 
-    [JsonPropertyName("name")]
-    public string Name { get; set; } = string.Empty;
-
-    [JsonPropertyName("timezone")]
-    public string? Timezone { get; set; }
+        /// <summary>
+        /// The name of the home
+        /// </summary>
+        [JsonPropertyName("name")]
+        public string? Name { get; set; }
+    }
 }

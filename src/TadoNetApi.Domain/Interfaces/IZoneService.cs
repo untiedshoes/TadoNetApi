@@ -1,37 +1,26 @@
 using TadoNetApi.Domain.Entities;
 
-namespace TadoNetApi.Domain.Interfaces;
-
-/// <summary>
-/// Service interface for managing zones within homes.
-/// </summary>
-public interface IZoneService
+namespace TadoNetApi.Domain.Interfaces
 {
     /// <summary>
-    /// Retrieves all zones within a specific home.
+    /// Defines operations for interacting with zones.
     /// </summary>
-    /// <param name="homeId">The ID of the home.</param>
-    Task<List<Zone>> GetZonesAsync(int homeId, CancellationToken cancellationToken = default);
+    public interface IZoneService
+    {
+        Task<IReadOnlyList<Zone>> GetZonesAsync(int homeId, CancellationToken cancellationToken = default);
+        Task<Zone> GetZoneAsync(int homeId, int zoneId, CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Retrieves a specific zone by its ID within a home.
-    /// homeId: The ID of the home.
-    /// zoneId: The ID of the zone to retrieve.
-    /// </summary>
-    Task<Zone?> GetZoneAsync(int homeId, int zoneId, CancellationToken cancellationToken = default);
+        /// <summary>
+        /// Fetches the current state of a zone.
+        /// </summary>
+        Task<State> GetZoneStateAsync(int homeId, int zoneId, CancellationToken cancellationToken = default);
 
-    /// <summary>
-    /// Retrieves the current state of a zone.
-    /// homeId: The ID of the home.
-    /// zoneId: The ID of the zone
-    /// </summary>
-    Task<ZoneState> GetZoneStateAsync(int homeId, int zoneId, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Sets the target temperature for a zone.
-    /// homeId: The ID of the home.
-    /// zoneId: The ID of the zone.
-    /// temperature: The target temperature to set for the zone.
-    /// </summary>
-    Task SetZoneTemperatureAsync(int homeId, int zoneId, double temperature, CancellationToken cancellationToken = default);
+        /// <summary>
+        /// Fetches a summary of the zone's current settings and termination conditions.
+        /// Returns null if no overlay is active.
+        /// </summary> <param name="homeId">The ID of the home.</param>
+        /// <param name="zoneId">The ID of the zone.</param>    /// <param name="cancellationToken">Cancellation token.</param> 
+        /// <returns>A summary of the zone's current settings and termination conditions, or null if no overlay.</returns>
+        Task<ZoneSummary?> GetZoneSummaryAsync(int homeId, int zoneId, CancellationToken cancellationToken = default);
+    }
 }

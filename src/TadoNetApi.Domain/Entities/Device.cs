@@ -1,21 +1,58 @@
-using System.Runtime.CompilerServices;
-
-namespace TadoNetApi.Domain.Entities;
-
-/// <summary>
-/// Represents a device in a Tado zone.
-/// </summary>
-public class Device
+namespace TadoNetApi.Domain.Entities
 {
-    /// <summary>Device serial number.</summary>
-    public string SerialNo { get; set; } = string.Empty;
+    /// <summary>
+    /// Information about one Tado device
+    /// </summary>
+    public class Device
+    {
+        /// <summary>
+        /// The type of the device (e.g., SMART_THERMOSTAT)
+        /// </summary>
+        public string? DeviceType { get; set; }
 
-    /// <summary>Short serial number (last 4 characters of the serial number).</summary>
-    public string ShortSerialNo { get; set; } = string.Empty;
+        /// <summary>
+        /// The full serial number of the device
+        /// </summary>
+        public string? SerialNo { get; set; }
 
-    /// <summary>Type of device (e.g., THERMOSTAT, SENSOR).</summary>
-    public string DeviceType { get; set; } = string.Empty;
+        /// <summary>
+        /// The short version of the device's serial number
+        /// </summary>
+        public string? ShortSerialNo { get; set; }
 
-    /// <summary>Firmware version of the device.</summary>
-    public string CurrentFwVersion { get; set; } = string.Empty;
+        /// <summary>
+        /// The current firmware version installed on the device
+        /// </summary>
+        public string? CurrentFwVersion { get; set; }
+
+        /// <summary>
+        /// The current connection state of the device
+        /// </summary>
+        public ConnectionState? ConnectionState { get; set; }
+
+        /// <summary>
+        /// The characteristics of the device
+        /// </summary>
+        public Characteristics? Characteristics { get; set; }
+
+        /// <summary>
+        /// The list of duties assigned to the device
+        /// </summary>
+        public string[]? Duties { get; set; }
+
+        /// <summary>
+        /// The mounting state of the device
+        /// </summary>
+        public MountingState? MountingState { get; set; }
+
+        /// <summary>
+        /// The battery state of the device (e.g., NORMAL, LOW)
+        /// </summary>
+        public string? BatteryState { get; set; }
+
+        /// <summary>
+        /// Indicates if child lock is enabled or disabled on the Tado device
+        /// </summary>
+        public bool? ChildLockEnabled { get; set; }
+    }
 }

@@ -1,36 +1,77 @@
 using TadoNetApi.Domain.Entities;
 using TadoNetApi.Domain.Interfaces;
-using TadoNetApi.Infrastructure.Dtos.Requests;
 using TadoNetApi.Infrastructure.Dtos.Responses;
+using TadoNetApi.Infrastructure.Exceptions;
 using TadoNetApi.Infrastructure.Http;
 using TadoNetApi.Infrastructure.Mappers;
 
-namespace TadoNetApi.Infrastructure.Services;
-
-/// <summary>
-/// Concrete implementation of IDeviceService using the Tado API.
-/// </summary>
-public class TadoDeviceService : IDeviceService
+namespace TadoNetApi.Infrastructure.Services
 {
-    private readonly ITadoHttpClient _httpClient;
-
-    public TadoDeviceService(ITadoHttpClient httpClient)
+    /// <summary>
+    /// Provides operations to fetch Tado devices at the home level.
+    /// </summary>
+    public class TadoDeviceService : IDeviceService
     {
-        _httpClient = httpClient;
-    }
+        private readonly ITadoHttpClient _httpClient;
 
-    /// <inheritdoc/>
-    public async Task<List<Device>> GetDevicesAsync(int homeId, int zoneId, CancellationToken cancellationToken = default)
-    {
-        var dtos = await _httpClient.GetAsync<List<TadoDeviceResponse>>($"homes/{homeId}/zones/{zoneId}/devices", cancellationToken);
-        return dtos == null ? new List<Device>() : DeviceMapper.ToDomainList(dtos);
-    }
+        /// <summary>
+        /// Initializes a new instance of <see cref="TadoDeviceService"/>.
+        /// </summary>
+        /// <param name="httpClient">The HTTP client used to communicate with the Tado API.</param>
+        public TadoDeviceService(ITadoHttpClient httpClient) =>
+            _httpClient = httpClient;
 
-    /// <inheritdoc/>
-    public async Task<Device?> GetDeviceAsync(int homeId, int zoneId, int deviceId, CancellationToken cancellationToken = default)
-    {
-        var dto = await _httpClient.GetAsync<TadoDeviceResponse>($"homes/{homeId}/zones/{zoneId}/devices/{deviceId}", cancellationToken);
-        return dto == null ? null : DeviceMapper.ToDomain(dto);
-    }
+        /// <summary>
+        /// Retrieves all devices for the specified home.
+        /// </summary>
+        /// <param name="homeId">The ID of the home.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>A read-only list of <see cref="Device"/>.</returns>
+        /// <exception cref="TadoApiException">Thrown if the API request fails.</exception>
+        public async Task<IReadOnlyList<Device>> GetDevicesAsync(int homeId, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync<List<TadoDeviceResponse>>(
+                    $"homes/{homeId}/devices",
+                    cancellationToken) ?? new List<TadoDeviceResponse>();
 
+                return response.ToDomainList();
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new TadoApiException(System.Net.HttpStatusCode.ServiceUnavailable,
+                    $"Failed to retrieve devices: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Retrieves a single device by home and device ID.
+        /// </summary>
+        /// <param name="homeId">The home ID.</param>
+        /// <param name="deviceId">The device ID.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>The <see cref="Device"/>.</returns>
+        /// <exception cref="TadoApiException">Thrown if the device is not found or request fails.</exception>
+        public async Task<Device> GetDeviceAsync(int homeId, int deviceId, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync<TadoDeviceResponse>(
+                    $"homes/{homeId}/devices/{deviceId}",
+                    cancellationToken);
+
+                if (response == null)
+                    throw new TadoApiException(System.Net.HttpStatusCode.NotFound,
+                        $"Device {deviceId} not found.");
+
+                return response.ToDomain();
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new TadoApiException(System.Net.HttpStatusCode.ServiceUnavailable,
+                    $"Failed to retrieve device: {ex.Message}");
+            }
+        }
+    }
 }

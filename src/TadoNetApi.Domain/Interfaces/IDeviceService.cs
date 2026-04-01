@@ -1,20 +1,19 @@
-namespace TadoNetApi.Domain.Interfaces;
-
 using TadoNetApi.Domain.Entities;
 
+namespace TadoNetApi.Domain.Interfaces;
+
 /// <summary>
-/// Service interface for managing devices within zones.
+/// Provides methods to interact with Tado Devices at the domain level.
 /// </summary>
 public interface IDeviceService
 {
     /// <summary>
-    /// Retrieves all devices in a zone.
+    /// Retrieves all devices for a given zone in a home.
     /// </summary>
-    Task<List<Device>> GetDevicesAsync(int homeId, int zoneId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<Device>> GetDevicesAsync(int homeId, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Retrieves a specific device by ID.
+    /// Retrieves a single device by ID within a zone.
     /// </summary>
-    Task<Device?> GetDeviceAsync(int homeId, int zoneId, int deviceId, CancellationToken cancellationToken = default);
-
+    Task<Device> GetDeviceAsync(int homeId, int deviceId, CancellationToken cancellationToken = default);
 }

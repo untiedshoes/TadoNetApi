@@ -1,16 +1,18 @@
-namespace TadoNetApi.Domain.Entities;
-
-/// <summary>
-/// Represents a temperature overlay in a zone.
-/// </summary>
-public class Overlay
+namespace TadoNetApi.Domain.Entities
 {
-    /// <summary>Target temperature for this overlay (°C).</summary>
-    public double TargetTemperature { get; set; }
+    /// <summary>
+    /// Represents the current overlay state of a Tado device
+    /// </summary>
+    public partial class Overlay
+    {
+        /// <summary>
+        /// The current setting applied to the Tado device
+        /// </summary>
+        public Setting? Setting { get; set; }
 
-    /// <summary>Overlay mode (e.g., MANUAL, TIMER).</summary>
-    public string Type { get; set; } = string.Empty;
-
-    /// <summary>Overlay end time, if applicable.</summary>
-    public DateTime? EndTime { get; set; }
+        /// <summary>
+        /// Information on when the current setting will end
+        /// </summary>
+        public Termination? Termination { get; set; }
+    }
 }

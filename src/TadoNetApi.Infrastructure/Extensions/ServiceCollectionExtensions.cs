@@ -65,7 +65,6 @@ namespace TadoNetApi.Infrastructure.Extensions
             services.AddTransient<IDeviceService, TadoDeviceService>();
             services.AddTransient<IZoneService, TadoZoneService>();
             services.AddTransient<IWeatherService, TadoWeatherService>();
-            services.AddTransient<IScheduleService, TadoScheduleService>();
 
             // ----------------------------
             // Application services

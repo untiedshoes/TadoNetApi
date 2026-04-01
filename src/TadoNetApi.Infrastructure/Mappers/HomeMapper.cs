@@ -15,8 +15,7 @@ public static class HomeMapper
         return new Home
         {
             Id = dto.Id,
-            Name = dto.Name,
-            Timezone = dto.Timezone
+            Name = dto.Name
         };
     }
 

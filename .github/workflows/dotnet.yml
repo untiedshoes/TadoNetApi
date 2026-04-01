@@ -48,12 +48,13 @@ jobs:
       # Run integration tests (if secrets exist)
       # -----------------------
       - name: Run integration tests
+        shell: bash
         env:
           TADO_USERNAME: ${{ secrets.TADO_USERNAME }}
           TADO_PASSWORD: ${{ secrets.TADO_PASSWORD }}
         run: |
           if [ -z "$TADO_USERNAME" ] || [ -z "$TADO_PASSWORD" ]; then
-          echo "⚠️ Skipping integration tests – TADO credentials not set."
-          exit 0
+            echo "⚠️ Skipping integration tests – TADO credentials not set."
+            exit 0
           fi
           dotnet test TadoNetApi.slnx --no-build --filter "Category=Integration" --verbosity normal

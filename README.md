@@ -14,14 +14,16 @@ The library is designed with **SOLID principles** and **reliability in mind**, f
 
 ## Features
 
-- Core Domain Entities: Home, Zone, Device, Weather, Schedule
-- Services: HomeService, ZoneService, DeviceService, WeatherService, ScheduleService
-- Authentication via TadoAuthService (Device Authorization + OAuth2 token management)
-- HttpClient integration: automatically handles bearer token, throttling, retries, and cancellation tokens
-- Clean Architecture and SOLID principles: clear separation between Domain, Application, Infrastructure, Playground, and Tests
-- Full Playground console app to demonstrate API usage
-- Supports reading and modifying heating schedules and overlays
-- xUnit + Moq tests for unit and integration testing
+- **Core Domain Entities**: Home, Zone, Device, Weather, User, State, ZoneSummary, and related value objects
+- **Application Services**: HomeAppService, ZoneAppService, DeviceAppService, UserAppService for business logic orchestration
+- **Infrastructure Services**: TadoZoneService, TadoDeviceService, etc. with full API integration
+- **Authentication**: OAuth2 device authorization flow with TadoAuthService
+- **HTTP Client**: TadoHttpClient with automatic bearer token management, retry logic, throttling, and cancellation support
+- **Mapping Layer**: Comprehensive DTO-to-domain mappers for all entities
+- **Clean Architecture**: Strict separation between Domain, Application, and Infrastructure layers
+- **Playground Console App**: Complete demonstration of API usage with real authentication and data fetching
+- **Error Handling**: Graceful handling of API edge cases (e.g., missing overlays, null responses)
+- **Testing**: xUnit + Moq for unit tests, integration tests for real API validation
 
 ---
 
@@ -29,23 +31,30 @@ The library is designed with **SOLID principles** and **reliability in mind**, f
 
 ```text
 TadoNetApi/
-├─ Domain/          # Core entities and interfaces
-│  ├─ Entities/     # Home, Zone, Device, Weather, Overlay, Schedule
-│  └─ Interfaces/   # IHomeService, IZoneService, IDeviceService, IScheduleService, IUserService, etc.
+├─ Domain/              # Core business entities and enums
+│  ├─ Entities/         # Home, Zone, Device, Weather, User, State, ZoneSummary, etc.
+│  └─ Enums/            # DeviceTypes, PowerStates, TerminationTypes, etc.
 │
-├─ Infrastructure/  # Implementation of services and API clients
-│  ├─ Config/       # TadoApiConfig for credentials, retries, and throttling
-│  ├─ Dtos/         # API request/response DTOs (Home, Zone, Device, Weather, Overlay, Schedule)
-│  ├─ Http/         # TadoHttpClient with authentication, throttling, retries
-│  ├─ Mappers/      # DTO → Domain mapping
-│  └─ Services/     # Concrete implementations of Domain interfaces (Home, Zone, Device, Schedule, Weather, Overlay)
+├─ Application/         # Application services and interfaces
+│  ├─ Services/         # AppServices (HomeAppService, ZoneAppService, DeviceAppService, UserAppService)
+│  └─ Interfaces/       # IService interfaces (IZoneService, IDeviceService, etc.)
 │
-├─ Playground/      # Example console app demonstrating API usage
-├─ Tests/
-│  ├─ Domain/           # Tests for domain entities
-│  ├─ Services/         # Tests for service classes (HomeService, ZoneService, etc.)
-│  ├─ Mocks/            # Mock implementations for ITadoHttpClient & ITadoAuthService.
-│  ├─ TadoNetApi.Tests.csproj
+├─ Infrastructure/      # External concerns and implementations
+│  ├─ Auth/             # TadoAuthService for OAuth2 device authorization
+│  ├─ Config/           # TadoApiConfig for credentials and settings
+│  ├─ Converters/       # JSON converters for enums
+│  ├─ Dtos/             # API request/response DTOs
+│  ├─ Extensions/       # DI registration extensions
+│  ├─ Http/             # TadoHttpClient with auth, retries, throttling
+│  ├─ Mappers/          # DTO to Domain entity mapping
+│  └─ Services/         # Concrete service implementations (TadoZoneService, etc.)
+│
+├─ Playground/          # Console app demonstrating API usage
+├─ Tests/               # Unit and integration tests
+│  ├─ Domain/           # Entity tests
+│  ├─ Services/         # Service tests
+│  ├─ Mocks/            # Mock services for testing
+│  └─ Integration/      # Real API integration tests
 └─ .gitignore
 ```
 
@@ -55,12 +64,11 @@ TadoNetApi/
 
 | Layer | Responsibility |
 |-------|----------------|
-| Domain | Core domain entities (Home, Zone, Device, Weather, Overlay, Schedule) and value objects (e.g., Temperature); encapsulates business rules; has no **external dependencies**. |
-| Application | Interfaces (contracts) such as `IHomeService`, `IZoneService`, `IDeviceService`; orchestrates business logic; maps Infrastructure DTOs to Domain models; use cases like `FetchHomesUseCase`. |
-| Infrastructure | Concrete implementations of external concerns: `TadoHttpClient` (HTTP), `TadoAuthService` (authentication), optional caching services; maps API responses to DTOs and Domain models; handles throttling, retries, and overlays. |
-| Extensions | Dependency injection wiring; provides a single entry point to register all services in DI containers; keeps Program.cs clean. |
-| Playground | Example console application demonstrating usage of `TadoNetApi`; manual testing of API flows; integrates DI and prints Domain objects; showcases overlays and zone control. |
-| Tests | **Unit tests** with xUnit and Moq (isolated Domain/Application logic) and **integration tests** (real API calls); validates entity mapping, service behavior, and use cases. |
+| Domain | Core business entities (Home, Zone, Device, Weather, User, State, ZoneSummary) and value objects (e.g., Temperature, Address); business enums (DeviceTypes, PowerStates); encapsulates business rules; has no external dependencies. |
+| Application | Application services (AppServices) that orchestrate business logic and use cases; defines service interfaces (IZoneService, IDeviceService); acts as a bridge between Domain and Infrastructure; handles domain-specific operations. |
+| Infrastructure | Concrete implementations of external concerns: HTTP clients (TadoHttpClient), authentication (TadoAuthService), API DTOs, mappers (DTO → Domain), JSON converters; handles retries, throttling, and API-specific logic; depends on external libraries. |
+| Playground | Example console application demonstrating real API usage; integrates all layers via DI; showcases authentication, fetching homes/zones/devices, displaying current states and overlays; manual testing of the library. |
+| Tests | Unit tests (xUnit + Moq) for isolated logic and integration tests for real API calls; validates entity mapping, service behavior, error handling, and end-to-end flows. |
 
 ---
 
@@ -92,53 +100,107 @@ export TADO_PASSWORD="your-password"
 cd src/TadoNetApi.Playground
 dotnet run
 ```
+
 This will:
 
-- Authenticate with Tado
-- Fetch the user, homes, zones, devices, weather
-- Display current overlays
-- Set example target temperatures
+- Perform OAuth2 device authorization with Tado
+- Fetch and display user information and associated homes
+- List all zones with current temperature, humidity, heating power, and overlay details (if active)
+- Display device information including connection status, battery state, and capabilities
+- Demonstrate error handling for API edge cases (e.g., missing overlays)
 
 ### Usage (Playground Example)
 
 ```csharp
 using System;
+using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using TadoNetApi.Domain.Interfaces;
 using TadoNetApi.Infrastructure.Config;
 using TadoNetApi.Infrastructure.Extensions;
-using TadoNetApi.Infrastructure.Http;
+using TadoNetApi.Application.Services;
 
 class Program
 {
-    static async Task Main()
+    static async Task Main(string[] args)
     {
-        Console.WriteLine("Starting Tado Playground...");
-
-        // Read from environment
+        // Configure Tado credentials
         var config = new TadoApiConfig
         {
             Username = Environment.GetEnvironmentVariable("TADO_USERNAME") ?? "",
-            Password = Environment.GetEnvironmentVariable("TADO_PASSWORD") ?? ""
+            Password = Environment.GetEnvironmentVariable("TADO_PASSWORD") ?? "",
+            MaxRetries = 5,
+            InitialRetryDelayMs = 1000
         };
 
-        // DI container
-        var services = new ServiceCollection()
-            .AddTadoInfrastructure(config)
-            .BuildServiceProvider();
+        if (string.IsNullOrEmpty(config.Username) || string.IsNullOrEmpty(config.Password))
+        {
+            Console.WriteLine("❌ Missing Tado credentials in environment variables.");
+            return;
+        }
 
-        // Resolve HttpClient
-        var tadoClient = services.GetRequiredService<ITadoHttpClient>();
+        // Set up DI container
+        var services = new ServiceCollection();
+        services.AddLogging(builder => builder.AddConsole());
+        services.AddTadoInfrastructure(config);
+        var provider = services.BuildServiceProvider();
+
+        // Resolve services
+        var authService = provider.GetRequiredService<ITadoAuthService>();
+        var userService = provider.GetRequiredService<UserAppService>();
+        var homeService = provider.GetRequiredService<HomeAppService>();
+        var zoneService = provider.GetRequiredService<ZoneAppService>();
+        var deviceService = provider.GetRequiredService<DeviceAppService>();
+
+        var cancellationToken = CancellationToken.None;
 
         try
         {
-            var user = await tadoClient.GetAsync("me");
-            Console.WriteLine("Fetching user...");
-            Console.WriteLine(user);
+            // Authenticate with Tado
+            Console.WriteLine("🔑 Requesting device authorisation...");
+            var deviceCodeInfo = await authService.StartDeviceAuthorisationAsync(cancellationToken);
+            await authService.WaitForAuthorisationAsync(deviceCodeInfo, maxWaitSeconds: 300, cancellationToken: cancellationToken);
+            Console.WriteLine("✅ Device authorised successfully!");
+
+            // Fetch user and home
+            var user = await userService.GetMeAsync(cancellationToken);
+            var homeId = (int)user.Homes.First().Id!;
+            var home = await homeService.GetHomeAsync(homeId, cancellationToken);
+            Console.WriteLine($"👤 User: {user.Name} ({user.Email})");
+            Console.WriteLine($"🏠 Home: {home.Name} (ID: {home.Id})");
+
+            // Fetch and display zones
+            var zones = await zoneService.GetZonesAsync(homeId, cancellationToken);
+            Console.WriteLine($"📊 {zones.Count} Zones found:");
+            foreach (var zone in zones)
+            {
+                var state = await zoneService.GetZoneStateAsync(homeId, (int)zone.Id!, cancellationToken);
+                var summary = await zoneService.GetZoneSummaryAsync(homeId, (int)zone.Id!, cancellationToken);
+                
+                Console.WriteLine($"   - Zone: {zone.Name} (ID: {zone.Id}, Type: {zone.Type})");
+                Console.WriteLine($"       🌡 Current: {state.SensorDataPoints?.InsideTemperature?.Celsius}°C");
+                Console.WriteLine($"       💧 Humidity: {state.SensorDataPoints?.Humidity?.Percentage}%");
+                Console.WriteLine($"       🔥 Heating Power: {state.Setting?.Power}");
+                
+                if (summary?.Setting?.Temperature?.Celsius.HasValue == true)
+                    Console.WriteLine($"       🎯 Target Temp: {summary.Setting.Temperature.Celsius}°C");
+            }
+
+            // Fetch and display devices
+            var devices = await deviceService.GetDevicesAsync(homeId, cancellationToken);
+            Console.WriteLine($"📦 Devices ({devices.Count}) in Home '{home.Name}':");
+            foreach (var device in devices)
+            {
+                Console.WriteLine($"   • Device Type: {device.DeviceType}");
+                Console.WriteLine($"       Connection: {(device.ConnectionState?.Value == true ? "Connected" : "Disconnected")}");
+                Console.WriteLine($"       Battery: {device.BatteryState ?? "Unknown"}");
+            }
+
+            Console.WriteLine("🎉 Playground complete!");
         }
         catch (Exception ex)
         {
-            Console.WriteLine("An error occurred:");
-            Console.WriteLine(ex.Message);
+            Console.WriteLine($"❌ Error: {ex.Message}");
         }
     }
 }
@@ -160,12 +222,13 @@ dotnet test
 
 ### Notes
 
-- API calls are rate-limit aware with automatic retries
-- Currently supports OAuth2 device authorization flow.
-- Ensure your Tado account is active and credentials are correct.
-- Playground demonstrates real-world usage of all services
-- Fully compatible with CancellationToken for safe async calls
-- Designed for extensibility to add additional Tado endpoints
+- API calls include automatic retry logic and rate limiting awareness
+- Supports OAuth2 device authorization flow for secure authentication
+- Handles API edge cases like missing zone overlays (returns null instead of errors)
+- Fully compatible with CancellationToken for safe async operations
+- Designed for extensibility to add additional Tado API endpoints
+- Playground demonstrates real-world usage with proper error handling
+- All services use dependency injection for testability and flexibility
 
 ---
 

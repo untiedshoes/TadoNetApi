@@ -73,6 +73,7 @@ namespace TadoNetApi.Infrastructure.Extensions
             services.AddTransient<UserAppService>();
             services.AddTransient<ZoneAppService>();
             services.AddTransient<DeviceAppService>();
+            services.AddTransient<WeatherAppService>();
 
             return services;
         }

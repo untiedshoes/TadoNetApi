@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using TadoNetApi.Domain.Interfaces;
 using TadoNetApi.Infrastructure.Config;
 using TadoNetApi.Infrastructure.Extensions;
 using TadoNetApi.Infrastructure.Auth;
@@ -39,7 +38,7 @@ class Program
         var homeService = provider.GetRequiredService<HomeAppService>();
         var zoneService = provider.GetRequiredService<ZoneAppService>();
         var deviceService = provider.GetRequiredService<DeviceAppService>();
-        var weatherService = provider.GetRequiredService<IWeatherService>();
+        var weatherService = provider.GetRequiredService<WeatherAppService>();
 
         var cancellationToken = CancellationToken.None;
         Console.WriteLine("🚀 Starting Tado Playground...");

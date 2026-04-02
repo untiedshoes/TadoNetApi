@@ -72,6 +72,37 @@ TadoNetApi/
 
 ---
 
+## Service Reference
+
+Application Services are the consumer-facing layer and are used directly by the Playground via dependency injection.
+
+### Application Services
+
+| Service | Used For | Key Methods | Returns |
+|-------|-------|-------|-------|
+| UserAppService | Retrieve current authenticated user context | GetMeAsync | User |
+| HomeAppService | Read home details/state and set presence | GetHomeAsync, GetHomeStateAsync, SetHomePresenceAsync | House?, HomeState?, Task |
+| ZoneAppService | Read zones, zone state, summary, capabilities, early-start, and zone offset | GetZonesAsync, GetZoneAsync, GetZoneStateAsync, GetZoneSummaryAsync, GetZoneCapabilitiesAsync, GetEarlyStartAsync, GetZoneTemperatureOffsetAsync | IReadOnlyList<Zone>, Zone, State, ZoneSummary?, IReadOnlyList<Capability>, EarlyStart, Temperature |
+| DeviceAppService | Read devices and mobile-device related data | GetDevicesAsync, GetDeviceAsync, GetZoneTemperatureOffsetAsync, GetMobileDevicesAsync, GetMobileDeviceSettingsAsync | IReadOnlyList<Device>, Device, Temperature, IReadOnlyList<Item>, Settings |
+| WeatherAppService | Read weather data for a home | GetWeatherAsync | Weather |
+
+### Infrastructure Services
+
+Infrastructure Services are the API-integration implementations behind domain interfaces. They call Tado endpoints, map DTOs to domain models, and return domain entities.
+
+| Service | Used For | Implements | Returns |
+|-------|-------|-------|-------|
+| TadoUserService | User endpoint operations | IUserService | User |
+| TadoHomeService | Home and home-state operations, presence updates | IHomeService | House?, HomeState?, Task |
+| TadoZoneService | Zone operations (state, summary, capabilities, early start, zone offset) | IZoneService | IReadOnlyList<Zone>, Zone, State, ZoneSummary?, IReadOnlyList<Capability>, EarlyStart, Temperature |
+| TadoDeviceService | Device operations and mobile-device operations | IDeviceService | IReadOnlyList<Device>, Device, Temperature, IReadOnlyList<Item>, Settings |
+| TadoWeatherService | Weather endpoint operations | IWeatherService | Weather |
+| TadoAuthService | OAuth2 device authorization and token lifecycle | ITadoAuthService | Device auth response, token state, access token strings |
+
+Service flow in this project: Playground -> Application Services -> Domain Interfaces -> Infrastructure Services -> Tado API.
+
+---
+
 ## Getting Started
 
 ### 1. Prerequisites

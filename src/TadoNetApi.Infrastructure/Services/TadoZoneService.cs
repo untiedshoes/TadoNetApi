@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text.Json;
 using TadoNetApi.Application.Services;
 using TadoNetApi.Domain.Entities;
 using TadoNetApi.Infrastructure.Dtos.Responses;
@@ -119,16 +120,39 @@ namespace TadoNetApi.Infrastructure.Services
         {
             try
             {
-                var response = await _httpClient.GetAsync<List<TadoCapabilityResponse>>(
-                    $"homes/{homeId}/zones/{zoneId}/capabilities",
-                    cancellationToken) ?? new List<TadoCapabilityResponse>();
+                // Some Tado APIs may return either an array or object for capabilities.
+                try
+                {
+                    var listResponse = await _httpClient.GetAsync<List<TadoCapabilityResponse>>(
+                        $"homes/{homeId}/zones/{zoneId}/capabilities",
+                        cancellationToken);
 
-                return response.Select(c => c.ToDomain()).ToList();
+                    if (listResponse != null)
+                        return listResponse.Select(c => c.ToDomain()).ToList();
+                }
+                catch (JsonException)
+                {
+                    // Fallback to a single capability object response.
+                }
+
+                var singleResponse = await _httpClient.GetAsync<TadoCapabilityResponse>(
+                    $"homes/{homeId}/zones/{zoneId}/capabilities",
+                    cancellationToken);
+
+                if (singleResponse == null)
+                    return new List<Capability>();
+
+                return new List<Capability> { singleResponse.ToDomain() };
             }
             catch (HttpRequestException ex)
             {
                 throw new TadoApiException(HttpStatusCode.ServiceUnavailable,
                     $"Failed to retrieve zone capabilities: {ex.Message}");
+            }
+            catch (JsonException ex)
+            {
+                throw new TadoApiException(HttpStatusCode.UnprocessableEntity,
+                    $"Failed to parse zone capabilities: {ex.Message}");
             }
         }
 

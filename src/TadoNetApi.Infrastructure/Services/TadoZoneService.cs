@@ -131,5 +131,58 @@ namespace TadoNetApi.Infrastructure.Services
                     $"Failed to retrieve zone capabilities: {ex.Message}");
             }
         }
+
+        /// <summary>
+        /// Returns early start settings for a zone.
+        /// </summary>
+        public async Task<EarlyStart> GetEarlyStartAsync(int homeId, int zoneId, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync<TadoEarlyStartResponse>(
+                    $"homes/{homeId}/zones/{zoneId}/earlyStart",
+                    cancellationToken);
+
+                if (response == null)
+                    throw new TadoApiException(HttpStatusCode.NotFound, $"Early start settings for zone {zoneId} not found.");
+
+                return response.ToDomain();
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new TadoApiException(HttpStatusCode.ServiceUnavailable,
+                    $"Failed to retrieve early start settings: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Returns temperature offset for a zone using the first device serial in zone.Devices.
+        /// </summary>
+        public async Task<Temperature> GetZoneTemperatureOffsetAsync(Zone zone, CancellationToken cancellationToken = default)
+        {
+            if (zone == null) throw new ArgumentNullException(nameof(zone));
+
+            var deviceSerial = zone.Devices?.FirstOrDefault()?.ShortSerialNo;
+            if (string.IsNullOrEmpty(deviceSerial))
+                throw new ArgumentException("Zone does not contain any device with a valid short serial.", nameof(zone));
+
+            try
+            {
+                var response = await _httpClient.GetAsync<TadoTemperatureResponse>(
+                    $"devices/{deviceSerial}/temperatureOffset",
+                    cancellationToken);
+
+                if (response == null)
+                    throw new TadoApiException(HttpStatusCode.NotFound,
+                        $"Temperature offset for device {deviceSerial} not found.");
+
+                return response.ToDomain();
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new TadoApiException(HttpStatusCode.ServiceUnavailable,
+                    $"Failed to retrieve zone temperature offset: {ex.Message}");
+            }
+        }
     }
 }

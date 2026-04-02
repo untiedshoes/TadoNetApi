@@ -27,5 +27,15 @@ namespace TadoNetApi.Domain.Interfaces
         /// Fetches the capabilities of a zone.
         /// </summary>
         Task<IReadOnlyList<Capability>> GetZoneCapabilitiesAsync(int homeId, int zoneId, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Fetches the early start settings for a zone.
+        /// </summary>
+        Task<EarlyStart> GetEarlyStartAsync(int homeId, int zoneId, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Fetches the temperature offset for a zone by using the first associated device serial.
+        /// </summary>
+        Task<Temperature> GetZoneTemperatureOffsetAsync(Zone zone, CancellationToken cancellationToken = default);
     }
 }

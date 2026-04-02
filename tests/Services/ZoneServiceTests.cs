@@ -187,5 +187,49 @@ namespace TadoNetApi.Tests.Services
             Assert.Equal(25, capabilities[0].Temperatures?.Celsius?.Max);
             Assert.Equal(1, capabilities[0].Temperatures?.Celsius?.Step);
         }
+
+        /// <summary>
+        /// Tests that <see cref="ZoneAppService.GetEarlyStartAsync"/> returns early start settings.
+        /// </summary>
+        [Fact]
+        public async Task GetEarlyStartAsync_ReturnsEarlyStart()
+        {
+            // Arrange
+            var expectedEarlyStart = new EarlyStart { Enabled = true };
+
+            var (service, mock) = CreateService();
+            mock.Setup(s => s.GetEarlyStartAsync(1, 1, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedEarlyStart);
+
+            // Act
+            var earlyStart = await service.GetEarlyStartAsync(1, 1);
+
+            // Assert
+            Assert.NotNull(earlyStart);
+            Assert.True(earlyStart.Enabled);
+        }
+
+        /// <summary>
+        /// Tests that <see cref="ZoneAppService.GetZoneTemperatureOffsetAsync"/> returns the zone temperature offset.
+        /// </summary>
+        [Fact]
+        public async Task GetZoneTemperatureOffsetAsync_ReturnsTemperatureOffset()
+        {
+            // Arrange
+            var expectedTemperature = new Temperature { Celsius = 1.0, Fahrenheit = 33.8 };
+            var zone = new Zone { Devices = new[] { new Device { ShortSerialNo = "ABC123" } } };
+
+            var (service, mock) = CreateService();
+            mock.Setup(s => s.GetZoneTemperatureOffsetAsync(zone, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedTemperature);
+
+            // Act
+            var result = await service.GetZoneTemperatureOffsetAsync(zone);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(1.0, result.Celsius);
+            Assert.Equal(33.8, result.Fahrenheit);
+        }
     }
 }

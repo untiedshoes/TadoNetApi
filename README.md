@@ -282,6 +282,32 @@ class Program
                 // ⏱ Overlay
                 if (summary?.Termination?.Type != null)
                     Console.WriteLine($"       ⏱ Overlay: {summary.Termination.Type}, Duration: {summary.Termination.DurationInSeconds}s");
+
+                // 🔧 Capabilities
+                try
+                {
+                    var capabilities = await zoneService.GetZoneCapabilitiesAsync((int)homeId, (int)zone.Id!, cancellationToken);
+                    if (capabilities.Any())
+                    {
+                        Console.WriteLine($"       🔧 Capabilities:");
+                        foreach (var cap in capabilities)
+                        {
+                            Console.WriteLine($"         - {cap.PurpleType}");
+                            if (cap.Temperatures?.Celsius != null)
+                            {
+                                Console.WriteLine($"           Celsius: {cap.Temperatures.Celsius.Min}° - {cap.Temperatures.Celsius.Max}° (step: {cap.Temperatures.Celsius.Step})");
+                            }
+                            if (cap.Temperatures?.Fahrenheit != null)
+                            {
+                                Console.WriteLine($"           Fahrenheit: {cap.Temperatures.Fahrenheit.Min}° - {cap.Temperatures.Fahrenheit.Max}° (step: {cap.Temperatures.Fahrenheit.Step})");
+                            }
+                        }
+                    }
+                }
+                catch (TadoApiException ex)
+                {
+                    Console.WriteLine($"       ⚠️ Capabilities Error ({ex.StatusCode}): {ex.Message}");
+                }
             }
 
             // 4️⃣ Devices
@@ -299,8 +325,6 @@ class Program
                     Console.WriteLine($"       Connection: {(device.ConnectionState?.Value == true ? "Connected" : "Disconnected")}");
                     Console.WriteLine($"       Battery: {device.BatteryState ?? "Unknown"}");
                     Console.WriteLine($"       Child Lock Enabled: {device.ChildLockEnabled?.ToString() ?? "N/A"}");
-                    if (device.Characteristics?.Capabilities != null && device.Characteristics.Capabilities.Any())
-                        Console.WriteLine($"       Characteristics: {string.Join(", ", device.Characteristics.Capabilities)}");
                     if (device.Duties != null && device.Duties.Any())
                         Console.WriteLine($"       Duties: {string.Join(", ", device.Duties)}");
                 }

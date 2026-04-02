@@ -39,6 +39,7 @@ class Program
         var homeService = provider.GetRequiredService<HomeAppService>();
         var zoneService = provider.GetRequiredService<ZoneAppService>();
         var deviceService = provider.GetRequiredService<DeviceAppService>();
+        var weatherService = provider.GetRequiredService<IWeatherService>();
 
         var cancellationToken = CancellationToken.None;
         Console.WriteLine("🚀 Starting Tado Playground...");
@@ -218,6 +219,21 @@ class Program
             catch (TadoApiException ex)
             {
                 Console.WriteLine($"⚠️ Device API Error ({ex.StatusCode}): {ex.Message}");
+            }
+
+            // 5️⃣ Weather
+            try
+            {
+                var weather = await weatherService.GetWeatherAsync((int)homeId, cancellationToken);
+                var state = weather.WeatherState?.CurrentType ?? "Unknown";
+                var temperatureC = weather.OutsideTemperature?.Celsius?.ToString("0.0") ?? "N/A";
+                var temperatureF = weather.OutsideTemperature?.Fahrenheit?.ToString("0.0") ?? "N/A";
+
+                Console.WriteLine($"☁️ Weather for home '{home?.Name ?? "Unknown"}': {state}, {temperatureC}°C ({temperatureF}°F)");
+            }
+            catch (TadoApiException ex)
+            {
+                Console.WriteLine($"⚠️ Weather API Error ({ex.StatusCode}): {ex.Message}");
             }
 
             Console.WriteLine("🎉 Playground complete!");

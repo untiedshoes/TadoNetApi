@@ -94,4 +94,12 @@ public static class UserMapper
             Model = dto.Model,
             Locale = dto.Locale
         };
+
+    /// <summary>
+    /// Maps a list of <see cref="TadoMobileItemResponse"/> to a list of <see cref="Item"/> domain entities.
+    /// </summary>
+    /// <param name="dtos">The list of API DTOs.</param>
+    /// <returns>A list of domain <see cref="Item"/> entities.</returns>
+    public static List<Item> ToDomainList(this IEnumerable<TadoMobileItemResponse> dtos) =>
+        dtos.Select(d => d.ToDomain()).ToList();
 }

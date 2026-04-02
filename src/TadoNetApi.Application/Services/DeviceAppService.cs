@@ -1,4 +1,5 @@
 using TadoNetApi.Domain.Entities;
+using TadoNetApi.Domain.Entities.MobileDevice;
 using TadoNetApi.Domain.Interfaces;
 
 namespace TadoNetApi.Application.Services
@@ -32,5 +33,17 @@ namespace TadoNetApi.Application.Services
         /// </summary>
         public Task<Temperature> GetZoneTemperatureOffsetAsync(int deviceId, CancellationToken cancellationToken = default)
             => _deviceService.GetZoneTemperatureOffsetAsync(deviceId, cancellationToken);
+
+        /// <summary>
+        /// Retrieves all mobile devices registered to the specified home.
+        /// </summary>
+        public Task<IReadOnlyList<Item>> GetMobileDevicesAsync(int homeId, CancellationToken cancellationToken = default)
+            => _deviceService.GetMobileDevicesAsync(homeId, cancellationToken);
+
+        /// <summary>
+        /// Retrieves the settings for a specific mobile device.
+        /// </summary>
+        public Task<Settings> GetMobileDeviceSettingsAsync(int homeId, int mobileDeviceId, CancellationToken cancellationToken = default)
+            => _deviceService.GetMobileDeviceSettingsAsync(homeId, mobileDeviceId, cancellationToken);
     }
 }

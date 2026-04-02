@@ -1,4 +1,5 @@
 using TadoNetApi.Domain.Entities;
+using TadoNetApi.Domain.Entities.MobileDevice;
 
 namespace TadoNetApi.Domain.Interfaces;
 
@@ -21,4 +22,14 @@ public interface IDeviceService
     /// Retrieves the temperature offset for a device.
     /// </summary>
     Task<Temperature> GetZoneTemperatureOffsetAsync(int deviceId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Retrieves all mobile devices registered to the specified home.
+    /// </summary>
+    Task<IReadOnlyList<Item>> GetMobileDevicesAsync(int homeId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Retrieves the settings for a specific mobile device.
+    /// </summary>
+    Task<Settings> GetMobileDeviceSettingsAsync(int homeId, int mobileDeviceId, CancellationToken cancellationToken = default);
 }

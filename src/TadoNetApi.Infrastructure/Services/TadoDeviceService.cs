@@ -1,6 +1,8 @@
 using TadoNetApi.Domain.Entities;
+using TadoNetApi.Domain.Entities.MobileDevice;
 using TadoNetApi.Domain.Interfaces;
 using TadoNetApi.Infrastructure.Dtos.Responses;
+using TadoNetApi.Infrastructure.Dtos.Responses.MobileDevice;
 using TadoNetApi.Infrastructure.Exceptions;
 using TadoNetApi.Infrastructure.Http;
 using TadoNetApi.Infrastructure.Mappers;
@@ -99,6 +101,59 @@ namespace TadoNetApi.Infrastructure.Services
             {
                 throw new TadoApiException(System.Net.HttpStatusCode.ServiceUnavailable,
                     $"Failed to retrieve temperature offset: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Retrieves all mobile devices registered to the specified home.
+        /// </summary>
+        /// <param name="homeId">The ID of the home.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>A read-only list of <see cref="Item"/>.</returns>
+        /// <exception cref="TadoApiException">Thrown if the API request fails.</exception>
+        public async Task<IReadOnlyList<Item>> GetMobileDevicesAsync(int homeId, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync<List<TadoMobileItemResponse>>(
+                    $"homes/{homeId}/mobileDevices",
+                    cancellationToken) ?? new List<TadoMobileItemResponse>();
+
+                return response.ToDomainList();
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new TadoApiException(System.Net.HttpStatusCode.ServiceUnavailable,
+                    $"Failed to retrieve mobile devices: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Retrieves the settings for a specific mobile device.
+        /// </summary>
+        /// <param name="homeId">The ID of the home.</param>
+        /// <param name="mobileDeviceId">The ID of the mobile device.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>The <see cref="Settings"/> for the mobile device.</returns>
+        /// <exception cref="TadoApiException">Thrown if the device is not found or request fails.</exception>
+        public async Task<Settings> GetMobileDeviceSettingsAsync(int homeId, int mobileDeviceId, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync<TadoMobileSettingsResponse>(
+                    $"homes/{homeId}/mobileDevices/{mobileDeviceId}/settings",
+                    cancellationToken);
+
+                if (response == null)
+                    throw new TadoApiException(System.Net.HttpStatusCode.NotFound,
+                        $"Settings for mobile device {mobileDeviceId} not found.");
+
+                return response.ToDomain();
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new TadoApiException(System.Net.HttpStatusCode.ServiceUnavailable,
+                    $"Failed to retrieve mobile device settings: {ex.Message}");
             }
         }
     }

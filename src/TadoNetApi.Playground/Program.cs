@@ -221,11 +221,57 @@ class Program
                 Console.WriteLine($"⚠️ Device API Error ({ex.StatusCode}): {ex.Message}");
             }
 
-            // 5️⃣ Weather
+            // 5️⃣ Mobile Devices
             try
             {
-                var weather = await weatherService.GetWeatherAsync((int)homeId, cancellationToken);
-                var state = weather.WeatherState?.Value ?? weather.WeatherState?.CurrentType ?? "Unknown";
+                var mobileDevices = await deviceService.GetMobileDevicesAsync((int)homeId, cancellationToken);
+                Console.WriteLine($"📱 Mobile Devices ({mobileDevices.Count}) in Home '{home?.Name ?? "Unknown"}':");
+
+                foreach (var md in mobileDevices)
+                {
+                    Console.WriteLine($"   • {md.Name} (ID: {md.Id})");
+
+                    if (md.Settings != null)
+                        Console.WriteLine($"       Geo Tracking: {(md.Settings.GeoTrackingEnabled == true ? "Enabled" : "Disabled")}");
+
+                    if (md.Location != null)
+                    {
+                        Console.WriteLine($"       At Home: {(md.Location.AtHome == true ? "Yes" : "No")}");
+                        Console.WriteLine($"       Location Stale: {(md.Location.Stale == true ? "Yes" : "No")}");
+                        if (md.Location.RelativeDistanceFromHomeFence.HasValue)
+                            Console.WriteLine($"       Distance from Fence: {md.Location.RelativeDistanceFromHomeFence.Value:0.00}");
+                    }
+
+                    if (md.MobileDeviceDetails != null)
+                    {
+                        Console.WriteLine($"       Platform: {md.MobileDeviceDetails.Platform}");
+                        Console.WriteLine($"       OS Version: {md.MobileDeviceDetails.OsVersion}");
+                        Console.WriteLine($"       Model: {md.MobileDeviceDetails.Model}");
+                    }
+
+                    if (md.Id.HasValue)
+                    {
+                        try
+                        {
+                            var settings = await deviceService.GetMobileDeviceSettingsAsync((int)homeId, (int)md.Id.Value, cancellationToken);
+                            Console.WriteLine($"       Settings (API): Geo Tracking = {(settings.GeoTrackingEnabled == true ? "Enabled" : "Disabled")}");
+                        }
+                        catch (TadoApiException ex)
+                        {
+                            Console.WriteLine($"       ⚠️ Settings Error ({ex.StatusCode}): {ex.Message}");
+                        }
+                    }
+                }
+            }
+            catch (TadoApiException ex)
+            {
+                Console.WriteLine($"⚠️ Mobile Device API Error ({ex.StatusCode}): {ex.Message}");
+            }
+
+            // 6️⃣ Weather
+            try
+            {
+                var weather = await weatherService.GetWeatherAsync((int)homeId, cancellationToken);                var state = weather.WeatherState?.Value ?? weather.WeatherState?.CurrentType ?? "Unknown";
                 var temperatureC = weather.OutsideTemperature?.Celsius?.ToString("0.0") ?? "N/A";
                 var temperatureF = weather.OutsideTemperature?.Fahrenheit?.ToString("0.0") ?? "N/A";
                 var solarType = weather.SolarIntensity?.CurrentType ?? "Unknown";

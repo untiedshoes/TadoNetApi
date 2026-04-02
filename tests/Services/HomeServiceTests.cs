@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,30 +14,57 @@ namespace TadoNetApi.Tests.Services
     public class HomeServiceTests
     {
         [Fact]
-        public async Task GetHomesAsync_ReturnsHomes()
+        public async Task GetHomeAsync_ReturnsHome()
         {
             // Arrange
-            var tadoHomes = new List<TadoHomeResponse>
+            var tadoHouse = new TadoHouseResponse
             {
-                new TadoHomeResponse
-                {
-                    Id = 1,
-                    Name = "My Home"
-                }
+                Id = 1,
+                Name = "My Home",
+                DateTimeZone = "Europe/London",
+                DateCreated = DateTime.UtcNow,
+                TemperatureUnit = "C",
+                InstallationCompleted = true,
+                Partner = null,
+                SimpleSmartScheduleEnabled = false,
+                AwayRadiusInMeters = 0,
+                License = "MIT",
+                ChristmasModeEnabled = false,
+                ContactDetails = new TadoContactDetailsResponse(),
+                Address = new TadoAddressResponse(),
+                Geolocation = new TadoGeolocationResponse()
             };
 
-            var mockHttp = MockTadoHttpClient.CreateGet(tadoHomes);
-            var mockAuth = MockTadoAuthService.CreateAuthenticated();
-
+            var mockHttp = MockTadoHttpClient.CreateGet(tadoHouse);
             var service = new TadoHomeService(mockHttp.Object);
 
             // Act
-            var homes = await service.GetHomesAsync(CancellationToken.None);
+            var home = await service.GetHomeAsync(1, CancellationToken.None);
 
             // Assert
-            Assert.Single(homes);
-            Assert.Equal(1, homes[0].Id);
-            Assert.Equal("My Home", homes[0].Name);
+            Assert.NotNull(home);
+            Assert.Equal(1, home?.Id);
+            Assert.Equal("My Home", home?.Name);
+        }
+
+        [Fact]
+        public async Task GetHomeStateAsync_ReturnsState()
+        {
+            // Arrange
+            var tadoState = new TadoHomeStateResponse
+            {
+                Presence = "HOME"
+            };
+
+            var mockHttp = MockTadoHttpClient.CreateGet(tadoState);
+            var service = new TadoHomeService(mockHttp.Object);
+
+            // Act
+            var state = await service.GetHomeStateAsync(1, CancellationToken.None);
+
+            // Assert
+            Assert.NotNull(state);
+            Assert.Equal("HOME", state?.Presence);
         }
     }
 }

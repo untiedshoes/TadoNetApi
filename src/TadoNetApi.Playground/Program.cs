@@ -70,10 +70,47 @@ class Program
             }
             var homeId = user.Homes.First().Id ?? throw new Exception("Home ID is null");
             var home = await homeService.GetHomeAsync((int)homeId, cancellationToken);
+            var homeState = await homeService.GetHomeStateAsync((int)homeId, cancellationToken);
             Console.WriteLine($"👤 User: {user.Name} ({user.Email})");
-            Console.WriteLine(home?.Name != null
-                ? $"🏠 Home: {home.Name} (ID: {home.Id})"
-                : $"⚠️ Could not retrieve home info for {user.Name}");
+
+            if (home == null)
+            {
+                Console.WriteLine($"⚠️ Could not retrieve home info for {user.Name}");
+                return;
+            }
+
+            Console.WriteLine($"🏠 Home: {home.Name} (ID: {home.Id})");
+            Console.WriteLine($"    🌐 Timezone: {home.DateTimeZone}");
+            Console.WriteLine($"    🌡 Temp unit: {home.TemperatureUnit}");
+            Console.WriteLine($"    🔧 Installation Completed: {home.InstallationCompleted}");
+            Console.WriteLine($"    🎄 Christmas Mode: {home.ChristmasModeEnabled}");
+
+            if (home.ContactDetails != null)
+            {
+                Console.WriteLine("    📇 Contact Details:");
+                Console.WriteLine($"      Phone: {home.ContactDetails.Phone}");
+                Console.WriteLine($"      Email: {home.ContactDetails.Email}");
+            }
+
+            if (home.Address != null)
+            {
+                Console.WriteLine("    🏠 Address:");
+                Console.WriteLine($"      AddressLine1: {home.Address.AddressLine1}");
+                Console.WriteLine($"      AddressLine2: {home.Address.AddressLine2}");
+                Console.WriteLine($"      City: {home.Address.City}");
+                Console.WriteLine($"      ZipCode: {home.Address.ZipCode}");
+                Console.WriteLine($"      Country: {home.Address.Country}");
+            }
+
+            if (home.Geolocation != null)
+            {
+                Console.WriteLine($"    📍 Geo: lat {home.Geolocation.Latitude}, long {home.Geolocation.Longitude}");
+            }
+
+            if (homeState != null)
+            {
+                Console.WriteLine($"    🧭 Presence: {homeState.Presence}");
+            }
 
             // 3️⃣ Zones
             var zones = await zoneService.GetZonesAsync((int)homeId, cancellationToken);
@@ -110,13 +147,17 @@ class Program
                     Console.WriteLine($"       💧 Humidity: {humidity.Value}%");
 
                 // 🔥 Heating Power
+                var heatingPowerPercent = state.ActivityDataPoints?.HeatingPower?.Percentage;
+                if (heatingPowerPercent.HasValue)
+                {
+                    Console.ForegroundColor = heatingPowerPercent > 0 ? ConsoleColor.Red : ConsoleColor.Gray;
+                    Console.WriteLine($"       🔥 Heating Power (actual): {heatingPowerPercent.Value}%");
+                    Console.ResetColor();
+                }
+
                 if (state.Setting?.Power != null)
                 {
-                    Console.ForegroundColor = state.Setting.Power == TadoNetApi.Domain.Enums.PowerStates.On
-                                              ? ConsoleColor.Red
-                                              : ConsoleColor.Gray;
-                    Console.WriteLine($"       🔥 Heating Power: {state.Setting.Power}");
-                    Console.ResetColor();
+                    Console.WriteLine($"       🔥 Setting Power: {state.Setting.Power}");
                 }
 
                 // 🎯 Target Temperature from ZoneSummary

@@ -19,6 +19,15 @@ public static class HomeMapper
         };
     }
 
+    public static Home ToDomain(TadoHouseResponse dto)
+    {
+        return new Home
+        {
+            Id = dto.Id,
+            Name = dto.Name
+        };
+    }
+
     /// <summary>
     /// Maps a collection of TadoHomeResponse to Domain entities.
     /// </summary>

@@ -20,22 +20,19 @@ public class TadoHomeService : IHomeService
     }
 
     /// <inheritdoc/>
-    public async Task<List<Home>> GetHomesAsync(CancellationToken cancellationToken = default)
+    public async Task<House?> GetHomeAsync(int homeId, CancellationToken cancellationToken = default)
     {
-        var response = await _httpClient.GetAsync<List<TadoHomeResponse>>("homes", cancellationToken);
+        var dto = await _httpClient.GetAsync<TadoHouseResponse>($"homes/{homeId}", cancellationToken);
 
-        if (response == null)
-            return new List<Home>();
-
-        return HomeMapper.ToDomainList(response);
+        return dto == null ? null : HouseMapper.ToDomain(dto);
     }
 
     /// <inheritdoc/>
-    public async Task<Home?> GetHomeAsync(int homeId, CancellationToken cancellationToken = default)
+    public async Task<HomeState?> GetHomeStateAsync(int homeId, CancellationToken cancellationToken = default)
     {
-        var dto = await _httpClient.GetAsync<TadoHomeResponse>($"homes/{homeId}", cancellationToken);
+        var dto = await _httpClient.GetAsync<TadoHomeStateResponse>($"homes/{homeId}/state", cancellationToken);
 
-        return dto == null ? null : HomeMapper.ToDomain(dto);
+        return dto == null ? null : dto.ToDomain();
     }
 
     /// <inheritdoc/>

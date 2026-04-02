@@ -8,16 +8,16 @@ namespace TadoNetApi.Domain.Entities
         /// <summary>
         /// The minimum temperature value
         /// </summary>
-        public long? Min { get; set; }
+        public double? Min { get; set; }
 
         /// <summary>
         /// The maximum temperature value
         /// </summary>
-        public long? Max { get; set; }
+        public double? Max { get; set; }
 
         /// <summary>
         /// The step increment for temperature adjustments
         /// </summary>
-        public long? Step { get; set; }
+        public double? Step { get; set; }
     }
 }

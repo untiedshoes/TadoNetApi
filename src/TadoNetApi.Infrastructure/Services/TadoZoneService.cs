@@ -120,29 +120,41 @@ namespace TadoNetApi.Infrastructure.Services
         {
             try
             {
-                // Some Tado APIs may return either an array or object for capabilities.
-                try
-                {
-                    var listResponse = await _httpClient.GetAsync<List<TadoCapabilityResponse>>(
-                        $"homes/{homeId}/zones/{zoneId}/capabilities",
-                        cancellationToken);
-
-                    if (listResponse != null)
-                        return listResponse.Select(c => c.ToDomain()).ToList();
-                }
-                catch (JsonException)
-                {
-                    // Fallback to a single capability object response.
-                }
-
-                var singleResponse = await _httpClient.GetAsync<TadoCapabilityResponse>(
+                var rawResponse = await _httpClient.GetAsync<JsonElement>(
                     $"homes/{homeId}/zones/{zoneId}/capabilities",
                     cancellationToken);
 
-                if (singleResponse == null)
+                // The endpoint can return either null/undefined, an array, or a single object.
+                if (rawResponse.ValueKind == JsonValueKind.Undefined || rawResponse.ValueKind == JsonValueKind.Null)
                     return new List<Capability>();
 
-                return new List<Capability> { singleResponse.ToDomain() };
+                var capabilities = new List<Capability>();
+
+                // Standard payload shape: array of capabilities.
+                if (rawResponse.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var item in rawResponse.EnumerateArray())
+                    {
+                        var dto = JsonSerializer.Deserialize<TadoCapabilityResponse>(item.GetRawText());
+                        if (dto != null)
+                            capabilities.Add(dto.ToDomain());
+                    }
+
+                    return capabilities;
+                }
+
+                // Alternate payload shape: single capability object.
+                if (rawResponse.ValueKind == JsonValueKind.Object)
+                {
+                    var dto = JsonSerializer.Deserialize<TadoCapabilityResponse>(rawResponse.GetRawText());
+                    if (dto != null)
+                        capabilities.Add(dto.ToDomain());
+
+                    return capabilities;
+                }
+
+                throw new TadoApiException(HttpStatusCode.UnprocessableEntity,
+                    "Unexpected zone capabilities payload format.");
             }
             catch (HttpRequestException ex)
             {

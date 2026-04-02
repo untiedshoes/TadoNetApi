@@ -225,11 +225,14 @@ class Program
             try
             {
                 var weather = await weatherService.GetWeatherAsync((int)homeId, cancellationToken);
-                var state = weather.WeatherState?.CurrentType ?? "Unknown";
+                var state = weather.WeatherState?.Value ?? weather.WeatherState?.CurrentType ?? "Unknown";
                 var temperatureC = weather.OutsideTemperature?.Celsius?.ToString("0.0") ?? "N/A";
                 var temperatureF = weather.OutsideTemperature?.Fahrenheit?.ToString("0.0") ?? "N/A";
+                var solarType = weather.SolarIntensity?.CurrentType ?? "Unknown";
+                var solarPercentage = weather.SolarIntensity?.Percentage?.ToString("0.0") ?? "N/A";
 
                 Console.WriteLine($"☁️ Weather for home '{home?.Name ?? "Unknown"}': {state}, {temperatureC}°C ({temperatureF}°F)");
+                Console.WriteLine($"    ☀️ Solar Intensity: {solarType}, {solarPercentage}%");
             }
             catch (TadoApiException ex)
             {

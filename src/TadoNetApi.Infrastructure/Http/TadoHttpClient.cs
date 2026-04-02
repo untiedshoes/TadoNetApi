@@ -144,6 +144,13 @@ namespace TadoNetApi.Infrastructure.Http
 
                 throw new TadoApiException(HttpStatusCode.ServiceUnavailable, ex.Message);
             }
+            catch (JsonException ex)
+            {
+                _logger.LogError(ex, "Failed to deserialize JSON response from Tado API.");
+
+                throw new TadoApiException(HttpStatusCode.UnprocessableEntity,
+                    "Failed to deserialize API response.");
+            }
         }
     }
 }

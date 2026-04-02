@@ -11,18 +11,18 @@ namespace TadoNetApi.Infrastructure.Dtos.Responses
         /// The minimum temperature value
         /// </summary>
         [JsonPropertyName("min")]
-        public long? Min { get; set; }
+        public double? Min { get; set; }
 
         /// <summary>
         /// The maximum temperature value
         /// </summary>
         [JsonPropertyName("max")]
-        public long? Max { get; set; }
+        public double? Max { get; set; }
 
         /// <summary>
         /// The step increment for temperature adjustments
         /// </summary>
         [JsonPropertyName("step")]
-        public long? Step { get; set; }
+        public double? Step { get; set; }
     }
 }

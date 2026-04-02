@@ -12,6 +12,9 @@ using TadoNetApi.Infrastructure.Extensions;
 
 namespace TadoNetApi.Infrastructure.Auth
 {
+    /// <summary>
+    /// Implements OAuth device authorization and token lifecycle management for the Tado API.
+    /// </summary>
     public class TadoAuthService : ITadoAuthService
     {
         private readonly IHttpClientFactory _httpClientFactory;
@@ -25,6 +28,12 @@ namespace TadoNetApi.Infrastructure.Auth
         private TaskCompletionSource<string> _tokenReady =
             new(TaskCreationOptions.RunContinuationsAsynchronously);
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TadoAuthService"/> class.
+        /// </summary>
+        /// <param name="httpClientFactory">Factory used to create configured HTTP clients.</param>
+        /// <param name="config">Tado API configuration settings.</param>
+        /// <param name="logger">Logger instance for diagnostic output.</param>
         public TadoAuthService(IHttpClientFactory httpClientFactory, TadoApiConfig config, ILogger<TadoAuthService> logger)
         {
             _httpClientFactory = httpClientFactory;
@@ -36,6 +45,17 @@ namespace TadoNetApi.Infrastructure.Auth
         // PUBLIC API
         // ============================================================
 
+        /// <summary>
+        /// Gets a valid access token for authenticated API calls.
+        /// </summary>
+        /// <param name="cancellationToken">Token used to cancel waiting or refresh operations.</param>
+        /// <returns>A valid OAuth access token string.</returns>
+        /// <exception cref="InvalidOperationException">
+        /// Thrown when token refresh is required but cannot be completed.
+        /// </exception>
+        /// <exception cref="OperationCanceledException">
+        /// Thrown when the operation is canceled while waiting for authorization or refresh.
+        /// </exception>
         public async Task<string> GetAccessTokenAsync(CancellationToken cancellationToken = default)
         {
             lock (_lock)
@@ -44,14 +64,14 @@ namespace TadoNetApi.Infrastructure.Auth
                     return _token.AccessToken;
             }
 
-            // 🔥 Wait for initial device flow if still running
+            // Wait for initial device flow if still running
             if (!_tokenReady.Task.IsCompleted)
             {
                 _logger.LogInformation("⏳ Waiting for initial authorisation...");
                 return await _tokenReady.Task.WaitAsync(cancellationToken);
             }
 
-            // 🔄 Token expired → refresh
+            // Token expired → refresh
             _logger.LogInformation("🔄 Access token expired, refreshing...");
 
             var refreshed = await RefreshTokenAsync(cancellationToken);
@@ -62,6 +82,13 @@ namespace TadoNetApi.Infrastructure.Auth
         // DEVICE FLOW
         // ============================================================
 
+        /// <summary>
+        /// Starts OAuth device authorization and returns the verification instructions for the user.
+        /// </summary>
+        /// <param name="cancellationToken">Token used to cancel the outbound authorization request.</param>
+        /// <returns>A <see cref="DeviceCodeResponse"/> containing device code, user code, and verification URL.</returns>
+        /// <exception cref="HttpRequestException">Thrown when the authorization endpoint request fails.</exception>
+        /// <exception cref="InvalidOperationException">Thrown when the authorization response cannot be parsed.</exception>
         public async Task<DeviceCodeResponse> StartDeviceAuthorisationAsync(
             CancellationToken cancellationToken = default)
         {
@@ -92,6 +119,18 @@ namespace TadoNetApi.Infrastructure.Auth
             return result;
         }
 
+        /// <summary>
+        /// Polls the token endpoint until device authorization completes, expires, or fails.
+        /// </summary>
+        /// <param name="deviceCode">The OAuth device code received from the authorization endpoint.</param>
+        /// <param name="pollingIntervalSeconds">Initial polling interval in seconds.</param>
+        /// <param name="expiresInSeconds">Maximum total polling duration in seconds.</param>
+        /// <param name="cancellationToken">Token used to cancel polling and delays.</param>
+        /// <returns>A populated <see cref="TadoAuthResponse"/> when authorization succeeds.</returns>
+        /// <exception cref="HttpRequestException">Thrown when OAuth returns an unrecoverable error response.</exception>
+        /// <exception cref="TimeoutException">Thrown when authorization is not completed before expiration.</exception>
+        /// <exception cref="OperationCanceledException">Thrown when polling is canceled.</exception>
+        /// <exception cref="InvalidOperationException">Thrown when a successful token payload cannot be parsed.</exception>
         public async Task<TadoAuthResponse> WaitForDeviceTokenAsync(string deviceCode, int pollingIntervalSeconds = 5, int expiresInSeconds = 300, CancellationToken cancellationToken = default)
         {
             var startTime = DateTime.UtcNow;
@@ -168,6 +207,15 @@ namespace TadoNetApi.Infrastructure.Auth
         // REFRESH FLOW
         // ============================================================
 
+        /// <summary>
+        /// Uses the current refresh token to request a new access token.
+        /// </summary>
+        /// <param name="cancellationToken">Token used to cancel the refresh request.</param>
+        /// <returns>A refreshed <see cref="TadoAuthResponse"/> containing new access and refresh tokens.</returns>
+        /// <exception cref="InvalidOperationException">
+        /// Thrown when no refresh token is available, refresh fails, or the refresh response cannot be parsed.
+        /// </exception>
+        /// <exception cref="OperationCanceledException">Thrown when the refresh operation is canceled.</exception>
         private async Task<TadoAuthResponse> RefreshTokenAsync(CancellationToken cancellationToken)
         {
             if (_token == null || string.IsNullOrEmpty(_token.RefreshToken))

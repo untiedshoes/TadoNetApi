@@ -131,6 +131,31 @@ namespace TadoNetApi.Tests.Services
         }
 
         /// <summary>
+        /// Tests that <see cref="TadoDeviceService.GetZoneTemperatureOffsetAsync"/> returns a mapped temperature.
+        /// </summary>
+        [Fact(DisplayName = "GetZoneTemperatureOffsetAsync returns temperature offset")]
+        public async Task GetZoneTemperatureOffsetAsync_ReturnsTemperatureOffset()
+        {
+            // Arrange
+            var temperatureOffset = new TadoTemperatureResponse
+            {
+                Celsius = 1.5,
+                Fahrenheit = 34.7
+            };
+
+            var mockHttp = MockTadoHttpClient.CreateGet(temperatureOffset);
+            var service = new TadoDeviceService(mockHttp.Object);
+
+            // Act
+            var offset = await service.GetZoneTemperatureOffsetAsync(deviceId: 1, CancellationToken.None);
+
+            // Assert
+            Assert.NotNull(offset);
+            Assert.Equal(1.5, offset.Celsius);
+            Assert.Equal(34.7, offset.Fahrenheit);
+        }
+
+        /// <summary>
         /// Integration test scaffold.
         /// Will run against a real Tado account if <c>TADO_USERNAME</c> and <c>TADO_PASSWORD</c> 
         /// environment variables are set. Marked as Integration category.

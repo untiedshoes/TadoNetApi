@@ -26,5 +26,11 @@ namespace TadoNetApi.Application.Services
         /// </summary>
         public Task<Device> GetDeviceAsync(int homeId, int deviceId, CancellationToken cancellationToken = default)
             => _deviceService.GetDeviceAsync(homeId, deviceId, cancellationToken);
+
+        /// <summary>
+        /// Retrieves the temperature offset for a device.
+        /// </summary>
+        public Task<Temperature> GetZoneTemperatureOffsetAsync(int deviceId, CancellationToken cancellationToken = default)
+            => _deviceService.GetZoneTemperatureOffsetAsync(deviceId, cancellationToken);
     }
 }

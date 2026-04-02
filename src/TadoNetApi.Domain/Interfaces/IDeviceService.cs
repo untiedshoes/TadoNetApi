@@ -16,4 +16,9 @@ public interface IDeviceService
     /// Retrieves a single device by ID within a zone.
     /// </summary>
     Task<Device> GetDeviceAsync(int homeId, int deviceId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Retrieves the temperature offset for a device.
+    /// </summary>
+    Task<Temperature> GetZoneTemperatureOffsetAsync(int deviceId, CancellationToken cancellationToken = default);
 }

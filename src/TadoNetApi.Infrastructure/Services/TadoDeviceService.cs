@@ -73,5 +73,33 @@ namespace TadoNetApi.Infrastructure.Services
                     $"Failed to retrieve device: {ex.Message}");
             }
         }
+
+        /// <summary>
+        /// Retrieves the temperature offset for a device.
+        /// </summary>
+        /// <param name="deviceId">The device ID.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>The <see cref="Temperature"/> offset for the device.</returns>
+        /// <exception cref="TadoApiException">Thrown if request fails.</exception>
+        public async Task<Temperature> GetZoneTemperatureOffsetAsync(int deviceId, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync<TadoTemperatureResponse>(
+                    $"devices/{deviceId}/temperatureOffset",
+                    cancellationToken);
+
+                if (response == null)
+                    throw new TadoApiException(System.Net.HttpStatusCode.NotFound,
+                        $"Temperature offset for device {deviceId} not found.");
+
+                return response.ToDomain();
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new TadoApiException(System.Net.HttpStatusCode.ServiceUnavailable,
+                    $"Failed to retrieve temperature offset: {ex.Message}");
+            }
+        }
     }
 }

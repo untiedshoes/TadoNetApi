@@ -25,9 +25,6 @@ namespace TadoNetApi.Infrastructure.Mappers
         public static ContactDetails ToDomain(this TadoContactDetailsResponse dto)
             => new() { Name = dto.Name, Email = dto.Email, Phone = dto.Phone };
 
-        public static EarlyStart ToDomain(this TadoEarlyStartResponse dto)
-            => new() { Enabled = dto.Enabled };
-
         public static Geolocation ToDomain(this TadoGeolocationResponse dto)
             => new() { Latitude = dto.Latitude, Longitude = dto.Longitude };
 
@@ -41,16 +38,11 @@ namespace TadoNetApi.Infrastructure.Mappers
                 Precision = dto.Precision?.ToDomain()
             };
 
-        // SolarIntensity mapping already exists in StateMapper to avoid ambiguity.
-
         public static TemperatureSteps ToDomain(this TadoTemperatureStepsResponse dto)
             => new() { Min = dto.Min, Max = dto.Max, Step = dto.Step };
 
         public static Temperatures ToDomain(this TadoTemperaturesResponse dto)
             => new() { Celsius = dto.Celsius?.ToDomain(), Fahrenheit = dto.Fahrenheit?.ToDomain() };
-
-        public static WeatherState ToDomain(this TadoWeatherStateResponse dto)
-            => new() { CurrentType = dto.CurrentType, Value = dto.Value, Timestamp = dto.Timestamp };
 
         public static List<T> ToDomainList<T, TDto>(this IEnumerable<TDto> dtos, Func<TDto, T> mapper)
             => dtos.Select(mapper).ToList();

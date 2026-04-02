@@ -53,5 +53,13 @@ namespace TadoNetApi.Infrastructure.Mappers
                 Enabled = dto.Enabled ?? false,
                 TimeoutInSeconds = dto.TimeoutInSeconds
             };
+
+        /// <summary>
+        /// Maps a <see cref="TadoEarlyStartResponse"/> to an <see cref="EarlyStart"/> domain entity.
+        /// </summary>
+        /// <param name="dto">The API DTO to map.</param>
+        /// <returns>A mapped <see cref="EarlyStart"/>.</returns>
+        public static EarlyStart ToDomain(this TadoEarlyStartResponse dto)
+            => new() { Enabled = dto.Enabled };
     }
 }

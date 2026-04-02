@@ -27,53 +27,6 @@ The library is designed with **SOLID principles** and **reliability in mind**, f
 
 ---
 
-## TODO: Send Command Parity
-
-- [ ] Implement `SetOpenWindowAsync` -> `POST homes/{homeId}/zones/{zoneId}/state/openWindow/activate`
-///   Activates temporary open-window mode on a zone and lets the API switch behavior accordingly.
-- [ ] Implement `ResetOpenWindowAsync` -> `DELETE homes/{homeId}/zones/{zoneId}/state/openWindow`
-///   Clears open-window override and returns zone control to normal logic.
-- [ ] Review/align home presence command parity (`SetHomePresence` in reference uses `PUT homes/{homeId}/presenceLock`)
-///   Confirm endpoint contract differences and align request path/method with intended presence-lock semantics.
-- [ ] Implement `SetEarlyStartAsync` -> `PUT homes/{homeId}/zones/{zoneId}/earlyStart`
-///   Enables or disables early-start preheating for a zone.
-- [ ] Implement `SayHiAsync` (device identify) -> `POST devices/{deviceId}/identify`
-///   Triggers physical identify action on a specific device for pairing and troubleshooting.
-- [ ] Implement `SetDeviceChildLockAsync` -> `PUT devices/{deviceId}/childLock`
-///   Sends `childLockEnabled` state to lock or unlock device controls.
-- [ ] Implement `SetZoneTemperatureOffsetCelsiusAsync` -> `PUT devices/{deviceId}/temperatureOffset`
-///   Writes Celsius calibration offset for the selected device sensor.
-- [ ] Implement `SetZoneTemperatureOffsetFahrenheitAsync` -> `PUT devices/{deviceId}/temperatureOffset`
-///   Writes Fahrenheit calibration offset for the selected device sensor.
-- [ ] Implement `SetHeatingTemperatureCelsiusAsync` (default duration wrapper)
-///   Convenience API that sets heating target in Celsius until next manual change.
-- [ ] Implement `SetHeatingTemperatureCelsiusAsync` (duration/timer overload)
-///   Sets heating target in Celsius with explicit termination mode and optional timer seconds.
-- [ ] Implement `SetHeatingTemperatureFahrenheitAsync` (default duration wrapper)
-///   Convenience API that sets heating target in Fahrenheit until next manual change.
-- [ ] Implement `SetHeatingTemperatureFahrenheitAsync` (duration/timer overload)
-///   Sets heating target in Fahrenheit with explicit termination mode and optional timer seconds.
-- [ ] Implement `SetHotWaterTemperatureCelsiusAsync` (duration/timer)
-///   Sets hot-water target in Celsius using overlay termination settings.
-- [ ] Implement `SetHotWaterTemperatureFahrenheitAsync` (duration/timer)
-///   Sets hot-water target in Fahrenheit using overlay termination settings.
-- [ ] Implement shared `SetTemperatureAsync` overlay command core -> `PUT homes/{homeId}/zones/{zoneId}/overlay`
-///   Centralizes overlay payload creation (`setting`, `power`, `temperature`, `termination`) to avoid duplicated command logic.
-- [ ] Implement `SwitchHeatingOffAsync` (default duration wrapper)
-///   Convenience API to turn heating off until next manual change.
-- [ ] Implement `SwitchHeatingOffAsync` (duration/timer overload)
-///   Turns heating off for explicit duration mode and optional timer window.
-- [ ] Implement `SwitchHotWaterOffAsync` (duration/timer)
-///   Turns hot water off using the same overlay and termination model.
-- [ ] Add DTOs/builders for overlay command payload (`setting`, `termination`, timer duration)
-///   Introduces typed request models and helper builders to guarantee API-compatible JSON.
-- [ ] Add unit tests for all new send commands (payload shape, endpoint, HTTP verb)
-///   Verifies endpoint path, method, expected status handling, and serialized request body.
-- [ ] Add integration tests for at least one heating set command and one device set command
-///   Validates end-to-end behavior against live API for a zone overlay and a device-level command.
-
----
-
 ## Architecture Overview
 
 ```text
@@ -419,6 +372,51 @@ dotnet test
 - Designed for extensibility to add additional Tado API endpoints
 - Playground demonstrates real-world usage with proper error handling
 - All services use dependency injection for testability and flexibility
+
+#### TODO: Send Command Parity
+
+- [ ] Implement `SetOpenWindowAsync` -> `POST homes/{homeId}/zones/{zoneId}/state/openWindow/activate`
+///   Activates temporary open-window mode on a zone and lets the API switch behavior accordingly.
+- [ ] Implement `ResetOpenWindowAsync` -> `DELETE homes/{homeId}/zones/{zoneId}/state/openWindow`
+///   Clears open-window override and returns zone control to normal logic.
+- [ ] Review/align home presence command parity (`SetHomePresence` in reference uses `PUT homes/{homeId}/presenceLock`)
+///   Confirm endpoint contract differences and align request path/method with intended presence-lock semantics.
+- [ ] Implement `SetEarlyStartAsync` -> `PUT homes/{homeId}/zones/{zoneId}/earlyStart`
+///   Enables or disables early-start preheating for a zone.
+- [ ] Implement `SayHiAsync` (device identify) -> `POST devices/{deviceId}/identify`
+///   Triggers physical identify action on a specific device for pairing and troubleshooting.
+- [ ] Implement `SetDeviceChildLockAsync` -> `PUT devices/{deviceId}/childLock`
+///   Sends `childLockEnabled` state to lock or unlock device controls.
+- [ ] Implement `SetZoneTemperatureOffsetCelsiusAsync` -> `PUT devices/{deviceId}/temperatureOffset`
+///   Writes Celsius calibration offset for the selected device sensor.
+- [ ] Implement `SetZoneTemperatureOffsetFahrenheitAsync` -> `PUT devices/{deviceId}/temperatureOffset`
+///   Writes Fahrenheit calibration offset for the selected device sensor.
+- [ ] Implement `SetHeatingTemperatureCelsiusAsync` (default duration wrapper)
+///   Convenience API that sets heating target in Celsius until next manual change.
+- [ ] Implement `SetHeatingTemperatureCelsiusAsync` (duration/timer overload)
+///   Sets heating target in Celsius with explicit termination mode and optional timer seconds.
+- [ ] Implement `SetHeatingTemperatureFahrenheitAsync` (default duration wrapper)
+///   Convenience API that sets heating target in Fahrenheit until next manual change.
+- [ ] Implement `SetHeatingTemperatureFahrenheitAsync` (duration/timer overload)
+///   Sets heating target in Fahrenheit with explicit termination mode and optional timer seconds.
+- [ ] Implement `SetHotWaterTemperatureCelsiusAsync` (duration/timer)
+///   Sets hot-water target in Celsius using overlay termination settings.
+- [ ] Implement `SetHotWaterTemperatureFahrenheitAsync` (duration/timer)
+///   Sets hot-water target in Fahrenheit using overlay termination settings.
+- [ ] Implement shared `SetTemperatureAsync` overlay command core -> `PUT homes/{homeId}/zones/{zoneId}/overlay`
+///   Centralizes overlay payload creation (`setting`, `power`, `temperature`, `termination`) to avoid duplicated command logic.
+- [ ] Implement `SwitchHeatingOffAsync` (default duration wrapper)
+///   Convenience API to turn heating off until next manual change.
+- [ ] Implement `SwitchHeatingOffAsync` (duration/timer overload)
+///   Turns heating off for explicit duration mode and optional timer window.
+- [ ] Implement `SwitchHotWaterOffAsync` (duration/timer)
+///   Turns hot water off using the same overlay and termination model.
+- [ ] Add DTOs/builders for overlay command payload (`setting`, `termination`, timer duration)
+///   Introduces typed request models and helper builders to guarantee API-compatible JSON.
+- [ ] Add unit tests for all new send commands (payload shape, endpoint, HTTP verb)
+///   Verifies endpoint path, method, expected status handling, and serialized request body.
+- [ ] Add integration tests for at least one heating set command and one device set command
+///   Validates end-to-end behavior against live API for a zone overlay and a device-level command.
 
 ---
 

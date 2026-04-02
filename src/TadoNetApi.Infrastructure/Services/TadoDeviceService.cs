@@ -23,6 +23,8 @@ namespace TadoNetApi.Infrastructure.Services
         public TadoDeviceService(ITadoHttpClient httpClient) =>
             _httpClient = httpClient;
 
+        #region Device Read Operations
+
         /// <summary>
         /// Retrieves all devices for the specified home.
         /// </summary>
@@ -104,6 +106,10 @@ namespace TadoNetApi.Infrastructure.Services
             }
         }
 
+                #endregion
+
+                #region Mobile Device Read Operations
+
         /// <summary>
         /// Retrieves all mobile devices registered to the specified home.
         /// </summary>
@@ -156,5 +162,65 @@ namespace TadoNetApi.Infrastructure.Services
                     $"Failed to retrieve mobile device settings: {ex.Message}");
             }
         }
+
+        #endregion
+
+        #region Send Commands
+
+        /// <summary>
+        /// Turns the child lock on or off on the provided Tado device.
+        /// </summary>
+        /// <param name="device">The Tado device to set the child lock for.</param>
+        /// <param name="enableChildLock">True to enable child lock, false to disable it.</param>
+        /// <param name="cancellationToken">Optional cancellation token.</param>
+        /// <returns>True if the request was successful; otherwise false when the device has no short serial number.</returns>
+        public async Task<bool> SetDeviceChildLockAsync(Device device, bool enableChildLock, CancellationToken cancellationToken = default)
+        {
+            if (device.ShortSerialNo is null) return false;
+
+            return await SetDeviceChildLockAsync(device.ShortSerialNo, enableChildLock, cancellationToken);
+        }
+
+        /// <summary>
+        /// Turns the child lock on or off on the Tado device with the provided ID.
+        /// </summary>
+        /// <param name="deviceId">ID of the Tado device to set the child lock for.</param>
+        /// <param name="enableChildLock">True to enable child lock, false to disable it.</param>
+        /// <param name="cancellationToken">Optional cancellation token.</param>
+        /// <returns>Boolean indicating if the request was successful.</returns>
+        public async Task<bool> SetDeviceChildLockAsync(string deviceId, bool enableChildLock, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(deviceId))
+                throw new ArgumentException("Device ID must be provided.", nameof(deviceId));
+
+            return await _httpClient.SendAsync(
+                $"devices/{deviceId}/childLock",
+                HttpMethod.Put,
+                cancellationToken,
+                System.Net.HttpStatusCode.NoContent,
+                new { childLockEnabled = enableChildLock });
+        }
+
+        /// <summary>
+        /// Triggers the identify command on a Tado device (displays "Hi" on device).
+        /// </summary>
+        /// <param name="deviceId">ID of the Tado device to identify.</param>
+        /// <param name="cancellationToken">Optional cancellation token.</param>
+        /// <returns>Boolean indicating if the request was successful.</returns>
+        public async Task<bool> SayHiAsync(string deviceId, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(deviceId))
+                throw new ArgumentException("Device ID must be provided.", nameof(deviceId));
+
+            return await _httpClient.SendAsync(
+                $"devices/{deviceId}/identify",
+                HttpMethod.Post,
+                cancellationToken,
+                System.Net.HttpStatusCode.OK,
+                new { });
+        }
+
+            #endregion
+
     }
 }

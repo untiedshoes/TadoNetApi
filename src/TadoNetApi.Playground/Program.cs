@@ -84,6 +84,9 @@ class Program
             Console.WriteLine($"    🌡 Temp unit: {home.TemperatureUnit}");
             Console.WriteLine($"    🔧 Installation Completed: {home.InstallationCompleted}");
             Console.WriteLine($"    🎄 Christmas Mode: {home.ChristmasModeEnabled}");
+            Console.WriteLine($"    🗓 Simple Smart Schedule: {home.SimpleSmartScheduleEnabled}");
+            Console.WriteLine($"    🚶‍♂️ Away Radius: {home.AwayRadiusInMeters} meters");
+
 
             if (home.ContactDetails != null)
             {

@@ -32,4 +32,19 @@ public interface IDeviceService
     /// Retrieves the settings for a specific mobile device.
     /// </summary>
     Task<Settings> GetMobileDeviceSettingsAsync(int homeId, int mobileDeviceId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Turns child lock on or off for a device.
+    /// </summary>
+    Task<bool> SetDeviceChildLockAsync(Device device, bool enableChildLock, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Turns child lock on or off for a device by device ID.
+    /// </summary>
+    Task<bool> SetDeviceChildLockAsync(string deviceId, bool enableChildLock, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Triggers identify mode ("Say Hi") on a device.
+    /// </summary>
+    Task<bool> SayHiAsync(string deviceId, CancellationToken cancellationToken = default);
 }

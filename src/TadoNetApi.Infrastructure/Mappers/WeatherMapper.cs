@@ -23,6 +23,9 @@ namespace TadoNetApi.Infrastructure.Mappers
             };
         }
 
+        public static WeatherState ToDomain(this TadoWeatherStateResponse dto)
+            => new() { CurrentType = dto.CurrentType, Value = dto.Value, Timestamp = dto.Timestamp };
+
         public static List<Weather> ToDomainList(this IEnumerable<TadoWeatherResponse> dtos)
             => dtos.Select(ToDomain).ToList();
     }

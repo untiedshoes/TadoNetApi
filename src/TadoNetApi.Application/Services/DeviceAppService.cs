@@ -45,5 +45,23 @@ namespace TadoNetApi.Application.Services
         /// </summary>
         public Task<Settings> GetMobileDeviceSettingsAsync(int homeId, int mobileDeviceId, CancellationToken cancellationToken = default)
             => _deviceService.GetMobileDeviceSettingsAsync(homeId, mobileDeviceId, cancellationToken);
+
+        /// <summary>
+        /// Turns child lock on or off for a device.
+        /// </summary>
+        public Task<bool> SetDeviceChildLockAsync(Device device, bool enableChildLock, CancellationToken cancellationToken = default)
+            => _deviceService.SetDeviceChildLockAsync(device, enableChildLock, cancellationToken);
+
+        /// <summary>
+        /// Turns child lock on or off for a device by device ID.
+        /// </summary>
+        public Task<bool> SetDeviceChildLockAsync(string deviceId, bool enableChildLock, CancellationToken cancellationToken = default)
+            => _deviceService.SetDeviceChildLockAsync(deviceId, enableChildLock, cancellationToken);
+
+        /// <summary>
+        /// Triggers identify mode ("Say Hi") on a device.
+        /// </summary>
+        public Task<bool> SayHiAsync(string deviceId, CancellationToken cancellationToken = default)
+            => _deviceService.SayHiAsync(deviceId, cancellationToken);
     }
 }

@@ -78,6 +78,62 @@ namespace TadoNetApi.Infrastructure.Http
         }
 
         /// <summary>
+        /// Sends a command-style request (POST/PUT/DELETE) and validates the expected status code.
+        /// Intended for endpoints that return no payload but do return a known success status.
+        /// </summary>
+        public async Task<bool> SendAsync(
+            string endpoint,
+            HttpMethod method,
+            CancellationToken cancellationToken = default,
+            HttpStatusCode expectedStatusCode = HttpStatusCode.NoContent,
+            object? body = null)
+        {
+            try
+            {
+                var request = new HttpRequestMessage(method, endpoint);
+
+                if (body != null)
+                {
+                    request.Content = new StringContent(
+                        JsonSerializer.Serialize(body),
+                        Encoding.UTF8,
+                        "application/json");
+                }
+
+                _logger.LogInformation(
+                    "Sending HTTP command: {Method} {Url}",
+                    request.Method,
+                    request.RequestUri);
+
+                using var response = await _httpClient.SendAsync(request, cancellationToken);
+                var content = await response.Content.ReadAsStringAsync(cancellationToken);
+
+                if (response.StatusCode != expectedStatusCode)
+                {
+                    _logger.LogError(
+                        "Tado API command failed. Expected: {ExpectedStatusCode}, Actual: {StatusCode}, Response: {Response}",
+                        expectedStatusCode,
+                        response.StatusCode,
+                        content);
+
+                    throw new TadoApiException(response.StatusCode, content);
+                }
+
+                return true;
+            }
+            catch (TaskCanceledException ex)
+            {
+                _logger.LogError(ex, "HTTP command timed out.");
+                throw new TadoApiException(HttpStatusCode.RequestTimeout, "Request timed out");
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger.LogError(ex, "HTTP command error while calling Tado API.");
+                throw new TadoApiException(HttpStatusCode.ServiceUnavailable, ex.Message);
+            }
+        }
+
+        /// <summary>
         /// Core HTTP execution pipeline.
         /// 
         /// This method:

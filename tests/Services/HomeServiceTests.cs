@@ -4,9 +4,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Moq;
 using TadoNetApi.Domain.Entities;
-using TadoNetApi.Infrastructure.Services;
-using TadoNetApi.Infrastructure.Dtos.Responses;
-using TadoNetApi.Tests.Mocks;
+using TadoNetApi.Application.Services;
+using TadoNetApi.Domain.Interfaces;
 using Xunit;
 
 namespace TadoNetApi.Tests.Services
@@ -17,26 +16,24 @@ namespace TadoNetApi.Tests.Services
         public async Task GetHomeAsync_ReturnsHome()
         {
             // Arrange
-            var tadoHouse = new TadoHouseResponse
+            var expectedHome = new House
             {
                 Id = 1,
                 Name = "My Home",
                 DateTimeZone = "Europe/London",
-                DateCreated = DateTime.UtcNow,
                 TemperatureUnit = "C",
                 InstallationCompleted = true,
-                Partner = null,
-                SimpleSmartScheduleEnabled = false,
-                AwayRadiusInMeters = 0,
-                License = "MIT",
                 ChristmasModeEnabled = false,
-                ContactDetails = new TadoContactDetailsResponse(),
-                Address = new TadoAddressResponse(),
-                Geolocation = new TadoGeolocationResponse()
+                ContactDetails = new ContactDetails(),
+                Address = new Address(),
+                Geolocation = new Geolocation()
             };
 
-            var mockHttp = MockTadoHttpClient.CreateGet(tadoHouse);
-            var service = new TadoHomeService(mockHttp.Object);
+            var mockHomeService = new Mock<IHomeService>();
+            mockHomeService.Setup(s => s.GetHomeAsync(1, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedHome);
+
+            var service = new HomeAppService(mockHomeService.Object);
 
             // Act
             var home = await service.GetHomeAsync(1, CancellationToken.None);
@@ -51,13 +48,16 @@ namespace TadoNetApi.Tests.Services
         public async Task GetHomeStateAsync_ReturnsState()
         {
             // Arrange
-            var tadoState = new TadoHomeStateResponse
+            var expectedState = new HomeState
             {
                 Presence = "HOME"
             };
 
-            var mockHttp = MockTadoHttpClient.CreateGet(tadoState);
-            var service = new TadoHomeService(mockHttp.Object);
+            var mockHomeService = new Mock<IHomeService>();
+            mockHomeService.Setup(s => s.GetHomeStateAsync(1, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedState);
+
+            var service = new HomeAppService(mockHomeService.Object);
 
             // Act
             var state = await service.GetHomeStateAsync(1, CancellationToken.None);

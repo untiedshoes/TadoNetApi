@@ -7,45 +7,45 @@ using System.Threading.Tasks;
 using Moq;
 using TadoNetApi.Domain.Entities;
 using TadoNetApi.Domain.Enums;
-using TadoNetApi.Infrastructure.Dtos.Responses;
-using TadoNetApi.Infrastructure.Services;
-using TadoNetApi.Tests.Mocks;
+using TadoNetApi.Application.Services;
+using TadoNetApi.Domain.Interfaces;
 using Xunit;
 
 namespace TadoNetApi.Tests.Services
 {
     /// <summary>
-    /// Unit tests for <see cref="TadoZoneService"/>.
+    /// Unit tests for <see cref="ZoneAppService"/>.
     /// Covers zone retrieval, zone state mapping, zone summary mapping, and error handling.
     /// </summary>
     public class ZoneServiceTests
     {
         /// <summary>
-        /// Creates a <see cref="TadoZoneService"/> with a mocked HTTP response.
+        /// Creates a <see cref="ZoneAppService"/> with a mocked IZoneService.
         /// </summary>
-        /// <typeparam name="T">Type of DTO to return from the mock.</typeparam>
-        /// <param name="response">The response object to return.</param>
-        /// <returns>A TadoZoneService instance with mocked ITadoHttpClient.</returns>
-        private TadoZoneService CreateServiceWithResponse<T>(T response)
+        /// <returns>A ZoneAppService instance with mocked IZoneService.</returns>
+        private (ZoneAppService service, Mock<IZoneService> mock) CreateService()
         {
-            var mockHttp = MockTadoHttpClient.CreateGet(response);
-            return new TadoZoneService(mockHttp.Object);
+            var mockZoneService = new Mock<IZoneService>();
+            var service = new ZoneAppService(mockZoneService.Object);
+            return (service, mockZoneService);
         }
 
         /// <summary>
-        /// Tests that <see cref="TadoZoneService.GetZonesAsync"/> returns correctly mapped zones.
+        /// Tests that <see cref="ZoneAppService.GetZonesAsync"/> returns correctly mapped zones.
         /// </summary>
         [Fact]
         public async Task GetZonesAsync_ReturnsMappedZones()
         {
             // Arrange
-            var zonesDto = new List<TadoZoneResponse>
+            var expectedZones = new List<Zone>
             {
                 new() { Id = 1, Name = "Living Room", CurrentType = "HEATING" },
                 new() { Id = 2, Name = "Bedroom", CurrentType = "HEATING" }
             };
 
-            var service = CreateServiceWithResponse(zonesDto);
+            var (service, mock) = CreateService();
+            mock.Setup(s => s.GetZonesAsync(1, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedZones);
 
             // Act
             var zones = await service.GetZonesAsync(1);
@@ -57,20 +57,22 @@ namespace TadoNetApi.Tests.Services
         }
 
         /// <summary>
-        /// Tests that <see cref="TadoZoneService.GetZoneAsync"/> returns a correctly mapped zone.
+        /// Tests that <see cref="ZoneAppService.GetZoneAsync"/> returns a correctly mapped zone.
         /// </summary>
         [Fact]
         public async Task GetZoneAsync_ReturnsMappedZone()
         {
             // Arrange
-            var dto = new TadoZoneResponse
+            var expectedZone = new Zone
             {
                 Id = 1,
                 Name = "Living Room",
                 CurrentType = "HEATING"
             };
 
-            var service = CreateServiceWithResponse(dto);
+            var (service, mock) = CreateService();
+            mock.Setup(s => s.GetZoneAsync(1, 1, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedZone);
 
             // Act
             var zone = await service.GetZoneAsync(1, 1);
@@ -82,24 +84,26 @@ namespace TadoNetApi.Tests.Services
         }
 
         /// <summary>
-        /// Tests that <see cref="TadoZoneService.GetZoneStateAsync"/> returns a correctly mapped state.
+        /// Tests that <see cref="ZoneAppService.GetZoneStateAsync"/> returns a correctly mapped state.
         /// </summary>
         [Fact]
         public async Task GetZoneStateAsync_ReturnsMappedState()
         {
             // Arrange
-            var stateDto = new TadoStateResponse
+            var expectedState = new State
             {
                 TadoMode = "HOME",
                 GeolocationOverride = true,
-                Setting = new TadoSettingResponse
+                Setting = new Setting
                 {
                     Power = PowerStates.On,
-                    Temperature = new TadoTemperatureResponse { Celsius = 22 }
+                    Temperature = new Temperature { Celsius = 22 }
                 }
             };
 
-            var service = CreateServiceWithResponse(stateDto);
+            var (service, mock) = CreateService();
+            mock.Setup(s => s.GetZoneStateAsync(1, 1, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedState);
 
             // Act
             var state = await service.GetZoneStateAsync(1, 1);
@@ -113,27 +117,29 @@ namespace TadoNetApi.Tests.Services
         }
 
         /// <summary>
-        /// Tests that <see cref="TadoZoneService.GetZoneSummaryAsync"/> returns a correctly mapped zone summary.
+        /// Tests that <see cref="ZoneAppService.GetZoneSummaryAsync"/> returns a correctly mapped zone summary.
         /// </summary>
         [Fact]
         public async Task GetZoneSummaryAsync_ReturnsMappedSummary()
         {
             // Arrange
-            var summaryDto = new TadoZoneSummaryResponse
+            var expectedSummary = new ZoneSummary
             {
-                Setting = new TadoSettingResponse
+                Setting = new Setting
                 {
                     Power = PowerStates.On,
-                    Temperature = new TadoTemperatureResponse { Celsius = 21.5 }
+                    Temperature = new Temperature { Celsius = 21.5 }
                 },
-                Termination = new TadoTerminationResponse
+                Termination = new Termination
                 {
-                    CurrentType = DurationModes.Timer,
+                    Type = DurationModes.Timer.ToString(),
                     DurationInSeconds = 3600
                 }
             };
 
-            var service = CreateServiceWithResponse(summaryDto);
+            var (service, mock) = CreateService();
+            mock.Setup(s => s.GetZoneSummaryAsync(1, 1, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedSummary);
 
             // Act
             var summary = await service.GetZoneSummaryAsync(1, 1);
@@ -144,6 +150,42 @@ namespace TadoNetApi.Tests.Services
             Assert.Equal(21.5, summary.Setting?.Temperature?.Celsius);
             Assert.Equal(DurationModes.Timer.ToString(), summary.Termination?.Type);
             Assert.Equal(3600, summary.Termination?.DurationInSeconds);
+        }
+
+        /// <summary>
+        /// Tests that <see cref="ZoneAppService.GetZoneCapabilitiesAsync"/> returns correctly mapped capabilities.
+        /// </summary>
+        [Fact]
+        public async Task GetZoneCapabilitiesAsync_ReturnsMappedCapabilities()
+        {
+            // Arrange
+            var expectedCapabilities = new List<Capability>
+            {
+                new()
+                {
+                    PurpleType = "HEATING",
+                    Temperatures = new Temperatures
+                    {
+                        Celsius = new TemperatureSteps { Min = 5, Max = 25, Step = 1 },
+                        Fahrenheit = new TemperatureSteps { Min = 41, Max = 77, Step = 1 }
+                    }
+                }
+            };
+
+            var (service, mock) = CreateService();
+            mock.Setup(s => s.GetZoneCapabilitiesAsync(1, 1, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedCapabilities);
+
+            // Act
+            var capabilities = await service.GetZoneCapabilitiesAsync(1, 1);
+
+            // Assert
+            Assert.Single(capabilities);
+            Assert.Equal("HEATING", capabilities[0].PurpleType);
+            Assert.NotNull(capabilities[0].Temperatures);
+            Assert.Equal(5, capabilities[0].Temperatures?.Celsius?.Min);
+            Assert.Equal(25, capabilities[0].Temperatures?.Celsius?.Max);
+            Assert.Equal(1, capabilities[0].Temperatures?.Celsius?.Step);
         }
     }
 }

@@ -159,6 +159,7 @@ class Program
 
         try
         {
+            // 1️⃣ Device authorization
             Console.WriteLine("🔑 Requesting device authorisation...");
             var deviceCodeInfo = await authService.StartDeviceAuthorisationAsync(cancellationToken);
             var verificationUri = !string.IsNullOrEmpty(deviceCodeInfo.VerificationUriComplete)
@@ -167,20 +168,20 @@ class Program
             Console.WriteLine($"📋 Visit {verificationUri} and enter code: {deviceCodeInfo.UserCode}");
             Console.WriteLine("⏳ Waiting for authorisation...");
 
-            await authService.WaitForDeviceTokenAsync(
+            var token = await authService.WaitForDeviceTokenAsync(
                 deviceCodeInfo.DeviceCode,
                 intervalSeconds: deviceCodeInfo.Interval,
                 maxWaitSeconds: deviceCodeInfo.ExpiresIn,
                 cancellationToken: cancellationToken);
             Console.WriteLine("✅ Device authorised successfully!");
 
+            // 2️⃣ User & Home
             var user = await userService.GetMeAsync(cancellationToken);
             if (user.Homes == null || !user.Homes.Any())
             {
                 Console.WriteLine("❌ No homes found for user.");
                 return;
             }
-
             var homeId = user.Homes.First().Id ?? throw new Exception("Home ID is null");
             var home = await homeService.GetHomeAsync((int)homeId, cancellationToken);
             var homeState = await homeService.GetHomeStateAsync((int)homeId, cancellationToken);
@@ -225,6 +226,7 @@ class Program
                 Console.WriteLine($"    🧭 Presence: {homeState.Presence}");
             }
 
+            // 3️⃣ Zones
             var zones = await zoneService.GetZonesAsync((int)homeId, cancellationToken);
             Console.WriteLine(zones.Count == 0
                 ? "⚠️ No zones found."
@@ -232,7 +234,7 @@ class Program
             foreach (var zone in zones)
             {
                 Console.WriteLine($"   - Zone: {zone.Name} (ID: {zone.Id}, Type: {zone.CurrentType})");
-            }
+            }  
 
             foreach (var zone in zones)
             {
@@ -241,6 +243,7 @@ class Program
 
                 Console.WriteLine($"   - Zone: {zone.Name} (ID: {zone.Id}, Type: {zone.CurrentType})");
 
+                // 🌡 Current Temp
                 var temp = state.SensorDataPoints?.InsideTemperature?.Celsius;
                 if (temp.HasValue)
                 {
@@ -252,10 +255,12 @@ class Program
                     Console.ResetColor();
                 }
 
+                // 💧 Humidity
                 var humidity = state.SensorDataPoints?.Humidity?.Percentage;
                 if (humidity.HasValue)
                     Console.WriteLine($"       💧 Humidity: {humidity.Value}%");
 
+                // 🔥 Heating Power
                 var heatingPowerPercent = state.ActivityDataPoints?.HeatingPower?.Percentage;
                 if (heatingPowerPercent.HasValue)
                 {
@@ -269,14 +274,17 @@ class Program
                     Console.WriteLine($"       🔥 Setting Power: {state.Setting.Power}");
                 }
 
+                // 🎯 Target Temperature from ZoneSummary
                 var targetTemp = summary?.Setting?.Temperature?.Celsius;
                 if (targetTemp.HasValue)
                     Console.WriteLine($"       🎯 Target Temp: {targetTemp.Value}°C");
 
+                // ⏱ Overlay
                 if (summary?.Termination?.Type != null)
                     Console.WriteLine($"       ⏱ Overlay: {summary.Termination.Type}, Duration: {summary.Termination.DurationInSeconds}s");
             }
 
+            // 4️⃣ Devices
             try
             {
                 var devices = await deviceService.GetDevicesAsync((int)homeId, cancellationToken);
@@ -312,38 +320,6 @@ class Program
         {
             Console.WriteLine("⚠️ An error occurred:");
             Console.WriteLine(apiEx.Message);
-        }
-    }
-}
-```
-            {
-                var state = await zoneService.GetZoneStateAsync(homeId, (int)zone.Id!, cancellationToken);
-                var summary = await zoneService.GetZoneSummaryAsync(homeId, (int)zone.Id!, cancellationToken);
-                
-                Console.WriteLine($"   - Zone: {zone.Name} (ID: {zone.Id}, Type: {zone.Type})");
-                Console.WriteLine($"       🌡 Current: {state.SensorDataPoints?.InsideTemperature?.Celsius}°C");
-                Console.WriteLine($"       💧 Humidity: {state.SensorDataPoints?.Humidity?.Percentage}%");
-                Console.WriteLine($"       🔥 Heating Power: {state.Setting?.Power}");
-                
-                if (summary?.Setting?.Temperature?.Celsius.HasValue == true)
-                    Console.WriteLine($"       🎯 Target Temp: {summary.Setting.Temperature.Celsius}°C");
-            }
-
-            // Fetch and display devices
-            var devices = await deviceService.GetDevicesAsync(homeId, cancellationToken);
-            Console.WriteLine($"📦 Devices ({devices.Count}) in Home '{home.Name}':");
-            foreach (var device in devices)
-            {
-                Console.WriteLine($"   • Device Type: {device.DeviceType}");
-                Console.WriteLine($"       Connection: {(device.ConnectionState?.Value == true ? "Connected" : "Disconnected")}");
-                Console.WriteLine($"       Battery: {device.BatteryState ?? "Unknown"}");
-            }
-
-            Console.WriteLine("🎉 Playground complete!");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"❌ Error: {ex.Message}");
         }
     }
 }

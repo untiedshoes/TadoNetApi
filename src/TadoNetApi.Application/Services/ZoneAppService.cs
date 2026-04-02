@@ -26,5 +26,8 @@ namespace TadoNetApi.Application.Services
 
         public Task<ZoneSummary?> GetZoneSummaryAsync(int homeId, int zoneId, CancellationToken cancellationToken = default)
             => _zoneService.GetZoneSummaryAsync(homeId, zoneId, cancellationToken);
+
+        public Task<IReadOnlyList<Capability>> GetZoneCapabilitiesAsync(int homeId, int zoneId, CancellationToken cancellationToken = default)
+            => _zoneService.GetZoneCapabilitiesAsync(homeId, zoneId, cancellationToken);
     }
 }

@@ -111,5 +111,25 @@ namespace TadoNetApi.Infrastructure.Services
                     $"Failed to retrieve zone summary: {ex.Message}");
             }
         }
+
+        /// <summary>
+        /// Returns the capabilities of a zone.
+        /// </summary>
+        public async Task<IReadOnlyList<Capability>> GetZoneCapabilitiesAsync(int homeId, int zoneId, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync<List<TadoCapabilityResponse>>(
+                    $"homes/{homeId}/zones/{zoneId}/capabilities",
+                    cancellationToken) ?? new List<TadoCapabilityResponse>();
+
+                return response.Select(c => c.ToDomain()).ToList();
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new TadoApiException(HttpStatusCode.ServiceUnavailable,
+                    $"Failed to retrieve zone capabilities: {ex.Message}");
+            }
+        }
     }
 }

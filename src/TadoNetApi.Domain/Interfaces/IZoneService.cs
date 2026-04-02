@@ -22,5 +22,10 @@ namespace TadoNetApi.Domain.Interfaces
         /// <param name="zoneId">The ID of the zone.</param>    /// <param name="cancellationToken">Cancellation token.</param> 
         /// <returns>A summary of the zone's current settings and termination conditions, or null if no overlay.</returns>
         Task<ZoneSummary?> GetZoneSummaryAsync(int homeId, int zoneId, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Fetches the capabilities of a zone.
+        /// </summary>
+        Task<IReadOnlyList<Capability>> GetZoneCapabilitiesAsync(int homeId, int zoneId, CancellationToken cancellationToken = default);
     }
 }

@@ -46,6 +46,8 @@ namespace TadoNetApi.Infrastructure.Http
             _logger = logger;
         }
 
+        #region Data Retrieval
+
         /// <summary>
         /// Performs a GET request to the specified endpoint and deserializes the response.
         /// </summary>
@@ -57,6 +59,10 @@ namespace TadoNetApi.Infrastructure.Http
 
             return await SendAsync<T>(request, cancellationToken);
         }
+
+        #endregion
+
+        #region Data Submission
 
         /// <summary>
         /// Performs a POST request with a JSON body and deserializes the response.
@@ -76,6 +82,29 @@ namespace TadoNetApi.Infrastructure.Http
 
             return await SendAsync<TResponse>(request, cancellationToken);
         }
+
+        /// <summary>
+        /// Performs a PUT request with a JSON body and deserializes the response.
+        /// </summary>
+        public async Task<TResponse?> PutAsync<TRequest, TResponse>(
+            string endpoint,
+            TRequest body,
+            CancellationToken cancellationToken = default)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Put, endpoint)
+            {
+                Content = new StringContent(
+                    JsonSerializer.Serialize(body),
+                    Encoding.UTF8,
+                    "application/json")
+            };
+
+            return await SendAsync<TResponse>(request, cancellationToken);
+        }
+
+        #endregion
+
+        #region Send Commands
 
         /// <summary>
         /// Sends a command-style request (POST/PUT/DELETE) and validates the expected status code.
@@ -132,6 +161,10 @@ namespace TadoNetApi.Infrastructure.Http
                 throw new TadoApiException(HttpStatusCode.ServiceUnavailable, ex.Message);
             }
         }
+
+        #endregion
+
+        #region Core Pipeline
 
         /// <summary>
         /// Core HTTP execution pipeline.
@@ -208,5 +241,7 @@ namespace TadoNetApi.Infrastructure.Http
                     "Failed to deserialize API response.");
             }
         }
+
+        #endregion
     }
 }

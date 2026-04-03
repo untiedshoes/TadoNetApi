@@ -20,6 +20,8 @@ public class TadoWeatherService : IWeatherService
         _httpClient = httpClient;
     }
 
+    #region Data Retrieval
+
     /// <inheritdoc/>
     public async Task<Weather> GetWeatherAsync(int homeId, CancellationToken cancellationToken = default)
     {
@@ -29,4 +31,7 @@ public class TadoWeatherService : IWeatherService
 
         return WeatherMapper.ToDomain(response);
     }
+
+    #endregion
+
 }

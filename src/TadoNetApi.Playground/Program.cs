@@ -200,6 +200,7 @@ class Program
             }
 
             // 4️⃣ Devices
+            string? sayHiDeviceId = null;
             try
             {
                 var devices = await deviceService.GetDevicesAsync((int)homeId, cancellationToken);
@@ -216,6 +217,9 @@ class Program
                     Console.WriteLine($"       Child Lock Enabled: {device.ChildLockEnabled?.ToString() ?? "N/A"}");
                     if (device.Duties != null && device.Duties.Any())
                         Console.WriteLine($"       Duties: {string.Join(", ", device.Duties)}");
+
+                    if (sayHiDeviceId == null && !string.IsNullOrWhiteSpace(device.ShortSerialNo))
+                        sayHiDeviceId = device.ShortSerialNo;
                 }
             }
             catch (TadoApiException ex)
@@ -285,6 +289,17 @@ class Program
             catch (TadoApiException ex)
             {
                 Console.WriteLine($"⚠️ Weather API Error ({ex.StatusCode}): {ex.Message}");
+            }
+
+            // 7️⃣ Simple Command Example
+            if (!string.IsNullOrWhiteSpace(sayHiDeviceId))
+            {
+                var sayHiResult = await deviceService.SayHiAsync(sayHiDeviceId, cancellationToken);
+                Console.WriteLine($"👋 SayHiAsync ({sayHiDeviceId}): {sayHiResult}");
+            }
+            else
+            {
+                Console.WriteLine("ℹ️ SayHiAsync skipped (no device with a short serial number found).");
             }
 
             Console.WriteLine("🎉 Playground complete!");

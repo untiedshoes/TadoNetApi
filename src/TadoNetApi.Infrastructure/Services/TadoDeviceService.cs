@@ -23,7 +23,7 @@ namespace TadoNetApi.Infrastructure.Services
         public TadoDeviceService(ITadoHttpClient httpClient) =>
             _httpClient = httpClient;
 
-        #region Device Read Operations
+        #region Data Retrieval
 
         /// <summary>
         /// Retrieves all devices for the specified home.
@@ -105,10 +105,6 @@ namespace TadoNetApi.Infrastructure.Services
                     $"Failed to retrieve temperature offset: {ex.Message}");
             }
         }
-
-                #endregion
-
-                #region Mobile Device Read Operations
 
         /// <summary>
         /// Retrieves all mobile devices registered to the specified home.
@@ -220,7 +216,27 @@ namespace TadoNetApi.Infrastructure.Services
                 new { });
         }
 
-            #endregion
+        /// <summary>
+        /// Sets the temperature offset in Celsius for a Tado device.
+        /// </summary>
+        /// <param name="deviceId">The ID of the Tado device to set the offset for.</param>
+        /// <param name="temperature">The temperature offset in Celsius.</param>
+        /// <param name="cancellationToken">Optional cancellation token.</param>
+        /// <returns>Boolean indicating if the request was successful.</returns>
+        public async Task<bool> SetZoneTemperatureOffsetCelsiusAsync(string deviceId, double temperature, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(deviceId))
+                throw new ArgumentException("Device ID must be provided.", nameof(deviceId));
+
+            return await _httpClient.SendAsync(
+                $"devices/{deviceId}/temperatureOffset",
+                HttpMethod.Put,
+                cancellationToken,
+                System.Net.HttpStatusCode.OK,
+                new { celsius = temperature });
+        }
+
+        #endregion
 
     }
 }

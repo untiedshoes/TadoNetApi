@@ -1,4 +1,5 @@
 using TadoNetApi.Domain.Entities;
+using TadoNetApi.Domain.Enums;
 using TadoNetApi.Domain.Interfaces;
 
 namespace TadoNetApi.Application.Services
@@ -35,5 +36,14 @@ namespace TadoNetApi.Application.Services
 
         public Task<Temperature> GetZoneTemperatureOffsetAsync(Zone zone, CancellationToken cancellationToken = default)
             => _zoneService.GetZoneTemperatureOffsetAsync(zone, cancellationToken);
+
+        public Task<bool> SetEarlyStartAsync(int homeId, int zoneId, bool enabled, CancellationToken cancellationToken = default)
+            => _zoneService.SetEarlyStartAsync(homeId, zoneId, enabled, cancellationToken);
+
+        public Task<ZoneSummary?> SetHeatingTemperatureCelsiusAsync(int homeId, int zoneId, double temperature, CancellationToken cancellationToken = default)
+            => _zoneService.SetHeatingTemperatureCelsiusAsync(homeId, zoneId, temperature, cancellationToken);
+
+        public Task<ZoneSummary?> SetHeatingTemperatureCelsiusAsync(int homeId, int zoneId, double temperature, DurationModes durationMode, TimeSpan? timer = null, CancellationToken cancellationToken = default)
+            => _zoneService.SetHeatingTemperatureCelsiusAsync(homeId, zoneId, temperature, durationMode, timer, cancellationToken);
     }
 }

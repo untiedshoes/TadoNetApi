@@ -47,4 +47,9 @@ public interface IDeviceService
     /// Triggers identify mode ("Say Hi") on a device.
     /// </summary>
     Task<bool> SayHiAsync(string deviceId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Sets the temperature offset in Celsius for a Tado device.
+    /// </summary>
+    Task<bool> SetZoneTemperatureOffsetCelsiusAsync(string deviceId, double temperature, CancellationToken cancellationToken = default);
 }

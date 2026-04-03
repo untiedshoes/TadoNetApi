@@ -63,5 +63,11 @@ namespace TadoNetApi.Application.Services
         /// </summary>
         public Task<bool> SayHiAsync(string deviceId, CancellationToken cancellationToken = default)
             => _deviceService.SayHiAsync(deviceId, cancellationToken);
+
+        /// <summary>
+        /// Sets the temperature offset in Celsius for a Tado device.
+        /// </summary>
+        public Task<bool> SetZoneTemperatureOffsetCelsiusAsync(string deviceId, double temperature, CancellationToken cancellationToken = default)
+            => _deviceService.SetZoneTemperatureOffsetCelsiusAsync(deviceId, temperature, cancellationToken);
     }
 }

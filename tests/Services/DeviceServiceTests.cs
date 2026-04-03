@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Moq;
@@ -169,6 +171,40 @@ namespace TadoNetApi.Tests.Services
             // var service = new TadoDeviceService(new TadoHttpClient(authService));
             // var devices = await service.GetDevicesAsync(homeId: 123, CancellationToken.None);
             // Assert.NotEmpty(devices);
+        }
+
+        /// <summary>
+        /// Tests that <see cref="TadoDeviceService.SetZoneTemperatureOffsetCelsiusAsync"/>
+        /// sends the expected command payload and endpoint.
+        /// </summary>
+        [Fact(DisplayName = "SetZoneTemperatureOffsetCelsiusAsync sends expected command")]
+        public async Task SetZoneTemperatureOffsetCelsiusAsync_SendsExpectedCommand()
+        {
+            // Arrange
+            var mockHttp = new Mock<TadoNetApi.Infrastructure.Http.ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.SendAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<HttpMethod>(),
+                    It.IsAny<CancellationToken>(),
+                    It.IsAny<HttpStatusCode>(),
+                    It.IsAny<object?>()))
+                .ReturnsAsync(true);
+
+            var service = new TadoDeviceService(mockHttp.Object);
+
+            // Act
+            var success = await service.SetZoneTemperatureOffsetCelsiusAsync("ABC123", 1.5, CancellationToken.None);
+
+            // Assert
+            Assert.True(success);
+            mockHttp.Verify(c => c.SendAsync(
+                    "devices/ABC123/temperatureOffset",
+                    HttpMethod.Put,
+                    It.IsAny<CancellationToken>(),
+                    HttpStatusCode.OK,
+                    It.Is<object?>(b => b != null && JsonSerializer.Serialize(b).Contains("\"celsius\":1.5"))),
+                Times.Once);
         }
     }
 }

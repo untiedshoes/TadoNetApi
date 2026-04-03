@@ -19,6 +19,8 @@ public class TadoHomeService : IHomeService
         _httpClient = httpClient;
     }
 
+    #region Data Retrieval
+
     /// <inheritdoc/>
     public async Task<House?> GetHomeAsync(int homeId, CancellationToken cancellationToken = default)
     {
@@ -35,6 +37,10 @@ public class TadoHomeService : IHomeService
         return dto == null ? null : dto.ToDomain();
     }
 
+    #endregion
+
+    #region Send Commands
+
     /// <inheritdoc/>
     public async Task SetHomePresenceAsync(int homeId, string presence, CancellationToken cancellationToken = default)
     {
@@ -49,4 +55,7 @@ public class TadoHomeService : IHomeService
             cancellationToken
         );
     }
+
+    #endregion
+
 }

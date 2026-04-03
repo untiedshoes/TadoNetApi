@@ -1,7 +1,8 @@
 using System.Net;
 using System.Text.Json;
-using TadoNetApi.Application.Services;
 using TadoNetApi.Domain.Entities;
+using TadoNetApi.Domain.Enums;
+using TadoNetApi.Infrastructure.Dtos.Requests;
 using TadoNetApi.Infrastructure.Dtos.Responses;
 using TadoNetApi.Infrastructure.Exceptions;
 using TadoNetApi.Infrastructure.Http;
@@ -21,6 +22,8 @@ namespace TadoNetApi.Infrastructure.Services
         {
             _httpClient = httpClient;
         }
+
+        #region Data Retrieval
 
         /// <summary>
         /// Returns a list of zones in the specified home.
@@ -220,5 +223,108 @@ namespace TadoNetApi.Infrastructure.Services
                     $"Failed to retrieve zone temperature offset: {ex.Message}");
             }
         }
+
+        #endregion
+
+        #region Send Commands
+
+        /// <summary>
+        /// Enables or disables the early start mode for a zone.
+        /// </summary>
+        /// <param name="homeId">The ID of the home.</param>
+        /// <param name="zoneId">The ID of the zone.</param>
+        /// <param name="enabled">True to enable early start, false to disable it.</param>
+        /// <param name="cancellationToken">Optional cancellation token.</param>
+        /// <returns>Boolean indicating if the request was successful.</returns>
+        public async Task<bool> SetEarlyStartAsync(int homeId, int zoneId, bool enabled, CancellationToken cancellationToken = default)
+        {
+            if (homeId <= 0) throw new ArgumentOutOfRangeException(nameof(homeId), "Home ID must be a positive integer.");
+            if (zoneId <= 0) throw new ArgumentOutOfRangeException(nameof(zoneId), "Zone ID must be a positive integer.");
+
+            return await _httpClient.SendAsync(
+                $"homes/{homeId}/zones/{zoneId}/earlyStart",
+                HttpMethod.Put,
+                cancellationToken,
+                HttpStatusCode.OK,
+                new { enabled });
+        }
+
+        /// <summary>
+        /// Sets the heating temperature in Celsius for a zone, keeping it until the next manual change.
+        /// </summary>
+        /// <param name="homeId">The ID of the home.</param>
+        /// <param name="zoneId">The ID of the zone.</param>
+        /// <param name="temperature">The target temperature in Celsius.</param>
+        /// <param name="cancellationToken">Optional cancellation token.</param>
+        /// <returns>The updated zone summary, or null if the response could not be deserialized.</returns>
+        public Task<ZoneSummary?> SetHeatingTemperatureCelsiusAsync(int homeId, int zoneId, double temperature, CancellationToken cancellationToken = default)
+            => SetHeatingTemperatureCelsiusAsync(homeId, zoneId, temperature, DurationModes.UntilNextManualChange, null, cancellationToken);
+
+        /// <summary>
+        /// Sets the heating temperature in Celsius for a zone for the specified duration.
+        /// </summary>
+        /// <param name="homeId">The ID of the home.</param>
+        /// <param name="zoneId">The ID of the zone.</param>
+        /// <param name="temperature">The target temperature in Celsius.</param>
+        /// <param name="durationMode">How long the setting should remain active.</param>
+        /// <param name="timer">Required when <paramref name="durationMode"/> is <see cref="DurationModes.Timer"/>.</param>
+        /// <param name="cancellationToken">Optional cancellation token.</param>
+        /// <returns>The updated zone summary, or null if the response could not be deserialized.</returns>
+        public async Task<ZoneSummary?> SetHeatingTemperatureCelsiusAsync(int homeId, int zoneId, double temperature, DurationModes durationMode, TimeSpan? timer = null, CancellationToken cancellationToken = default)
+        {
+            if (homeId <= 0) throw new ArgumentOutOfRangeException(nameof(homeId), "Home ID must be a positive integer.");
+            if (zoneId <= 0) throw new ArgumentOutOfRangeException(nameof(zoneId), "Zone ID must be a positive integer.");
+
+            return await SetTemperatureAsync(homeId, zoneId, temperature, null, DeviceTypes.Heating, durationMode, timer, cancellationToken);
+        }
+
+        private async Task<ZoneSummary?> SetTemperatureAsync(int homeId, int zoneId, double? temperatureCelsius, double? temperatureFahrenheit, DeviceTypes deviceType, DurationModes durationMode, TimeSpan? timer, CancellationToken cancellationToken)
+        {
+            if (!Enum.IsDefined(deviceType))
+                throw new ArgumentOutOfRangeException(nameof(deviceType));
+
+            if (!Enum.IsDefined(durationMode))
+                throw new ArgumentOutOfRangeException(nameof(durationMode));
+
+            if (durationMode == DurationModes.Timer && timer == null)
+                durationMode = DurationModes.UntilNextManualChange;
+
+            var request = new SetZoneTemperatureRequest
+            {
+                Setting = new SetZoneTemperatureSettingRequest
+                {
+                    DeviceType = deviceType,
+                    Power = !temperatureCelsius.HasValue && !temperatureFahrenheit.HasValue
+                        ? PowerStates.Off
+                        : PowerStates.On
+                },
+                Termination = new SetZoneTemperatureTerminationRequest
+                {
+                    CurrentType = durationMode
+                }
+            };
+
+            if (request.Setting.Power == PowerStates.On)
+            {
+                request.Setting.Temperature = new SetZoneTemperatureValueRequest
+                {
+                    Celsius = temperatureCelsius,
+                    Fahrenheit = temperatureFahrenheit
+                };
+            }
+
+            if (durationMode == DurationModes.Timer && timer.HasValue)
+                request.Termination.DurationInSeconds = (int)timer.Value.TotalSeconds;
+
+            var response = await _httpClient.PutAsync<SetZoneTemperatureRequest, TadoZoneSummaryResponse>(
+                $"homes/{homeId}/zones/{zoneId}/overlay",
+                request,
+                cancellationToken);
+
+            return response == null ? null : ZoneSummaryMapper.ToDomain(response);
+        }
+
+        #endregion
+
     }
 }

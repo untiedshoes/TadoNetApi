@@ -59,5 +59,23 @@ namespace TadoNetApi.Infrastructure.Mappers
         /// <returns>A list of domain <see cref="Device"/> entities.</returns>
         public static List<Device> ToDomainList(this IEnumerable<TadoDeviceResponse> dtos) =>
             dtos.Select(d => d.ToDomain()).ToList();
+
+        /// <summary>
+        /// Maps a <see cref="TadoDeviceListItemResponse"/> to a <see cref="DeviceListEntry"/> domain entity.
+        /// </summary>
+        public static DeviceListEntry ToDomain(this TadoDeviceListItemResponse dto)
+            => new()
+            {
+                Type = dto.Type,
+                Device = dto.Device?.ToDomain(),
+                ZoneId = dto.Zone?.Discriminator,
+                ZoneDuties = dto.Zone?.Duties
+            };
+
+        /// <summary>
+        /// Maps a list of <see cref="TadoDeviceListItemResponse"/> to a list of <see cref="DeviceListEntry"/> domain entities.
+        /// </summary>
+        public static List<DeviceListEntry> ToDomainList(this IEnumerable<TadoDeviceListItemResponse> dtos)
+            => dtos.Select(d => d.ToDomain()).ToList();
     }
 }

@@ -23,6 +23,12 @@ namespace TadoNetApi.Application.Services
             => _deviceService.GetDevicesAsync(homeId, cancellationToken);
 
         /// <summary>
+        /// Retrieves all devices in a home with their zone association when available.
+        /// </summary>
+        public Task<IReadOnlyList<DeviceListEntry>> GetDeviceListAsync(int homeId, CancellationToken cancellationToken = default)
+            => _deviceService.GetDeviceListAsync(homeId, cancellationToken);
+
+        /// <summary>
         /// Retrieves a single device by ID.
         /// </summary>
         public Task<Device> GetDeviceAsync(int homeId, int deviceId, CancellationToken cancellationToken = default)

@@ -82,8 +82,8 @@ Application Services are the consumer-facing layer and are used directly by the 
 |-------|-------|-------|-------|
 | UserAppService | Retrieve current authenticated user context | GetMeAsync | User |
 | HomeAppService | Read home details/state and set presence | GetHomeAsync, GetHomeStateAsync, SetHomePresenceAsync | House?, HomeState?, Task |
-| ZoneAppService | Read zones, zone state, summary, capabilities, early-start, and zone offset | GetZonesAsync, GetZoneAsync, GetZoneStateAsync, GetZoneSummaryAsync, GetZoneCapabilitiesAsync, GetEarlyStartAsync, GetZoneTemperatureOffsetAsync | IReadOnlyList<Zone>, Zone, State, ZoneSummary?, IReadOnlyList<Capability>, EarlyStart, Temperature |
-| DeviceAppService | Read devices and mobile-device related data | GetDevicesAsync, GetDeviceAsync, GetZoneTemperatureOffsetAsync, GetMobileDevicesAsync, GetMobileDeviceSettingsAsync | IReadOnlyList<Device>, Device, Temperature, IReadOnlyList<Item>, Settings |
+| ZoneAppService | Read zone data and send zone temperature/early-start commands | GetZonesAsync, GetZoneAsync, GetZoneStateAsync, GetZoneSummaryAsync, GetZoneCapabilitiesAsync, GetEarlyStartAsync, GetZoneTemperatureOffsetAsync, SetEarlyStartAsync, SetHeatingTemperatureCelsiusAsync | IReadOnlyList<Zone>, Zone, State, ZoneSummary?, IReadOnlyList<Capability>, EarlyStart, Temperature, bool |
+| DeviceAppService | Read device/mobile-device data and send device commands | GetDevicesAsync, GetDeviceListAsync, GetDeviceAsync, GetZoneTemperatureOffsetAsync, GetMobileDevicesAsync, GetMobileDeviceSettingsAsync, SetDeviceChildLockAsync, SayHiAsync, SetZoneTemperatureOffsetCelsiusAsync | IReadOnlyList<Device>, IReadOnlyList<DeviceListEntry>, Device, Temperature, IReadOnlyList<Item>, Settings, bool |
 | WeatherAppService | Read weather data for a home | GetWeatherAsync | Weather |
 
 ### Infrastructure Services
@@ -94,8 +94,8 @@ Infrastructure Services are the API-integration implementations behind domain in
 |-------|-------|-------|-------|
 | TadoUserService | User endpoint operations | IUserService | User |
 | TadoHomeService | Home and home-state operations, presence updates | IHomeService | House?, HomeState?, Task |
-| TadoZoneService | Zone operations (state, summary, capabilities, early start, zone offset) | IZoneService | IReadOnlyList<Zone>, Zone, State, ZoneSummary?, IReadOnlyList<Capability>, EarlyStart, Temperature |
-| TadoDeviceService | Device operations and mobile-device operations | IDeviceService | IReadOnlyList<Device>, Device, Temperature, IReadOnlyList<Item>, Settings |
+| TadoZoneService | Zone retrieval plus zone control commands (early start and overlay temperature) | IZoneService | IReadOnlyList<Zone>, Zone, State, ZoneSummary?, IReadOnlyList<Capability>, EarlyStart, Temperature, bool |
+| TadoDeviceService | Device/mobile-device retrieval plus device commands (child lock, identify, offset) | IDeviceService | IReadOnlyList<Device>, IReadOnlyList<DeviceListEntry>, Device, Temperature, IReadOnlyList<Item>, Settings, bool |
 | TadoWeatherService | Weather endpoint operations | IWeatherService | Weather |
 | TadoAuthService | OAuth2 device authorization and token lifecycle | ITadoAuthService | Device auth response, token state, access token strings |
 

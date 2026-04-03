@@ -50,6 +50,30 @@ namespace TadoNetApi.Infrastructure.Services
         }
 
         /// <summary>
+        /// Retrieves all devices for the specified home including zone association where available.
+        /// </summary>
+        /// <param name="homeId">The ID of the home.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>A read-only list of <see cref="DeviceListEntry"/>.</returns>
+        /// <exception cref="TadoApiException">Thrown if the API request fails.</exception>
+        public async Task<IReadOnlyList<DeviceListEntry>> GetDeviceListAsync(int homeId, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                var response = await _httpClient.GetAsync<TadoDeviceListResponse>(
+                    $"homes/{homeId}/deviceList",
+                    cancellationToken);
+
+                return response?.Entries?.ToDomainList() ?? new List<DeviceListEntry>();
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new TadoApiException(System.Net.HttpStatusCode.ServiceUnavailable,
+                    $"Failed to retrieve device list: {ex.Message}");
+            }
+        }
+
+        /// <summary>
         /// Retrieves a single device by home and device ID.
         /// </summary>
         /// <param name="homeId">The home ID.</param>

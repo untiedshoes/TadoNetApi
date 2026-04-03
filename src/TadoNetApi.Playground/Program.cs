@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,8 +29,22 @@ class Program
             return;
         }
 
+        var enableVerboseHttpLogs = string.Equals(
+            Environment.GetEnvironmentVariable("TADO_VERBOSE_HTTP_LOGS"),
+            "true",
+            StringComparison.OrdinalIgnoreCase);
+
         var services = new ServiceCollection();
-        services.AddLogging(builder => builder.AddConsole());
+        services.AddLogging(builder =>
+        {
+            builder.AddConsole();
+
+            if (!enableVerboseHttpLogs)
+            {
+                builder.AddFilter("System.Net.Http.HttpClient", LogLevel.Warning);
+                builder.AddFilter("System.Net.Http.HttpClient.ITadoHttpClient", LogLevel.Warning);
+            }
+        });
         services.AddTadoInfrastructure(config);
         var provider = services.BuildServiceProvider();
 
@@ -117,13 +132,44 @@ class Program
 
             // 3️⃣ Zones
             var zones = await zoneService.GetZonesAsync((int)homeId, cancellationToken);
+            var zoneByDeviceShortSerial = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            var zoneNameById = zones
+                .Where(z => z.Id.HasValue)
+                .ToDictionary(z => z.Id!.Value, z => z.Name ?? "Unknown Zone");
+
             Console.WriteLine(zones.Count == 0
                 ? "⚠️ No zones found."
                 : $"📊 {zones.Count} Zones found:");
             foreach (var zone in zones)
             {
                 Console.WriteLine($"   - Zone: {zone.Name} (ID: {zone.Id}, Type: {zone.CurrentType})");
-            }  
+            }
+
+            try
+            {
+                var deviceListEntries = await deviceService.GetDeviceListAsync((int)homeId, cancellationToken);
+
+                foreach (var entry in deviceListEntries)
+                {
+                    if (entry.Device == null || !entry.ZoneId.HasValue)
+                        continue;
+
+                    var zoneName = zoneNameById.TryGetValue(entry.ZoneId.Value, out var resolvedZoneName)
+                        ? resolvedZoneName
+                        : "Unknown Zone";
+
+                    if (!string.IsNullOrWhiteSpace(entry.Device.ShortSerialNo))
+                        zoneByDeviceShortSerial[entry.Device.ShortSerialNo] = zoneName;
+
+                    if (!string.IsNullOrWhiteSpace(entry.Device.SerialNo))
+                        zoneByDeviceShortSerial[entry.Device.SerialNo] = zoneName;
+                }
+            }
+            catch (TadoApiException ex)
+            {
+                Console.WriteLine($"⚠️ Device-list zone mapping unavailable ({ex.StatusCode}). Continuing with best effort.");
+            }
+
 
             foreach (var zone in zones)
             {
@@ -201,6 +247,9 @@ class Program
 
             // 4️⃣ Devices
             string? sayHiDeviceId = null;
+            string? sayHiDeviceSerialNo = null;
+            string sayHiDeviceName = "Unknown Device";
+            string sayHiZoneName = "Unknown Zone";
             try
             {
                 var devices = await deviceService.GetDevicesAsync((int)homeId, cancellationToken);
@@ -218,8 +267,26 @@ class Program
                     if (device.Duties != null && device.Duties.Any())
                         Console.WriteLine($"       Duties: {string.Join(", ", device.Duties)}");
 
-                    if (sayHiDeviceId == null && !string.IsNullOrWhiteSpace(device.ShortSerialNo))
+                    var canUseForSayHi = !string.IsNullOrWhiteSpace(device.ShortSerialNo)
+                        && !device.ShortSerialNo.StartsWith("IB", StringComparison.OrdinalIgnoreCase)
+                        && !device.ShortSerialNo.StartsWith("BP", StringComparison.OrdinalIgnoreCase);
+
+                    if (sayHiDeviceId == null && canUseForSayHi)
+                    {
                         sayHiDeviceId = device.ShortSerialNo;
+                        sayHiDeviceSerialNo = device.SerialNo;
+                        sayHiDeviceName = device.DeviceType ?? device.SerialNo ?? "Unknown Device";
+
+                        if (zoneByDeviceShortSerial.TryGetValue(sayHiDeviceId, out var matchedZoneByShortSerial))
+                        {
+                            sayHiZoneName = matchedZoneByShortSerial;
+                        }
+                        else if (!string.IsNullOrWhiteSpace(sayHiDeviceSerialNo)
+                            && zoneByDeviceShortSerial.TryGetValue(sayHiDeviceSerialNo, out var matchedZoneBySerial))
+                        {
+                            sayHiZoneName = matchedZoneBySerial;
+                        }
+                    }
                 }
             }
             catch (TadoApiException ex)
@@ -295,11 +362,11 @@ class Program
             if (!string.IsNullOrWhiteSpace(sayHiDeviceId))
             {
                 var sayHiResult = await deviceService.SayHiAsync(sayHiDeviceId, cancellationToken);
-                Console.WriteLine($"👋 SayHiAsync ({sayHiDeviceId}): {sayHiResult}");
+                Console.WriteLine($"👋 SayHiAsync (Zone: {sayHiZoneName}, Device: {sayHiDeviceName}, ID: {sayHiDeviceId}): {sayHiResult}");
             }
             else
             {
-                Console.WriteLine("ℹ️ SayHiAsync skipped (no device with a short serial number found).");
+                Console.WriteLine("ℹ️ SayHiAsync skipped (no eligible device found; short serial must not start with IB or BP).");
             }
 
             Console.WriteLine("🎉 Playground complete!");

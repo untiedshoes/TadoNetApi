@@ -14,6 +14,11 @@ public interface IDeviceService
     Task<IReadOnlyList<Device>> GetDevicesAsync(int homeId, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Retrieves all devices in a home with their zone association when available.
+    /// </summary>
+    Task<IReadOnlyList<DeviceListEntry>> GetDeviceListAsync(int homeId, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Retrieves a single device by ID within a zone.
     /// </summary>
     Task<Device> GetDeviceAsync(int homeId, int deviceId, CancellationToken cancellationToken = default);

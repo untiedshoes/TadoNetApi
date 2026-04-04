@@ -164,6 +164,8 @@ TadoNetApi/
 
 Application services are the main entry point for consumers. In practice, these are the types a host application, or the playground, resolves from DI.
 
+If you want a machine-readable map of the SDK surface, including method signatures and the top-level model returned by each method, see `docs/sdk-surface.yaml`. It is intended as a companion to the README for contributors, integrators, and AI tooling.
+
 ### Application Services
 
 | Service | Responsibility | Main Methods |

@@ -50,6 +50,12 @@ public interface IHomeService
     Task<HeatingSystem> GetHeatingSystemAsync(int homeId, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Retrieves the flow-temperature optimisation settings for a home.
+    /// </summary>
+    /// <param name="homeId">The ID of the home.</param>
+    Task<FlowTemperatureOptimisation> GetFlowTemperatureOptimisationAsync(int homeId, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Sets the presence state of a home (e.g., HOME, AWAY).
     /// </summary>
     /// <param name="homeId">The ID of the home.</param>

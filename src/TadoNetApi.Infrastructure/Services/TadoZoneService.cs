@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using System.Globalization;
 using TadoNetApi.Domain.Entities;
 using TadoNetApi.Domain.Enums;
 using TadoNetApi.Infrastructure.Dtos.Requests;
@@ -261,6 +262,64 @@ namespace TadoNetApi.Infrastructure.Services
             {
                 throw new TadoApiException(HttpStatusCode.ServiceUnavailable,
                     $"Failed to retrieve early start settings: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Returns the away-configuration settings for a zone.
+        /// </summary>
+        public async Task<AwayConfiguration> GetAwayConfigurationAsync(int homeId, int zoneId, CancellationToken cancellationToken = default)
+        {
+            Guard.PositiveId(homeId, nameof(homeId));
+            Guard.PositiveId(zoneId, nameof(zoneId));
+
+            try
+            {
+                var response = await _httpClient.GetAsync<TadoAwayConfigurationResponse>(
+                    $"homes/{homeId}/zones/{zoneId}/schedule/awayConfiguration",
+                    cancellationToken);
+
+                if (response == null)
+                    throw new TadoApiException(HttpStatusCode.NotFound,
+                        $"Away configuration for zone {zoneId} not found.");
+
+                return response.ToDomain();
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new TadoApiException(HttpStatusCode.ServiceUnavailable,
+                    $"Failed to retrieve away configuration: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Returns the day-report payload for a zone.
+        /// </summary>
+        public async Task<ZoneDayReport> GetZoneDayReportAsync(int homeId, int zoneId, DateOnly? date = null, CancellationToken cancellationToken = default)
+        {
+            Guard.PositiveId(homeId, nameof(homeId));
+            Guard.PositiveId(zoneId, nameof(zoneId));
+
+            try
+            {
+                var path = $"homes/{homeId}/zones/{zoneId}/dayReport";
+                if (date.HasValue)
+                    path += $"?date={date.Value.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}";
+
+                var response = await _httpClient.GetAsync<TadoZoneDayReportResponse>(
+                    path,
+                    cancellationToken);
+
+                if (response == null)
+                    throw new TadoApiException(HttpStatusCode.NotFound,
+                        $"Day report for zone {zoneId} not found.");
+
+                return response.ToDomain();
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new TadoApiException(HttpStatusCode.ServiceUnavailable,
+                    $"Failed to retrieve zone day report: {ex.Message}");
             }
         }
 

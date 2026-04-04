@@ -45,6 +45,16 @@ namespace TadoNetApi.Domain.Interfaces
         Task<EarlyStart> GetEarlyStartAsync(int homeId, int zoneId, CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Fetches the settings used for the zone while the home is in AWAY mode.
+        /// </summary>
+        Task<AwayConfiguration> GetAwayConfigurationAsync(int homeId, int zoneId, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Fetches the day report payload for a zone.
+        /// </summary>
+        Task<ZoneDayReport> GetZoneDayReportAsync(int homeId, int zoneId, DateOnly? date = null, CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Fetches the temperature offset for a zone by using the first associated device serial.
         /// </summary>
         Task<Temperature> GetZoneTemperatureOffsetAsync(Zone zone, CancellationToken cancellationToken = default);

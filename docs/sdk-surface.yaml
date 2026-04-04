@@ -127,6 +127,19 @@ services:
             modelFile: src/TadoNetApi.Domain/Entities/HeatingSystem.cs
           summary: Returns boiler and underfloor-heating configuration.
 
+        - name: GetFlowTemperatureOptimisationAsync
+          kind: read
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+          returns:
+            type: FlowTemperatureOptimisation
+            nullable: false
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/FlowTemperatureOptimisation.cs
+          summary: Returns the boiler flow-temperature optimisation settings for a home.
+
         - name: SetHomePresenceAsync
           kind: command
           parameters:
@@ -271,6 +284,42 @@ services:
             source: domain
             modelFile: src/TadoNetApi.Domain/Entities/EarlyStart.cs
           summary: Returns whether early start is enabled.
+
+        - name: GetAwayConfigurationAsync
+          kind: read
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+            - name: zoneId
+              type: int
+              validation: positive-id
+          returns:
+            type: AwayConfiguration
+            nullable: false
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/AwayConfiguration.cs
+          summary: Returns the zone settings used when the home is in AWAY mode.
+
+        - name: GetZoneDayReportAsync
+          kind: read
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+            - name: zoneId
+              type: int
+              validation: positive-id
+            - name: date
+              type: DateOnly?
+              required: false
+              source: caller-provided
+          returns:
+            type: ZoneDayReport
+            nullable: false
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/ZoneDayReport.cs
+          summary: Returns the typed day-report data for a zone, optionally for a specific date.
 
         - name: GetZoneTemperatureOffsetAsync
           kind: read
@@ -658,6 +707,27 @@ models:
       - { name: Boiler, type: Boiler?, role: boiler-config }
       - { name: UnderfloorHeating, type: UnderfloorHeating?, role: underfloor-config }
 
+  FlowTemperatureOptimisation:
+    file: src/TadoNetApi.Domain/Entities/FlowTemperatureOptimisation.cs
+    properties:
+      - { name: HasMultipleBoilerControlDevices, type: bool?, role: multi-controller-flag }
+      - { name: MaxFlowTemperature, type: int?, role: max-flow-temperature }
+      - { name: MaxFlowTemperatureConstraints, type: FlowTemperatureOptimisationConstraints?, role: constraints }
+      - { name: AutoAdaptation, type: FlowTemperatureOptimisationAutoAdaptation?, role: auto-adaptation }
+      - { name: OpenThermDeviceSerialNumber, type: string?, role: opentherm-device-serial }
+
+  FlowTemperatureOptimisationConstraints:
+    file: src/TadoNetApi.Domain/Entities/FlowTemperatureOptimisation.cs
+    properties:
+      - { name: Min, type: int?, role: min }
+      - { name: Max, type: int?, role: max }
+
+  FlowTemperatureOptimisationAutoAdaptation:
+    file: src/TadoNetApi.Domain/Entities/FlowTemperatureOptimisation.cs
+    properties:
+      - { name: Enabled, type: bool?, role: enabled }
+      - { name: MaxFlowTemperature, type: int?, role: max-flow-temperature }
+
   Boiler:
     file: src/TadoNetApi.Domain/Entities/HeatingSystem.cs
     properties:
@@ -725,6 +795,197 @@ models:
     file: src/TadoNetApi.Domain/Entities/EarlyStart.cs
     properties:
       - { name: Enabled, type: bool?, role: enabled }
+
+  AwayConfiguration:
+    file: src/TadoNetApi.Domain/Entities/AwayConfiguration.cs
+    properties:
+      - { name: Type, type: string?, role: zone-type }
+      - { name: AutoAdjust, type: bool?, role: auto-adjust }
+      - { name: ComfortLevel, type: string?, role: comfort-level }
+      - { name: Setting, type: Setting?, role: away-setting }
+
+  ZoneDayReport:
+    file: src/TadoNetApi.Domain/Entities/ZoneDayReport.cs
+    properties:
+      - { name: ZoneType, type: string?, role: zone-type }
+      - { name: Interval, type: ZoneDayReportInterval?, role: report-interval }
+      - { name: HoursInDay, type: int?, role: hours-in-day }
+      - { name: MeasuredData, type: ZoneDayReportMeasuredData?, role: measured-data }
+      - { name: Stripes, type: ZoneDayReportStripesTimeSeries?, role: stripes }
+      - { name: Settings, type: ZoneDayReportSettingTimeSeries?, role: settings }
+      - { name: CallForHeat, type: ZoneDayReportCallForHeatTimeSeries?, role: call-for-heat }
+      - { name: HotWaterProduction, type: ZoneDayReportBooleanTimeSeries?, role: hot-water-production }
+      - { name: AcActivity, type: ZoneDayReportPowerTimeSeries?, role: ac-activity }
+      - { name: Weather, type: ZoneDayReportWeather?, role: weather }
+
+  ZoneDayReportInterval:
+    file: src/TadoNetApi.Domain/Entities/ZoneDayReport.cs
+    properties:
+      - { name: From, type: DateTime?, role: interval-start }
+      - { name: To, type: DateTime?, role: interval-end }
+
+  ZoneDayReportMeasuredData:
+    file: src/TadoNetApi.Domain/Entities/ZoneDayReport.cs
+    properties:
+      - { name: MeasuringDeviceConnected, type: ZoneDayReportBooleanTimeSeries?, role: measuring-device-connected }
+      - { name: InsideTemperature, type: ZoneDayReportTemperatureTimeSeries?, role: inside-temperature }
+      - { name: Humidity, type: ZoneDayReportPercentageTimeSeries?, role: humidity }
+
+  ZoneDayReportBooleanTimeSeries:
+    file: src/TadoNetApi.Domain/Entities/ZoneDayReport.cs
+    properties:
+      - { name: TimeSeriesType, type: string?, role: series-type }
+      - { name: ValueType, type: string?, role: value-type }
+      - { name: DataIntervals, type: IReadOnlyList<ZoneDayReportBooleanDataInterval>?, role: boolean-intervals }
+
+  ZoneDayReportBooleanDataInterval:
+    file: src/TadoNetApi.Domain/Entities/ZoneDayReport.cs
+    properties:
+      - { name: From, type: DateTime?, role: interval-start }
+      - { name: To, type: DateTime?, role: interval-end }
+      - { name: Value, type: bool?, role: boolean-value }
+
+  ZoneDayReportTemperatureTimeSeries:
+    file: src/TadoNetApi.Domain/Entities/ZoneDayReport.cs
+    properties:
+      - { name: TimeSeriesType, type: string?, role: series-type }
+      - { name: ValueType, type: string?, role: value-type }
+      - { name: Min, type: Temperature?, role: minimum-temperature }
+      - { name: Max, type: Temperature?, role: maximum-temperature }
+      - { name: DataPoints, type: IReadOnlyList<ZoneDayReportTemperatureDataPoint>?, role: temperature-data-points }
+
+  ZoneDayReportTemperatureDataPoint:
+    file: src/TadoNetApi.Domain/Entities/ZoneDayReport.cs
+    properties:
+      - { name: Timestamp, type: DateTime?, role: timestamp }
+      - { name: Value, type: Temperature?, role: temperature-value }
+
+  ZoneDayReportPercentageTimeSeries:
+    file: src/TadoNetApi.Domain/Entities/ZoneDayReport.cs
+    properties:
+      - { name: TimeSeriesType, type: string?, role: series-type }
+      - { name: ValueType, type: string?, role: value-type }
+      - { name: PercentageUnit, type: string?, role: percentage-unit }
+      - { name: Min, type: double?, role: minimum-percentage }
+      - { name: Max, type: double?, role: maximum-percentage }
+      - { name: DataPoints, type: IReadOnlyList<ZoneDayReportPercentageDataPoint>?, role: percentage-data-points }
+
+  ZoneDayReportPercentageDataPoint:
+    file: src/TadoNetApi.Domain/Entities/ZoneDayReport.cs
+    properties:
+      - { name: Timestamp, type: DateTime?, role: timestamp }
+      - { name: Value, type: double?, role: percentage-value }
+
+  ZoneDayReportStripesTimeSeries:
+    file: src/TadoNetApi.Domain/Entities/ZoneDayReport.cs
+    properties:
+      - { name: TimeSeriesType, type: string?, role: series-type }
+      - { name: ValueType, type: string?, role: value-type }
+      - { name: DataIntervals, type: IReadOnlyList<ZoneDayReportStripesDataInterval>?, role: stripe-intervals }
+
+  ZoneDayReportStripesDataInterval:
+    file: src/TadoNetApi.Domain/Entities/ZoneDayReport.cs
+    properties:
+      - { name: From, type: DateTime?, role: interval-start }
+      - { name: To, type: DateTime?, role: interval-end }
+      - { name: Value, type: ZoneDayReportStripeValue?, role: stripe-value }
+
+  ZoneDayReportStripeValue:
+    file: src/TadoNetApi.Domain/Entities/ZoneDayReport.cs
+    properties:
+      - { name: StripeType, type: string?, role: stripe-type }
+      - { name: Setting, type: ZoneDayReportSetting?, role: stripe-setting }
+
+  ZoneDayReportSettingTimeSeries:
+    file: src/TadoNetApi.Domain/Entities/ZoneDayReport.cs
+    properties:
+      - { name: TimeSeriesType, type: string?, role: series-type }
+      - { name: ValueType, type: string?, role: value-type }
+      - { name: DataIntervals, type: IReadOnlyList<ZoneDayReportSettingDataInterval>?, role: setting-intervals }
+
+  ZoneDayReportSettingDataInterval:
+    file: src/TadoNetApi.Domain/Entities/ZoneDayReport.cs
+    properties:
+      - { name: From, type: DateTime?, role: interval-start }
+      - { name: To, type: DateTime?, role: interval-end }
+      - { name: Value, type: ZoneDayReportSetting?, role: setting-value }
+
+  ZoneDayReportSetting:
+    file: src/TadoNetApi.Domain/Entities/ZoneDayReport.cs
+    properties:
+      - { name: Type, type: string?, role: zone-type }
+      - { name: Power, type: string?, role: power-state }
+      - { name: Temperature, type: Temperature?, role: target-temperature }
+      - { name: Mode, type: string?, role: ac-mode }
+      - { name: IsBoost, type: bool?, role: boost-flag }
+
+  ZoneDayReportCallForHeatTimeSeries:
+    file: src/TadoNetApi.Domain/Entities/ZoneDayReport.cs
+    properties:
+      - { name: TimeSeriesType, type: string?, role: series-type }
+      - { name: ValueType, type: string?, role: value-type }
+      - { name: DataIntervals, type: IReadOnlyList<ZoneDayReportCallForHeatDataInterval>?, role: call-for-heat-intervals }
+
+  ZoneDayReportCallForHeatDataInterval:
+    file: src/TadoNetApi.Domain/Entities/ZoneDayReport.cs
+    properties:
+      - { name: From, type: DateTime?, role: interval-start }
+      - { name: To, type: DateTime?, role: interval-end }
+      - { name: Value, type: string?, role: call-for-heat-level }
+
+  ZoneDayReportPowerTimeSeries:
+    file: src/TadoNetApi.Domain/Entities/ZoneDayReport.cs
+    properties:
+      - { name: TimeSeriesType, type: string?, role: series-type }
+      - { name: ValueType, type: string?, role: value-type }
+      - { name: DataIntervals, type: IReadOnlyList<ZoneDayReportPowerDataInterval>?, role: power-intervals }
+
+  ZoneDayReportPowerDataInterval:
+    file: src/TadoNetApi.Domain/Entities/ZoneDayReport.cs
+    properties:
+      - { name: From, type: DateTime?, role: interval-start }
+      - { name: To, type: DateTime?, role: interval-end }
+      - { name: Value, type: string?, role: power-value }
+
+  ZoneDayReportWeather:
+    file: src/TadoNetApi.Domain/Entities/ZoneDayReport.cs
+    properties:
+      - { name: Condition, type: ZoneDayReportWeatherConditionTimeSeries?, role: weather-condition }
+      - { name: Sunny, type: ZoneDayReportBooleanTimeSeries?, role: sunny-flag }
+      - { name: Slots, type: ZoneDayReportWeatherSlotTimeSeries?, role: weather-slots }
+
+  ZoneDayReportWeatherConditionTimeSeries:
+    file: src/TadoNetApi.Domain/Entities/ZoneDayReport.cs
+    properties:
+      - { name: TimeSeriesType, type: string?, role: series-type }
+      - { name: ValueType, type: string?, role: value-type }
+      - { name: DataIntervals, type: IReadOnlyList<ZoneDayReportWeatherConditionDataInterval>?, role: weather-condition-intervals }
+
+  ZoneDayReportWeatherConditionDataInterval:
+    file: src/TadoNetApi.Domain/Entities/ZoneDayReport.cs
+    properties:
+      - { name: From, type: DateTime?, role: interval-start }
+      - { name: To, type: DateTime?, role: interval-end }
+      - { name: Value, type: ZoneDayReportWeatherConditionValue?, role: weather-condition-value }
+
+  ZoneDayReportWeatherConditionValue:
+    file: src/TadoNetApi.Domain/Entities/ZoneDayReport.cs
+    properties:
+      - { name: State, type: string?, role: weather-state }
+      - { name: Temperature, type: Temperature?, role: weather-temperature }
+
+  ZoneDayReportWeatherSlotTimeSeries:
+    file: src/TadoNetApi.Domain/Entities/ZoneDayReport.cs
+    properties:
+      - { name: TimeSeriesType, type: string?, role: series-type }
+      - { name: ValueType, type: string?, role: value-type }
+      - { name: Slots, type: IReadOnlyDictionary<string, ZoneDayReportWeatherSlot>?, role: weather-slot-map }
+
+  ZoneDayReportWeatherSlot:
+    file: src/TadoNetApi.Domain/Entities/ZoneDayReport.cs
+    properties:
+      - { name: State, type: string?, role: weather-state }
+      - { name: Temperature, type: Temperature?, role: weather-temperature }
 
   Temperature:
     file: src/TadoNetApi.Domain/Entities/Temperature.cs
@@ -798,8 +1059,9 @@ usageHints:
   forHumans:
     - Start with services.application to find the entry-point service and method.
     - Use each returns.modelFile to jump to the concrete model in the codebase.
-    - Treat models here as top-level shapes; many nested types are defined in adjacent entity files.
+    - For day reports, inspect the ZoneDayReport nested model entries here before opening the entity file.
   forAI:
     - Prefer this document over README tables when you need method signatures and return types.
     - If a method returns a domain model, inspect the referenced file before generating usage examples.
+    - For ZoneDayReport, use the nested model entries here to understand the typed time-series structure.
     - For command methods returning bool, interpret success as request accepted/completed by the SDK layer.

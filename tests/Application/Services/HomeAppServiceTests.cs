@@ -219,5 +219,42 @@ namespace TadoNetApi.Tests.Application.Services
             Assert.Equal(2699, heatingSystem.Boiler?.Id);
             Assert.False(heatingSystem.UnderfloorHeating?.Present);
         }
+
+        [Fact]
+        public async Task GetFlowTemperatureOptimisationAsync_ReturnsFlowTemperatureOptimisation()
+        {
+            var expectedFlowTemperatureOptimisation = new FlowTemperatureOptimisation
+            {
+                HasMultipleBoilerControlDevices = false,
+                MaxFlowTemperature = 50,
+                MaxFlowTemperatureConstraints = new FlowTemperatureOptimisationConstraints
+                {
+                    Min = 30,
+                    Max = 80
+                },
+                AutoAdaptation = new FlowTemperatureOptimisationAutoAdaptation
+                {
+                    Enabled = true,
+                    MaxFlowTemperature = 45
+                },
+                OpenThermDeviceSerialNumber = "BR1234567890"
+            };
+
+            var mockHomeService = new Mock<IHomeService>();
+            mockHomeService.Setup(s => s.GetFlowTemperatureOptimisationAsync(1, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedFlowTemperatureOptimisation);
+
+            var service = new HomeAppService(mockHomeService.Object);
+
+            var flowTemperatureOptimisation = await service.GetFlowTemperatureOptimisationAsync(1, CancellationToken.None);
+
+            Assert.NotNull(flowTemperatureOptimisation);
+            Assert.False(flowTemperatureOptimisation.HasMultipleBoilerControlDevices);
+            Assert.Equal(50, flowTemperatureOptimisation.MaxFlowTemperature);
+            Assert.Equal(30, flowTemperatureOptimisation.MaxFlowTemperatureConstraints?.Min);
+            Assert.Equal(80, flowTemperatureOptimisation.MaxFlowTemperatureConstraints?.Max);
+            Assert.True(flowTemperatureOptimisation.AutoAdaptation?.Enabled);
+            Assert.Equal("BR1234567890", flowTemperatureOptimisation.OpenThermDeviceSerialNumber);
+        }
     }
 }

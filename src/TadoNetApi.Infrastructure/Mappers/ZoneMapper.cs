@@ -97,5 +97,17 @@ namespace TadoNetApi.Infrastructure.Mappers
             {
                 TerminationCondition = dto.TerminationCondition?.ToDomain()
             };
+
+        /// <summary>
+        /// Maps a <see cref="TadoAwayConfigurationResponse"/> to an <see cref="AwayConfiguration"/> domain entity.
+        /// </summary>
+        public static AwayConfiguration ToDomain(this TadoAwayConfigurationResponse dto)
+            => new()
+            {
+                Type = dto.Type,
+                AutoAdjust = dto.AutoAdjust,
+                ComfortLevel = dto.ComfortLevel,
+                Setting = dto.Setting?.ToDomain()
+            };
     }
 }

@@ -63,6 +63,12 @@ public class HomeAppService
         _homeService.GetHeatingSystemAsync(homeId, cancellationToken);
 
     /// <summary>
+    /// Retrieves the flow-temperature optimisation settings for a home.
+    /// </summary>
+    public Task<FlowTemperatureOptimisation> GetFlowTemperatureOptimisationAsync(int homeId, CancellationToken cancellationToken) =>
+        _homeService.GetFlowTemperatureOptimisationAsync(homeId, cancellationToken);
+
+    /// <summary>
     /// Sets the presence state of a home.
     /// </summary>
     public Task SetHomePresenceAsync(int homeId, string presence, CancellationToken cancellationToken) =>

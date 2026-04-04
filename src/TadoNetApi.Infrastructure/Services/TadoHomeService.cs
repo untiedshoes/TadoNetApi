@@ -155,6 +155,30 @@ public class TadoHomeService : IHomeService
         }
     }
 
+    /// <inheritdoc/>
+    public async Task<FlowTemperatureOptimisation> GetFlowTemperatureOptimisationAsync(int homeId, CancellationToken cancellationToken = default)
+    {
+        Guard.PositiveId(homeId, nameof(homeId));
+
+        try
+        {
+            var response = await _httpClient.GetAsync<TadoFlowTemperatureOptimisationResponse>(
+                $"homes/{homeId}/flowTemperatureOptimization",
+                cancellationToken);
+
+            if (response == null)
+                throw new TadoApiException(System.Net.HttpStatusCode.NotFound,
+                    $"Flow temperature optimisation for home {homeId} not found.");
+
+            return response.ToDomain();
+        }
+        catch (HttpRequestException ex)
+        {
+            throw new TadoApiException(System.Net.HttpStatusCode.ServiceUnavailable,
+                $"Failed to retrieve flow temperature optimisation: {ex.Message}");
+        }
+    }
+
     #endregion
 
     #region Send Commands

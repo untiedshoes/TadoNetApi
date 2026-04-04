@@ -171,8 +171,8 @@ If you want a machine-readable map of the SDK surface, including method signatur
 | Service | Responsibility | Main Methods |
 |-------|-------|-------|
 | UserAppService | Retrieve the current authenticated user and home context | `GetMeAsync` |
-| HomeAppService | Read home data, home users, comfort, heating, and diagnostic indicators, and manage presence state | `GetHomeAsync`, `GetHomeStateAsync`, `GetUsersAsync`, `GetAirComfortAsync`, `GetIncidentDetectionAsync`, `GetHeatingCircuitsAsync`, `GetHeatingSystemAsync`, `SetHomePresenceAsync` |
-| ZoneAppService | Read zone data and send zone-level commands | `GetZonesAsync`, `GetZoneAsync`, `GetZoneStateAsync`, `GetZoneSummaryAsync`, `GetZoneCapabilitiesAsync`, `GetZoneControlAsync`, `GetDefaultZoneOverlayAsync`, `GetEarlyStartAsync`, `GetZoneTemperatureOffsetAsync`, `SetEarlyStartAsync`, `SetHeatingTemperatureCelsiusAsync` |
+| HomeAppService | Read home data, home users, comfort, heating, flow-temperature optimisation, and diagnostic indicators, and manage presence state | `GetHomeAsync`, `GetHomeStateAsync`, `GetUsersAsync`, `GetAirComfortAsync`, `GetIncidentDetectionAsync`, `GetHeatingCircuitsAsync`, `GetHeatingSystemAsync`, `GetFlowTemperatureOptimisationAsync`, `SetHomePresenceAsync` |
+| ZoneAppService | Read zone data, away-configuration settings, day reports, and send zone-level commands | `GetZonesAsync`, `GetZoneAsync`, `GetZoneStateAsync`, `GetZoneSummaryAsync`, `GetZoneCapabilitiesAsync`, `GetZoneControlAsync`, `GetDefaultZoneOverlayAsync`, `GetEarlyStartAsync`, `GetAwayConfigurationAsync`, `GetZoneDayReportAsync`, `GetZoneTemperatureOffsetAsync`, `SetEarlyStartAsync`, `SetHeatingTemperatureCelsiusAsync` |
 | DeviceAppService | Read device and mobile-device data and send device-level commands | `GetDevicesAsync`, `GetDeviceListAsync`, `GetDeviceAsync`, `GetZoneTemperatureOffsetAsync`, `GetMobileDevicesAsync`, `GetMobileDeviceAsync`, `GetMobileDeviceSettingsAsync`, `GetZoneMeasuringDeviceAsync`, `SetDeviceChildLockAsync`, `SayHiAsync`, `SetZoneTemperatureOffsetCelsiusAsync` |
 | WeatherAppService | Read weather data for a home | `GetWeatherAsync` |
 
@@ -183,8 +183,8 @@ Infrastructure services are the API-facing implementations behind the domain int
 | Service | Responsibility | Main Methods | Interface |
 |-------|-------|-------|-------|
 | TadoUserService | User endpoint integration | `GetMeAsync` | `IUserService` |
-| TadoHomeService | Home retrieval, home users, air comfort, heating, incident detection, home state, and presence updates | `GetHomeAsync`, `GetHomeStateAsync`, `GetUsersAsync`, `GetAirComfortAsync`, `GetIncidentDetectionAsync`, `GetHeatingCircuitsAsync`, `GetHeatingSystemAsync`, `SetHomePresenceAsync` | `IHomeService` |
-| TadoZoneService | Zone retrieval plus early-start and overlay-temperature commands | `GetZonesAsync`, `GetZoneAsync`, `GetZoneStateAsync`, `GetZoneSummaryAsync`, `GetZoneCapabilitiesAsync`, `GetZoneControlAsync`, `GetDefaultZoneOverlayAsync`, `GetEarlyStartAsync`, `GetZoneTemperatureOffsetAsync`, `SetEarlyStartAsync`, `SetHeatingTemperatureCelsiusAsync` | `IZoneService` |
+| TadoHomeService | Home retrieval, home users, air comfort, heating, flow-temperature optimisation, incident detection, home state, and presence updates | `GetHomeAsync`, `GetHomeStateAsync`, `GetUsersAsync`, `GetAirComfortAsync`, `GetIncidentDetectionAsync`, `GetHeatingCircuitsAsync`, `GetHeatingSystemAsync`, `GetFlowTemperatureOptimisationAsync`, `SetHomePresenceAsync` | `IHomeService` |
+| TadoZoneService | Zone retrieval, away-configuration reads, day-report reads, plus early-start and overlay-temperature commands | `GetZonesAsync`, `GetZoneAsync`, `GetZoneStateAsync`, `GetZoneSummaryAsync`, `GetZoneCapabilitiesAsync`, `GetZoneControlAsync`, `GetDefaultZoneOverlayAsync`, `GetEarlyStartAsync`, `GetAwayConfigurationAsync`, `GetZoneDayReportAsync`, `GetZoneTemperatureOffsetAsync`, `SetEarlyStartAsync`, `SetHeatingTemperatureCelsiusAsync` | `IZoneService` |
 | TadoDeviceService | Device and mobile-device retrieval plus child-lock, identify, and offset commands | `GetDevicesAsync`, `GetDeviceListAsync`, `GetDeviceAsync`, `GetZoneTemperatureOffsetAsync`, `GetMobileDevicesAsync`, `GetMobileDeviceAsync`, `GetMobileDeviceSettingsAsync`, `GetZoneMeasuringDeviceAsync`, `SetDeviceChildLockAsync`, `SayHiAsync`, `SetZoneTemperatureOffsetCelsiusAsync` | `IDeviceService` |
 | TadoWeatherService | Weather endpoint integration | `GetWeatherAsync` | `IWeatherService` |
 | TadoAuthService | OAuth2 device authorization and token lifecycle | `StartDeviceAuthorisationAsync`, `WaitForDeviceTokenAsync`, `GetAccessTokenAsync` | `ITadoAuthService` |
@@ -342,8 +342,7 @@ The list below reflects the current gap between this library and the community m
 - [ ] Implement `SetAwayRadiusInMetersAsync` -> `PUT /homes/{homeId}/awayRadiusInMeters`
 - [ ] Implement `SetHomeDetailsAsync` -> `PUT /homes/{homeId}/details`
 - [ ] Implement `SetIncidentDetectionAsync` -> `PUT /homes/{homeId}/incidentDetection`
-- [ ] Implement `GetFlowTemperatureOptimizationAsync` -> `GET /homes/{homeId}/flowTemperatureOptimization`
-- [ ] Implement `SetFlowTemperatureOptimizationAsync` -> `PUT /homes/{homeId}/flowTemperatureOptimization`
+- [ ] Implement `SetFlowTemperatureOptimisationAsync` -> `PUT /homes/{homeId}/flowTemperatureOptimization`
 - [ ] Implement invitation service methods -> `GET /homes/{homeId}/invitations`, `POST /homes/{homeId}/invitations`, `DELETE /homes/{homeId}/invitations/{invitationToken}`, `POST /homes/{homeId}/invitations/{invitationToken}/resend`
 
 ##### Zone Services
@@ -361,10 +360,8 @@ The list below reflects the current gap between this library and the community m
 - [ ] Implement `SwitchHeatingOffAsync` -> `PUT /homes/{homeId}/zones/{zoneId}/overlay`
 - [ ] Implement `SwitchHotWaterOffAsync` -> `PUT /homes/{homeId}/zones/{zoneId}/overlay`
 - [ ] Implement bulk overlay operations -> `POST /homes/{homeId}/overlay`, `DELETE /homes/{homeId}/overlay`
-- [ ] Implement `GetAwayConfigurationAsync` -> `GET /homes/{homeId}/zones/{zoneId}/schedule/awayConfiguration`
 - [ ] Implement `SetAwayConfigurationAsync` -> `PUT /homes/{homeId}/zones/{zoneId}/schedule/awayConfiguration`
 - [ ] Implement schedule/timetable operations -> `GET|PUT /homes/{homeId}/zones/{zoneId}/schedule/activeTimetable`, `GET /homes/{homeId}/zones/{zoneId}/schedule/timetables`, `GET /homes/{homeId}/zones/{zoneId}/schedule/timetables/{timetableTypeId}`, `GET|PUT /homes/{homeId}/zones/{zoneId}/schedule/timetables/{timetableTypeId}/blocks/{dayType}`, `GET /homes/{homeId}/zones/{zoneId}/schedule/timetables/{timetableTypeId}/blocks`
-- [ ] Implement `GetZoneDayReportAsync` -> `GET /homes/{homeId}/zones/{zoneId}/dayReport`
 
 ##### Device / Mobile Device Services
 

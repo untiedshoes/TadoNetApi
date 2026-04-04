@@ -208,5 +208,40 @@ namespace TadoNetApi.Tests.Infrastructure.Services
             Assert.True(heatingSystem.Boiler?.Found);
             Assert.False(heatingSystem.UnderfloorHeating?.Present);
         }
+
+        [Fact(DisplayName = "GetFlowTemperatureOptimisationAsync returns mapped flow temperature optimisation")]
+        public async Task GetFlowTemperatureOptimisationAsync_ReturnsMappedFlowTemperatureOptimisation()
+        {
+            var response = new TadoFlowTemperatureOptimisationResponse
+            {
+                HasMultipleBoilerControlDevices = false,
+                MaxFlowTemperature = 50,
+                MaxFlowTemperatureConstraints = new TadoFlowTemperatureOptimisationConstraintsResponse
+                {
+                    Min = 30,
+                    Max = 80
+                },
+                AutoAdaptation = new TadoFlowTemperatureOptimisationAutoAdaptationResponse
+                {
+                    Enabled = true,
+                    MaxFlowTemperature = 45
+                },
+                OpenThermDeviceSerialNumber = "BR1234567890"
+            };
+
+            var mockHttp = MockTadoHttpClient.CreateGet(response);
+            var service = new TadoHomeService(mockHttp.Object);
+
+            var flowTemperatureOptimisation = await service.GetFlowTemperatureOptimisationAsync(homeId: 1, CancellationToken.None);
+
+            Assert.NotNull(flowTemperatureOptimisation);
+            Assert.False(flowTemperatureOptimisation.HasMultipleBoilerControlDevices);
+            Assert.Equal(50, flowTemperatureOptimisation.MaxFlowTemperature);
+            Assert.Equal(30, flowTemperatureOptimisation.MaxFlowTemperatureConstraints?.Min);
+            Assert.Equal(80, flowTemperatureOptimisation.MaxFlowTemperatureConstraints?.Max);
+            Assert.True(flowTemperatureOptimisation.AutoAdaptation?.Enabled);
+            Assert.Equal(45, flowTemperatureOptimisation.AutoAdaptation?.MaxFlowTemperature);
+            Assert.Equal("BR1234567890", flowTemperatureOptimisation.OpenThermDeviceSerialNumber);
+        }
     }
 }

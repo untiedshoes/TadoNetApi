@@ -40,6 +40,12 @@ namespace TadoNetApi.Application.Services
         public Task<EarlyStart> GetEarlyStartAsync(int homeId, int zoneId, CancellationToken cancellationToken = default)
             => _zoneService.GetEarlyStartAsync(homeId, zoneId, cancellationToken);
 
+        public Task<AwayConfiguration> GetAwayConfigurationAsync(int homeId, int zoneId, CancellationToken cancellationToken = default)
+            => _zoneService.GetAwayConfigurationAsync(homeId, zoneId, cancellationToken);
+
+        public Task<ZoneDayReport> GetZoneDayReportAsync(int homeId, int zoneId, DateOnly? date = null, CancellationToken cancellationToken = default)
+            => _zoneService.GetZoneDayReportAsync(homeId, zoneId, date, cancellationToken);
+
         public Task<Temperature> GetZoneTemperatureOffsetAsync(Zone zone, CancellationToken cancellationToken = default)
             => _zoneService.GetZoneTemperatureOffsetAsync(zone, cancellationToken);
 

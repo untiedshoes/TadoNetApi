@@ -273,6 +273,86 @@ namespace TadoNetApi.Tests.Application.Services
         }
 
         /// <summary>
+        /// Tests that <see cref="ZoneAppService.GetAwayConfigurationAsync"/> returns away-configuration settings.
+        /// </summary>
+        [Fact]
+        public async Task GetAwayConfigurationAsync_ReturnsAwayConfiguration()
+        {
+            // Arrange
+            var expectedAwayConfiguration = new AwayConfiguration
+            {
+                Type = "HEATING",
+                AutoAdjust = false,
+                ComfortLevel = "BALANCE",
+                Setting = new Setting
+                {
+                    Power = PowerStates.On,
+                    Temperature = new Temperature { Celsius = 15 }
+                }
+            };
+
+            var (service, mock) = CreateService();
+            mock.Setup(s => s.GetAwayConfigurationAsync(1, 1, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedAwayConfiguration);
+
+            // Act
+            var awayConfiguration = await service.GetAwayConfigurationAsync(1, 1);
+
+            // Assert
+            Assert.NotNull(awayConfiguration);
+            Assert.Equal("HEATING", awayConfiguration.Type);
+            Assert.False(awayConfiguration.AutoAdjust);
+            Assert.Equal("BALANCE", awayConfiguration.ComfortLevel);
+            Assert.Equal(PowerStates.On, awayConfiguration.Setting?.Power);
+            Assert.Equal(15, awayConfiguration.Setting?.Temperature?.Celsius);
+        }
+
+        /// <summary>
+        /// Tests that <see cref="ZoneAppService.GetZoneDayReportAsync"/> returns the day-report payload.
+        /// </summary>
+        [Fact]
+        public async Task GetZoneDayReportAsync_ReturnsZoneDayReport()
+        {
+            var expectedDayReport = new ZoneDayReport
+            {
+                ZoneType = "HEATING",
+                HoursInDay = 24,
+                Interval = new ZoneDayReportInterval
+                {
+                    From = new DateTime(2026, 4, 4, 0, 0, 0, DateTimeKind.Utc),
+                    To = new DateTime(2026, 4, 4, 23, 59, 59, DateTimeKind.Utc)
+                },
+                MeasuredData = new ZoneDayReportMeasuredData
+                {
+                    InsideTemperature = new ZoneDayReportTemperatureTimeSeries
+                    {
+                        ValueType = "temperature",
+                        DataPoints =
+                        [
+                            new ZoneDayReportTemperatureDataPoint
+                            {
+                                Timestamp = new DateTime(2026, 4, 4, 12, 0, 0, DateTimeKind.Utc),
+                                Value = new Temperature { Celsius = 21.5 }
+                            }
+                        ]
+                    }
+                }
+            };
+
+            var (service, mock) = CreateService();
+            mock.Setup(s => s.GetZoneDayReportAsync(1, 1, null, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedDayReport);
+
+            var dayReport = await service.GetZoneDayReportAsync(1, 1);
+
+            Assert.NotNull(dayReport);
+            Assert.Equal("HEATING", dayReport.ZoneType);
+            Assert.Equal(24, dayReport.HoursInDay);
+            Assert.Equal(new DateTime(2026, 4, 4, 0, 0, 0, DateTimeKind.Utc), dayReport.Interval?.From);
+            Assert.Equal(21.5, dayReport.MeasuredData?.InsideTemperature?.DataPoints?[0].Value?.Celsius);
+        }
+
+        /// <summary>
         /// Tests that <see cref="ZoneAppService.GetZoneTemperatureOffsetAsync"/> returns the zone temperature offset.
         /// </summary>
         [Fact]

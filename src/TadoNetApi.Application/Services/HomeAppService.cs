@@ -45,6 +45,12 @@ public class HomeAppService
         _homeService.GetAirComfortAsync(homeId, cancellationToken);
 
     /// <summary>
+    /// Retrieves the incident detection settings for a home.
+    /// </summary>
+    public Task<IncidentDetection> GetIncidentDetectionAsync(int homeId, CancellationToken cancellationToken) =>
+        _homeService.GetIncidentDetectionAsync(homeId, cancellationToken);
+
+    /// <summary>
     /// Sets the presence state of a home.
     /// </summary>
     public Task SetHomePresenceAsync(int homeId, string presence, CancellationToken cancellationToken) =>

@@ -96,5 +96,26 @@ namespace TadoNetApi.Tests.Services
             Assert.Equal(0.22, airComfort.Comfort[0].Coordinate?.Radial);
             Assert.Equal(76, airComfort.Comfort[0].Coordinate?.Angular);
         }
+
+        [Fact(DisplayName = "GetIncidentDetectionAsync returns mapped incident detection")]
+        public async Task GetIncidentDetectionAsync_ReturnsMappedIncidentDetection()
+        {
+            // Arrange
+            var response = new TadoIncidentDetectionResponse
+            {
+                Enabled = true,
+                Supported = false
+            };
+
+            var mockHttp = MockTadoHttpClient.CreateGet(response);
+            var service = new TadoHomeService(mockHttp.Object);
+
+            // Act
+            var incidentDetection = await service.GetIncidentDetectionAsync(homeId: 1, CancellationToken.None);
+
+            // Assert
+            Assert.True(incidentDetection.Enabled);
+            Assert.False(incidentDetection.Supported);
+        }
     }
 }

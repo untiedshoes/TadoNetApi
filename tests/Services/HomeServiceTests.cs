@@ -136,5 +136,30 @@ namespace TadoNetApi.Tests.Services
             Assert.Equal(1, airComfort.Comfort![0].RoomId);
             Assert.Equal(76, airComfort.Comfort[0].Coordinate?.Angular);
         }
+
+        [Fact]
+        public async Task GetIncidentDetectionAsync_ReturnsIncidentDetection()
+        {
+            // Arrange
+            var expectedIncidentDetection = new IncidentDetection
+            {
+                Enabled = true,
+                Supported = true
+            };
+
+            var mockHomeService = new Mock<IHomeService>();
+            mockHomeService.Setup(s => s.GetIncidentDetectionAsync(1, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedIncidentDetection);
+
+            var service = new HomeAppService(mockHomeService.Object);
+
+            // Act
+            var incidentDetection = await service.GetIncidentDetectionAsync(1, CancellationToken.None);
+
+            // Assert
+            Assert.NotNull(incidentDetection);
+            Assert.True(incidentDetection.Enabled);
+            Assert.True(incidentDetection.Supported);
+        }
     }
 }

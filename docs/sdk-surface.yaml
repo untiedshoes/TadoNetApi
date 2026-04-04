@@ -1,0 +1,805 @@
+document:
+  name: TadoNetApi SDK Surface
+  version: 1
+  lastUpdated: 2026-04-04
+  purpose: >-
+    Companion reference for humans and AI agents. This is not an OpenAPI document for the
+    upstream Tado REST API; it describes the public .NET SDK surface exposed by this repository.
+  conventions:
+    nullability:
+      nullable: Method or model property may be null.
+      nonNullable: Method or model property is expected to be present.
+    collectionReturns: IReadOnlyList<T> unless otherwise stated.
+    modelSources:
+      domain: Public SDK return models under src/TadoNetApi.Domain/Entities.
+      infrastructure: Auth flow DTOs under src/TadoNetApi.Infrastructure/Dtos/Auth.
+
+services:
+  application:
+    - name: UserAppService
+      interface: IUserService
+      implementation: TadoUserService
+      methods:
+        - name: GetMeAsync
+          kind: read
+          parameters: []
+          returns:
+            type: User
+            nullable: true
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/User.cs
+          summary: Returns the current authenticated user including homes and linked mobile devices.
+
+    - name: HomeAppService
+      interface: IHomeService
+      implementation: TadoHomeService
+      methods:
+        - name: GetHomeAsync
+          kind: read
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+          returns:
+            type: House
+            nullable: true
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/House.cs
+          summary: Returns detailed home metadata, address/geolocation, and incident-detection state.
+
+        - name: GetHomeStateAsync
+          kind: read
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+          returns:
+            type: HomeState
+            nullable: true
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/HomeState.cs
+          summary: Returns the current home presence state.
+
+        - name: GetUsersAsync
+          kind: read
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+          returns:
+            type: User
+            collection: true
+            nullable: false
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/User.cs
+          summary: Returns the users assigned to a home.
+
+        - name: GetAirComfortAsync
+          kind: read
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+          returns:
+            type: AirComfort
+            nullable: false
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/AirComfort.cs
+          summary: Returns freshness and room comfort indicators for a home.
+
+        - name: GetIncidentDetectionAsync
+          kind: read
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+          returns:
+            type: IncidentDetection
+            nullable: false
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/IncidentDetection.cs
+          summary: Returns whether incident detection is supported and enabled.
+
+        - name: GetHeatingCircuitsAsync
+          kind: read
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+          returns:
+            type: HeatingCircuit
+            collection: true
+            nullable: false
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/HeatingCircuit.cs
+          summary: Returns configured heating circuits for a home.
+
+        - name: GetHeatingSystemAsync
+          kind: read
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+          returns:
+            type: HeatingSystem
+            nullable: false
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/HeatingSystem.cs
+          summary: Returns boiler and underfloor-heating configuration.
+
+        - name: SetHomePresenceAsync
+          kind: command
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+            - name: presence
+              type: string
+              expectedValues: [HOME, AWAY]
+          returns:
+            type: void
+            nullable: false
+          summary: Updates the home presence mode.
+
+    - name: ZoneAppService
+      interface: IZoneService
+      implementation: TadoZoneService
+      methods:
+        - name: GetZonesAsync
+          kind: read
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+          returns:
+            type: Zone
+            collection: true
+            nullable: false
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/Zone.cs
+          summary: Returns all zones for a home.
+
+        - name: GetZoneAsync
+          kind: read
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+            - name: zoneId
+              type: int
+              validation: positive-id
+          returns:
+            type: Zone
+            nullable: false
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/Zone.cs
+          summary: Returns one zone definition.
+
+        - name: GetZoneStateAsync
+          kind: read
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+            - name: zoneId
+              type: int
+              validation: positive-id
+          returns:
+            type: State
+            nullable: false
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/State.cs
+          summary: Returns the live operating state for a zone.
+
+        - name: GetZoneSummaryAsync
+          kind: read
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+            - name: zoneId
+              type: int
+              validation: positive-id
+          returns:
+            type: ZoneSummary
+            nullable: true
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/ZoneSummary.cs
+          summary: Returns current setting and termination, or null when no overlay is active.
+
+        - name: GetZoneCapabilitiesAsync
+          kind: read
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+            - name: zoneId
+              type: int
+              validation: positive-id
+          returns:
+            type: Capability
+            collection: true
+            nullable: false
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/Capability.cs
+          summary: Returns the capability descriptors supported by a zone.
+
+        - name: GetZoneControlAsync
+          kind: read
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+            - name: zoneId
+              type: int
+              validation: positive-id
+          returns:
+            type: ZoneControl
+            nullable: false
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/ZoneControl.cs
+          summary: Returns zone control metadata including heating-circuit assignment and duties.
+
+        - name: GetDefaultZoneOverlayAsync
+          kind: read
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+            - name: zoneId
+              type: int
+              validation: positive-id
+          returns:
+            type: DefaultZoneOverlay
+            nullable: false
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/DefaultZoneOverlay.cs
+          summary: Returns the default termination condition for device-created overlays.
+
+        - name: GetEarlyStartAsync
+          kind: read
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+            - name: zoneId
+              type: int
+              validation: positive-id
+          returns:
+            type: EarlyStart
+            nullable: false
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/EarlyStart.cs
+          summary: Returns whether early start is enabled.
+
+        - name: GetZoneTemperatureOffsetAsync
+          kind: read
+          parameters:
+            - name: zone
+              type: Zone
+              source: caller-provided
+          returns:
+            type: Temperature
+            nullable: false
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/Temperature.cs
+          summary: Resolves the first associated device from a zone and returns its temperature offset.
+
+        - name: SetEarlyStartAsync
+          kind: command
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+            - name: zoneId
+              type: int
+              validation: positive-id
+            - name: enabled
+              type: bool
+          returns:
+            type: bool
+            nullable: false
+          summary: Enables or disables early start for a zone.
+
+        - name: SetHeatingTemperatureCelsiusAsync
+          overload: until-next-manual-change
+          kind: command
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+            - name: zoneId
+              type: int
+              validation: positive-id
+            - name: temperature
+              type: double
+          returns:
+            type: ZoneSummary
+            nullable: true
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/ZoneSummary.cs
+          summary: Sets a manual heating overlay and returns the resulting zone summary.
+
+        - name: SetHeatingTemperatureCelsiusAsync
+          overload: timed
+          kind: command
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+            - name: zoneId
+              type: int
+              validation: positive-id
+            - name: temperature
+              type: double
+            - name: durationMode
+              type: DurationModes
+            - name: timer
+              type: TimeSpan?
+          returns:
+            type: ZoneSummary
+            nullable: true
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/ZoneSummary.cs
+          summary: Sets a timed manual heating overlay and returns the resulting zone summary.
+
+    - name: DeviceAppService
+      interface: IDeviceService
+      implementation: TadoDeviceService
+      methods:
+        - name: GetDevicesAsync
+          kind: read
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+          returns:
+            type: Device
+            collection: true
+            nullable: false
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/Device.cs
+          summary: Returns all devices for a home.
+
+        - name: GetDeviceListAsync
+          kind: read
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+          returns:
+            type: DeviceListEntry
+            collection: true
+            nullable: false
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/DeviceListEntry.cs
+          summary: Returns devices together with optional zone association.
+
+        - name: GetDeviceAsync
+          kind: read
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+            - name: deviceId
+              type: int
+              validation: positive-id
+          returns:
+            type: Device
+            nullable: false
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/Device.cs
+          summary: Returns one device within a home.
+
+        - name: GetZoneTemperatureOffsetAsync
+          kind: read
+          parameters:
+            - name: deviceId
+              type: int
+              validation: positive-id
+          returns:
+            type: Temperature
+            nullable: false
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/Temperature.cs
+          summary: Returns the temperature offset for a device.
+
+        - name: GetMobileDevicesAsync
+          kind: read
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+          returns:
+            type: MobileDevice.Item
+            collection: true
+            nullable: false
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/MobileDevice/Item.cs
+          summary: Returns all mobile devices registered to a home.
+
+        - name: GetZoneMeasuringDeviceAsync
+          kind: read
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+            - name: zoneId
+              type: int
+              validation: positive-id
+          returns:
+            type: Device
+            nullable: false
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/Device.cs
+          summary: Returns the measuring device assigned to a zone.
+
+        - name: GetMobileDeviceAsync
+          kind: read
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+            - name: mobileDeviceId
+              type: int
+              validation: positive-id
+          returns:
+            type: MobileDevice.Item
+            nullable: false
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/MobileDevice/Item.cs
+          summary: Returns one mobile device registered to a home.
+
+        - name: GetMobileDeviceSettingsAsync
+          kind: read
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+            - name: mobileDeviceId
+              type: int
+              validation: positive-id
+          returns:
+            type: MobileDevice.Settings
+            nullable: false
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/MobileDevice/Settings.cs
+          summary: Returns settings for one mobile device.
+
+        - name: SetDeviceChildLockAsync
+          overload: by-device-model
+          kind: command
+          parameters:
+            - name: device
+              type: Device
+            - name: enableChildLock
+              type: bool
+          returns:
+            type: bool
+            nullable: false
+          summary: Updates child-lock state using a device model.
+
+        - name: SetDeviceChildLockAsync
+          overload: by-device-id
+          kind: command
+          parameters:
+            - name: deviceId
+              type: string
+            - name: enableChildLock
+              type: bool
+          returns:
+            type: bool
+            nullable: false
+          summary: Updates child-lock state using a device identifier.
+
+        - name: SayHiAsync
+          kind: command
+          parameters:
+            - name: deviceId
+              type: string
+          returns:
+            type: bool
+            nullable: false
+          summary: Triggers identify mode on a device.
+
+        - name: SetZoneTemperatureOffsetCelsiusAsync
+          kind: command
+          parameters:
+            - name: deviceId
+              type: string
+            - name: temperature
+              type: double
+          returns:
+            type: bool
+            nullable: false
+          summary: Updates a device temperature offset in Celsius.
+
+    - name: WeatherAppService
+      interface: IWeatherService
+      implementation: TadoWeatherService
+      methods:
+        - name: GetWeatherAsync
+          kind: read
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+          returns:
+            type: Weather
+            nullable: false
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/Weather.cs
+          summary: Returns current weather conditions for a home.
+
+  auth:
+    - name: TadoAuthService
+      interface: ITadoAuthService
+      implementation: TadoAuthService
+      methods:
+        - name: StartDeviceAuthorisationAsync
+          kind: auth
+          parameters: []
+          returns:
+            type: DeviceCodeResponse
+            nullable: false
+            source: infrastructure
+            modelFile: src/TadoNetApi.Infrastructure/Dtos/Auth/DeviceCodeResponse.cs
+          summary: Starts the OAuth device flow and returns verification details.
+
+        - name: WaitForDeviceTokenAsync
+          kind: auth
+          parameters:
+            - name: deviceCode
+              type: string
+            - name: intervalSeconds
+              type: int
+            - name: maxWaitSeconds
+              type: int
+          returns:
+            type: TadoAuthResponse
+            nullable: false
+            source: infrastructure
+            modelFile: src/TadoNetApi.Infrastructure/Dtos/Auth/TadoAuthResponse.cs
+          summary: Polls until the device flow completes and returns the token payload.
+
+        - name: GetAccessTokenAsync
+          kind: auth
+          parameters: []
+          returns:
+            type: string
+            nullable: false
+          summary: Returns a valid access token, refreshing it internally when required.
+
+models:
+  User:
+    file: src/TadoNetApi.Domain/Entities/User.cs
+    properties:
+      - { name: Name, type: string?, role: display-name }
+      - { name: Email, type: string?, role: email }
+      - { name: Username, type: string?, role: login-name }
+      - { name: Id, type: string?, role: user-id }
+      - { name: Homes, type: Home[]?, role: related-homes }
+      - { name: Locale, type: string?, role: locale }
+      - { name: MobileDevices, type: MobileDevice.Item[]?, role: linked-mobile-devices }
+
+  Home:
+    file: src/TadoNetApi.Domain/Entities/Home.cs
+    properties:
+      - { name: Id, type: long?, role: home-id }
+      - { name: Name, type: string?, role: home-name }
+
+  House:
+    file: src/TadoNetApi.Domain/Entities/House.cs
+    properties:
+      - { name: Id, type: long, role: home-id }
+      - { name: Name, type: string, role: home-name }
+      - { name: DateTimeZone, type: string, role: timezone }
+      - { name: DateCreated, type: DateTime, role: created-at }
+      - { name: TemperatureUnit, type: string, role: preferred-unit }
+      - { name: InstallationCompleted, type: bool, role: setup-state }
+      - { name: SimpleSmartScheduleEnabled, type: bool, role: schedule-capability }
+      - { name: AwayRadiusInMeters, type: double, role: geofencing-radius }
+      - { name: License, type: string, role: license }
+      - { name: ChristmasModeEnabled, type: bool, role: seasonal-flag }
+      - { name: IncidentDetection, type: IncidentDetection?, role: nested-detection-state }
+      - { name: ContactDetails, type: ContactDetails, role: contact }
+      - { name: Address, type: Address, role: address }
+      - { name: Geolocation, type: Geolocation, role: coordinates }
+
+  HomeState:
+    file: src/TadoNetApi.Domain/Entities/HomeState.cs
+    properties:
+      - { name: Presence, type: string, role: current-presence }
+
+  AirComfort:
+    file: src/TadoNetApi.Domain/Entities/AirComfort.cs
+    properties:
+      - { name: Freshness, type: AirComfortFreshness?, role: overall-freshness }
+      - { name: AcPoweredOn, type: bool?, role: ac-power }
+      - { name: LastAcPowerOff, type: DateTime?, role: last-ac-off }
+      - { name: Comfort, type: List<AirComfortComfort>?, role: per-room-comfort }
+
+  AirComfortFreshness:
+    file: src/TadoNetApi.Domain/Entities/AirComfort.cs
+    properties:
+      - { name: Value, type: string?, role: freshness-state }
+      - { name: LastOpenWindow, type: DateTime?, role: last-open-window }
+
+  AirComfortComfort:
+    file: src/TadoNetApi.Domain/Entities/AirComfort.cs
+    properties:
+      - { name: RoomId, type: int?, role: room-id }
+      - { name: TemperatureLevel, type: string?, role: temperature-band }
+      - { name: HumidityLevel, type: string?, role: humidity-band }
+      - { name: Coordinate, type: AirComfortCoordinate?, role: chart-position }
+
+  AirComfortCoordinate:
+    file: src/TadoNetApi.Domain/Entities/AirComfort.cs
+    properties:
+      - { name: Radial, type: double?, role: radial-axis }
+      - { name: Angular, type: int?, role: angular-axis }
+
+  IncidentDetection:
+    file: src/TadoNetApi.Domain/Entities/IncidentDetection.cs
+    properties:
+      - { name: Enabled, type: bool?, role: feature-enabled }
+      - { name: Supported, type: bool?, role: feature-supported }
+
+  HeatingCircuit:
+    file: src/TadoNetApi.Domain/Entities/HeatingCircuit.cs
+    properties:
+      - { name: Number, type: int?, role: circuit-number }
+      - { name: DriverSerialNo, type: string?, role: controller-serial }
+      - { name: DriverShortSerialNo, type: string?, role: controller-short-serial }
+
+  HeatingSystem:
+    file: src/TadoNetApi.Domain/Entities/HeatingSystem.cs
+    properties:
+      - { name: Boiler, type: Boiler?, role: boiler-config }
+      - { name: UnderfloorHeating, type: UnderfloorHeating?, role: underfloor-config }
+
+  Boiler:
+    file: src/TadoNetApi.Domain/Entities/HeatingSystem.cs
+    properties:
+      - { name: Present, type: bool?, role: present }
+      - { name: Id, type: int?, role: boiler-id }
+      - { name: Found, type: bool?, role: detected }
+
+  UnderfloorHeating:
+    file: src/TadoNetApi.Domain/Entities/HeatingSystem.cs
+    properties:
+      - { name: Present, type: bool?, role: present }
+
+  Zone:
+    file: src/TadoNetApi.Domain/Entities/Zone.cs
+    properties:
+      - { name: Id, type: long?, role: zone-id }
+      - { name: Name, type: string?, role: zone-name }
+      - { name: CurrentType, type: string?, role: zone-type }
+      - { name: DeviceTypes, type: string[]?, role: device-types }
+      - { name: Devices, type: Device[]?, role: zone-devices }
+      - { name: ReportAvailable, type: bool?, role: report-flag }
+      - { name: SupportsDazzle, type: bool?, role: dazzle-supported }
+      - { name: DazzleEnabled, type: bool?, role: dazzle-enabled }
+      - { name: OpenWindowDetection, type: OpenWindowDetection?, role: open-window-config }
+
+  State:
+    file: src/TadoNetApi.Domain/Entities/State.cs
+    properties:
+      - { name: TadoMode, type: string?, role: home-away-mode }
+      - { name: GeolocationOverride, type: bool?, role: geo-override }
+      - { name: Setting, type: Setting?, role: active-setting }
+      - { name: OverlayType, type: string?, role: overlay-type }
+      - { name: Overlay, type: Overlay?, role: overlay }
+      - { name: OpenWindowDetected, type: bool?, role: open-window-detected }
+      - { name: Link, type: Link?, role: connectivity }
+      - { name: ActivityDataPoints, type: ActivityDataPoints?, role: activity }
+      - { name: SensorDataPoints, type: SensorDataPoints?, role: sensors }
+
+  ZoneSummary:
+    file: src/TadoNetApi.Domain/Entities/ZoneSummary.cs
+    properties:
+      - { name: Setting, type: Setting?, role: active-setting }
+      - { name: Termination, type: Termination?, role: overlay-termination }
+
+  Capability:
+    file: src/TadoNetApi.Domain/Entities/Capability.cs
+    properties:
+      - { name: PurpleType, type: string?, role: capability-type }
+      - { name: Temperatures, type: Temperatures?, role: temperature-rules }
+
+  ZoneControl:
+    file: src/TadoNetApi.Domain/Entities/ZoneControl.cs
+    properties:
+      - { name: Type, type: string?, role: zone-type }
+      - { name: EarlyStartEnabled, type: bool?, role: early-start-enabled }
+      - { name: HeatingCircuit, type: int?, role: heating-circuit }
+      - { name: Duties, type: ZoneControlDuties?, role: duties }
+
+  DefaultZoneOverlay:
+    file: src/TadoNetApi.Domain/Entities/DefaultZoneOverlay.cs
+    properties:
+      - { name: TerminationCondition, type: Termination?, role: default-termination }
+
+  EarlyStart:
+    file: src/TadoNetApi.Domain/Entities/EarlyStart.cs
+    properties:
+      - { name: Enabled, type: bool?, role: enabled }
+
+  Temperature:
+    file: src/TadoNetApi.Domain/Entities/Temperature.cs
+    properties:
+      - { name: Celsius, type: double?, role: celsius }
+      - { name: Fahrenheit, type: double?, role: fahrenheit }
+
+  Device:
+    file: src/TadoNetApi.Domain/Entities/Device.cs
+    properties:
+      - { name: DeviceType, type: string?, role: type }
+      - { name: SerialNo, type: string?, role: serial }
+      - { name: ShortSerialNo, type: string?, role: short-serial }
+      - { name: CurrentFwVersion, type: string?, role: firmware }
+      - { name: ConnectionState, type: ConnectionState?, role: connection }
+      - { name: Characteristics, type: Characteristics?, role: characteristics }
+      - { name: Duties, type: string[]?, role: duties }
+      - { name: MountingState, type: MountingState?, role: mounting-state }
+      - { name: BatteryState, type: string?, role: battery-state }
+      - { name: ChildLockEnabled, type: bool?, role: child-lock }
+
+  DeviceListEntry:
+    file: src/TadoNetApi.Domain/Entities/DeviceListEntry.cs
+    properties:
+      - { name: Type, type: string?, role: entry-type }
+      - { name: Device, type: Device?, role: device }
+      - { name: ZoneId, type: long?, role: zone-id }
+      - { name: ZoneDuties, type: string[]?, role: zone-duties }
+
+  MobileDevice.Item:
+    file: src/TadoNetApi.Domain/Entities/MobileDevice/Item.cs
+    properties:
+      - { name: Name, type: string?, role: device-name }
+      - { name: Id, type: long?, role: mobile-device-id }
+      - { name: Settings, type: Settings?, role: settings }
+      - { name: Location, type: Location?, role: location }
+      - { name: MobileDeviceDetails, type: Details?, role: hardware-details }
+
+  MobileDevice.Settings:
+    file: src/TadoNetApi.Domain/Entities/MobileDevice/Settings.cs
+    properties:
+      - { name: GeoTrackingEnabled, type: bool?, role: geo-tracking-enabled }
+
+  Weather:
+    file: src/TadoNetApi.Domain/Entities/Weather.cs
+    properties:
+      - { name: SolarIntensity, type: SolarIntensity?, role: solar-intensity }
+      - { name: OutsideTemperature, type: OutsideTemperature?, role: outside-temperature }
+      - { name: WeatherState, type: WeatherState?, role: weather-state }
+
+  DeviceCodeResponse:
+    file: src/TadoNetApi.Infrastructure/Dtos/Auth/DeviceCodeResponse.cs
+    properties:
+      - { name: DeviceCode, type: string, role: device-code }
+      - { name: UserCode, type: string, role: user-code }
+      - { name: VerificationUri, type: string, role: verification-uri }
+      - { name: VerificationUriComplete, type: string?, role: complete-verification-uri }
+      - { name: ExpiresIn, type: int, role: expires-in-seconds }
+      - { name: Interval, type: int, role: poll-interval-seconds }
+
+  TadoAuthResponse:
+    file: src/TadoNetApi.Infrastructure/Dtos/Auth/TadoAuthResponse.cs
+    properties:
+      - { name: AccessToken, type: string, role: bearer-token }
+      - { name: RefreshToken, type: string, role: refresh-token }
+      - { name: ExpiresIn, type: int, role: expires-in-seconds }
+      - { name: ExpiryTime, type: DateTime, role: computed-expiry }
+      - { name: IsExpired, type: bool, role: computed-expired-flag }
+
+usageHints:
+  forHumans:
+    - Start with services.application to find the entry-point service and method.
+    - Use each returns.modelFile to jump to the concrete model in the codebase.
+    - Treat models here as top-level shapes; many nested types are defined in adjacent entity files.
+  forAI:
+    - Prefer this document over README tables when you need method signatures and return types.
+    - If a method returns a domain model, inspect the referenced file before generating usage examples.
+    - For command methods returning bool, interpret success as request accepted/completed by the SDK layer.

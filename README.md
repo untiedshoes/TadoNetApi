@@ -178,14 +178,14 @@ Application services are the main entry point for consumers. In practice, these 
 
 Infrastructure services are the API-facing implementations behind the domain interfaces. They handle HTTP calls, auth, DTO serialization, mapping, and command payloads.
 
-| Service | Responsibility | Interface |
-|-------|-------|-------|
-| TadoUserService | User endpoint integration | `IUserService` |
-| TadoHomeService | Home retrieval, home users, air comfort, heating, incident detection, home state, and presence updates | `IHomeService` |
-| TadoZoneService | Zone retrieval plus early-start and overlay-temperature commands | `IZoneService` |
-| TadoDeviceService | Device and mobile-device retrieval plus child-lock, identify, and offset commands | `IDeviceService` |
-| TadoWeatherService | Weather endpoint integration | `IWeatherService` |
-| TadoAuthService | OAuth2 device authorization and token lifecycle | `ITadoAuthService` |
+| Service | Responsibility | Main Methods | Interface |
+|-------|-------|-------|-------|
+| TadoUserService | User endpoint integration | `GetMeAsync` | `IUserService` |
+| TadoHomeService | Home retrieval, home users, air comfort, heating, incident detection, home state, and presence updates | `GetHomeAsync`, `GetHomeStateAsync`, `GetUsersAsync`, `GetAirComfortAsync`, `GetIncidentDetectionAsync`, `GetHeatingCircuitsAsync`, `GetHeatingSystemAsync`, `SetHomePresenceAsync` | `IHomeService` |
+| TadoZoneService | Zone retrieval plus early-start and overlay-temperature commands | `GetZonesAsync`, `GetZoneAsync`, `GetZoneStateAsync`, `GetZoneSummaryAsync`, `GetZoneCapabilitiesAsync`, `GetZoneControlAsync`, `GetDefaultZoneOverlayAsync`, `GetEarlyStartAsync`, `GetZoneTemperatureOffsetAsync`, `SetEarlyStartAsync`, `SetHeatingTemperatureCelsiusAsync` | `IZoneService` |
+| TadoDeviceService | Device and mobile-device retrieval plus child-lock, identify, and offset commands | `GetDevicesAsync`, `GetDeviceListAsync`, `GetDeviceAsync`, `GetZoneTemperatureOffsetAsync`, `GetMobileDevicesAsync`, `GetMobileDeviceAsync`, `GetMobileDeviceSettingsAsync`, `GetZoneMeasuringDeviceAsync`, `SetDeviceChildLockAsync`, `SayHiAsync`, `SetZoneTemperatureOffsetCelsiusAsync` | `IDeviceService` |
+| TadoWeatherService | Weather endpoint integration | `GetWeatherAsync` | `IWeatherService` |
+| TadoAuthService | OAuth2 device authorization and token lifecycle | `StartDeviceAuthorisationAsync`, `WaitForDeviceTokenAsync`, `GetAccessTokenAsync` | `ITadoAuthService` |
 
 Service flow in this project: Playground -> Application Services -> Domain Interfaces -> Infrastructure Services -> Tado API.
 

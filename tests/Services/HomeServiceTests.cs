@@ -91,5 +91,50 @@ namespace TadoNetApi.Tests.Services
             Assert.Equal("Alice Example", users[0].Name);
             Assert.Equal("Bob Example", users[1].Name);
         }
+
+        [Fact]
+        public async Task GetAirComfortAsync_ReturnsAirComfort()
+        {
+            // Arrange
+            var expectedAirComfort = new AirComfort
+            {
+                Freshness = new AirComfortFreshness
+                {
+                    Value = "FRESH"
+                },
+                AcPoweredOn = false,
+                Comfort =
+                [
+                    new AirComfortComfort
+                    {
+                        RoomId = 1,
+                        TemperatureLevel = "COMFY",
+                        HumidityLevel = "COMFY",
+                        Coordinate = new AirComfortCoordinate
+                        {
+                            Radial = 0.22,
+                            Angular = 76
+                        }
+                    }
+                ]
+            };
+
+            var mockHomeService = new Mock<IHomeService>();
+            mockHomeService.Setup(s => s.GetAirComfortAsync(1, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedAirComfort);
+
+            var service = new HomeAppService(mockHomeService.Object);
+
+            // Act
+            var airComfort = await service.GetAirComfortAsync(1, CancellationToken.None);
+
+            // Assert
+            Assert.NotNull(airComfort);
+            Assert.Equal("FRESH", airComfort.Freshness?.Value);
+            Assert.False(airComfort.AcPoweredOn);
+            Assert.Single(airComfort.Comfort!);
+            Assert.Equal(1, airComfort.Comfort![0].RoomId);
+            Assert.Equal(76, airComfort.Comfort[0].Coordinate?.Angular);
+        }
     }
 }

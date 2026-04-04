@@ -39,6 +39,12 @@ public class HomeAppService
         _homeService.GetUsersAsync(homeId, cancellationToken);
 
     /// <summary>
+    /// Retrieves the air comfort indicators for a home.
+    /// </summary>
+    public Task<AirComfort> GetAirComfortAsync(int homeId, CancellationToken cancellationToken) =>
+        _homeService.GetAirComfortAsync(homeId, cancellationToken);
+
+    /// <summary>
     /// Sets the presence state of a home.
     /// </summary>
     public Task SetHomePresenceAsync(int homeId, string presence, CancellationToken cancellationToken) =>

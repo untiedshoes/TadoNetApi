@@ -63,6 +63,30 @@ public class TadoHomeService : IHomeService
         }
     }
 
+    /// <inheritdoc/>
+    public async Task<AirComfort> GetAirComfortAsync(int homeId, CancellationToken cancellationToken = default)
+    {
+        Guard.PositiveId(homeId, nameof(homeId));
+
+        try
+        {
+            var response = await _httpClient.GetAsync<TadoAirComfortResponse>(
+                $"homes/{homeId}/airComfort",
+                cancellationToken);
+
+            if (response == null)
+                throw new TadoApiException(System.Net.HttpStatusCode.NotFound,
+                    $"Air comfort for home {homeId} not found.");
+
+            return response.ToDomain();
+        }
+        catch (HttpRequestException ex)
+        {
+            throw new TadoApiException(System.Net.HttpStatusCode.ServiceUnavailable,
+                $"Failed to retrieve air comfort: {ex.Message}");
+        }
+    }
+
     #endregion
 
     #region Send Commands

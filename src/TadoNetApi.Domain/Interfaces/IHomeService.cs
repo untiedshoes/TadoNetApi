@@ -26,6 +26,12 @@ public interface IHomeService
     Task<IReadOnlyList<User>> GetUsersAsync(int homeId, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Retrieves the air comfort indicators for a home.
+    /// </summary>
+    /// <param name="homeId">The ID of the home.</param>
+    Task<AirComfort> GetAirComfortAsync(int homeId, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Sets the presence state of a home (e.g., HOME, AWAY).
     /// </summary>
     /// <param name="homeId">The ID of the home.</param>

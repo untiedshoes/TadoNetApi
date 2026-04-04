@@ -169,7 +169,7 @@ Application services are the main entry point for consumers. In practice, these 
 | Service | Responsibility | Main Methods |
 |-------|-------|-------|
 | UserAppService | Retrieve the current authenticated user and home context | `GetMeAsync` |
-| HomeAppService | Read home data, home users, and manage presence state | `GetHomeAsync`, `GetHomeStateAsync`, `GetUsersAsync`, `SetHomePresenceAsync` |
+| HomeAppService | Read home data, home users, comfort indicators, and manage presence state | `GetHomeAsync`, `GetHomeStateAsync`, `GetUsersAsync`, `GetAirComfortAsync`, `SetHomePresenceAsync` |
 | ZoneAppService | Read zone data and send zone-level commands | `GetZonesAsync`, `GetZoneAsync`, `GetZoneStateAsync`, `GetZoneSummaryAsync`, `GetZoneCapabilitiesAsync`, `GetZoneControlAsync`, `GetDefaultZoneOverlayAsync`, `GetEarlyStartAsync`, `GetZoneTemperatureOffsetAsync`, `SetEarlyStartAsync`, `SetHeatingTemperatureCelsiusAsync` |
 | DeviceAppService | Read device and mobile-device data and send device-level commands | `GetDevicesAsync`, `GetDeviceListAsync`, `GetDeviceAsync`, `GetZoneTemperatureOffsetAsync`, `GetMobileDevicesAsync`, `GetMobileDeviceAsync`, `GetMobileDeviceSettingsAsync`, `GetZoneMeasuringDeviceAsync`, `SetDeviceChildLockAsync`, `SayHiAsync`, `SetZoneTemperatureOffsetCelsiusAsync` |
 | WeatherAppService | Read weather data for a home | `GetWeatherAsync` |
@@ -181,7 +181,7 @@ Infrastructure services are the API-facing implementations behind the domain int
 | Service | Responsibility | Interface |
 |-------|-------|-------|
 | TadoUserService | User endpoint integration | `IUserService` |
-| TadoHomeService | Home retrieval, home users, home state, and presence updates | `IHomeService` |
+| TadoHomeService | Home retrieval, home users, air comfort, home state, and presence updates | `IHomeService` |
 | TadoZoneService | Zone retrieval plus early-start and overlay-temperature commands | `IZoneService` |
 | TadoDeviceService | Device and mobile-device retrieval plus child-lock, identify, and offset commands | `IDeviceService` |
 | TadoWeatherService | Weather endpoint integration | `IWeatherService` |
@@ -337,7 +337,6 @@ The list below reflects the current gap between this library and the community m
 
 ##### Home / User / Invitation Services
 
-- [ ] Implement `GetAirComfortAsync` -> `GET /homes/{homeId}/airComfort`
 - [ ] Implement `SetAwayRadiusInMetersAsync` -> `PUT /homes/{homeId}/awayRadiusInMeters`
 - [ ] Implement `SetHomeDetailsAsync` -> `PUT /homes/{homeId}/details`
 - [ ] Implement `GetIncidentDetectionAsync` -> `GET /homes/{homeId}/incidentDetection`

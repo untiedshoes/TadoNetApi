@@ -169,9 +169,9 @@ Application services are the main entry point for consumers. In practice, these 
 | Service | Responsibility | Main Methods |
 |-------|-------|-------|
 | UserAppService | Retrieve the current authenticated user and home context | `GetMeAsync` |
-| HomeAppService | Read home data and manage presence state | `GetHomeAsync`, `GetHomeStateAsync`, `SetHomePresenceAsync` |
-| ZoneAppService | Read zone data and send zone-level commands | `GetZonesAsync`, `GetZoneAsync`, `GetZoneStateAsync`, `GetZoneSummaryAsync`, `GetZoneCapabilitiesAsync`, `GetEarlyStartAsync`, `GetZoneTemperatureOffsetAsync`, `SetEarlyStartAsync`, `SetHeatingTemperatureCelsiusAsync` |
-| DeviceAppService | Read device and mobile-device data and send device-level commands | `GetDevicesAsync`, `GetDeviceListAsync`, `GetDeviceAsync`, `GetZoneTemperatureOffsetAsync`, `GetMobileDevicesAsync`, `GetMobileDeviceSettingsAsync`, `SetDeviceChildLockAsync`, `SayHiAsync`, `SetZoneTemperatureOffsetCelsiusAsync` |
+| HomeAppService | Read home data, home users, and manage presence state | `GetHomeAsync`, `GetHomeStateAsync`, `GetUsersAsync`, `SetHomePresenceAsync` |
+| ZoneAppService | Read zone data and send zone-level commands | `GetZonesAsync`, `GetZoneAsync`, `GetZoneStateAsync`, `GetZoneSummaryAsync`, `GetZoneCapabilitiesAsync`, `GetZoneControlAsync`, `GetDefaultZoneOverlayAsync`, `GetEarlyStartAsync`, `GetZoneTemperatureOffsetAsync`, `SetEarlyStartAsync`, `SetHeatingTemperatureCelsiusAsync` |
+| DeviceAppService | Read device and mobile-device data and send device-level commands | `GetDevicesAsync`, `GetDeviceListAsync`, `GetDeviceAsync`, `GetZoneTemperatureOffsetAsync`, `GetMobileDevicesAsync`, `GetMobileDeviceAsync`, `GetMobileDeviceSettingsAsync`, `GetZoneMeasuringDeviceAsync`, `SetDeviceChildLockAsync`, `SayHiAsync`, `SetZoneTemperatureOffsetCelsiusAsync` |
 | WeatherAppService | Read weather data for a home | `GetWeatherAsync` |
 
 ### Infrastructure Services
@@ -181,7 +181,7 @@ Infrastructure services are the API-facing implementations behind the domain int
 | Service | Responsibility | Interface |
 |-------|-------|-------|
 | TadoUserService | User endpoint integration | `IUserService` |
-| TadoHomeService | Home retrieval, home state, and presence updates | `IHomeService` |
+| TadoHomeService | Home retrieval, home users, home state, and presence updates | `IHomeService` |
 | TadoZoneService | Zone retrieval plus early-start and overlay-temperature commands | `IZoneService` |
 | TadoDeviceService | Device and mobile-device retrieval plus child-lock, identify, and offset commands | `IDeviceService` |
 | TadoWeatherService | Weather endpoint integration | `IWeatherService` |
@@ -337,7 +337,6 @@ The list below reflects the current gap between this library and the community m
 
 ##### Home / User / Invitation Services
 
-- [ ] Implement `GetUsersAsync` -> `GET /homes/{homeId}/users`
 - [ ] Implement `GetAirComfortAsync` -> `GET /homes/{homeId}/airComfort`
 - [ ] Implement `SetAwayRadiusInMetersAsync` -> `PUT /homes/{homeId}/awayRadiusInMeters`
 - [ ] Implement `SetHomeDetailsAsync` -> `PUT /homes/{homeId}/details`
@@ -356,7 +355,6 @@ The list below reflects the current gap between this library and the community m
 - [ ] Implement `SetOpenWindowDetectionAsync` -> `PUT /homes/{homeId}/zones/{zoneId}/openWindowDetection`
 - [ ] Implement `ActivateOpenWindowAsync` -> `POST /homes/{homeId}/zones/{zoneId}/state/openWindow/activate`
 - [ ] Implement `ResetOpenWindowAsync` -> `DELETE /homes/{homeId}/zones/{zoneId}/state/openWindow`
-- [ ] Implement `GetDefaultZoneOverlayAsync` -> `GET /homes/{homeId}/zones/{zoneId}/defaultOverlay`
 - [ ] Implement `SetDefaultZoneOverlayAsync` -> `PUT /homes/{homeId}/zones/{zoneId}/defaultOverlay`
 - [ ] Implement `DeleteZoneOverlayAsync` -> `DELETE /homes/{homeId}/zones/{zoneId}/overlay`
 - [ ] Implement `SetHeatingTemperatureFahrenheitAsync` -> `PUT /homes/{homeId}/zones/{zoneId}/overlay`
@@ -372,13 +370,10 @@ The list below reflects the current gap between this library and the community m
 
 ##### Device / Mobile Device Services
 
-- [ ] Implement `GetMobileDeviceAsync` -> `GET /homes/{homeId}/mobileDevices/{mobileDeviceId}`
 - [ ] Implement `DeleteMobileDeviceAsync` -> `DELETE /homes/{homeId}/mobileDevices/{mobileDeviceId}`
 - [ ] Implement `SetMobileDeviceSettingsAsync` -> `PUT /homes/{homeId}/mobileDevices/{mobileDeviceId}/settings`
-- [ ] Implement `GetZoneControlAsync` -> `GET /homes/{homeId}/zones/{zoneId}/control`
 - [ ] Implement `SetHeatingCircuitAsync` -> `PUT /homes/{homeId}/zones/{zoneId}/control/heatingCircuit`
 - [ ] Implement `MoveDeviceToZoneAsync` -> `POST /homes/{homeId}/zones/{zoneId}/devices`
-- [ ] Implement `GetZoneMeasuringDeviceAsync` -> `GET /homes/{homeId}/zones/{zoneId}/measuringDevice`
 - [ ] Implement `SetZoneMeasuringDeviceAsync` -> `PUT /homes/{homeId}/zones/{zoneId}/measuringDevice`
 - [ ] Implement `SetZoneTemperatureOffsetFahrenheitAsync` -> `PUT /devices/{deviceId}/temperatureOffset`
 - [ ] Implement installation endpoints -> `GET /homes/{homeId}/installations`, `GET /homes/{homeId}/installations/{installationId}`

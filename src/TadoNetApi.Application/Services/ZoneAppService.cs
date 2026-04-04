@@ -31,6 +31,12 @@ namespace TadoNetApi.Application.Services
         public Task<IReadOnlyList<Capability>> GetZoneCapabilitiesAsync(int homeId, int zoneId, CancellationToken cancellationToken = default)
             => _zoneService.GetZoneCapabilitiesAsync(homeId, zoneId, cancellationToken);
 
+        public Task<ZoneControl> GetZoneControlAsync(int homeId, int zoneId, CancellationToken cancellationToken = default)
+            => _zoneService.GetZoneControlAsync(homeId, zoneId, cancellationToken);
+
+        public Task<DefaultZoneOverlay> GetDefaultZoneOverlayAsync(int homeId, int zoneId, CancellationToken cancellationToken = default)
+            => _zoneService.GetDefaultZoneOverlayAsync(homeId, zoneId, cancellationToken);
+
         public Task<EarlyStart> GetEarlyStartAsync(int homeId, int zoneId, CancellationToken cancellationToken = default)
             => _zoneService.GetEarlyStartAsync(homeId, zoneId, cancellationToken);
 

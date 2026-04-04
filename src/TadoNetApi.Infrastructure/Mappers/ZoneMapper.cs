@@ -61,5 +61,41 @@ namespace TadoNetApi.Infrastructure.Mappers
         /// <returns>A mapped <see cref="EarlyStart"/>.</returns>
         public static EarlyStart ToDomain(this TadoEarlyStartResponse dto)
             => new() { Enabled = dto.Enabled };
+
+        /// <summary>
+        /// Maps a <see cref="TadoZoneControlResponse"/> to a <see cref="ZoneControl"/> domain entity.
+        /// </summary>
+        public static ZoneControl ToDomain(this TadoZoneControlResponse dto)
+            => new()
+            {
+                Type = dto.Type,
+                EarlyStartEnabled = dto.EarlyStartEnabled,
+                HeatingCircuit = dto.HeatingCircuit,
+                Duties = dto.Duties?.ToDomain()
+            };
+
+        /// <summary>
+        /// Maps a <see cref="TadoZoneControlDutiesResponse"/> to a <see cref="ZoneControlDuties"/> domain entity.
+        /// </summary>
+        public static ZoneControlDuties ToDomain(this TadoZoneControlDutiesResponse dto)
+            => new()
+            {
+                Type = dto.Type,
+                Driver = dto.Driver?.ToDomain(),
+                Drivers = dto.Drivers?.Select(DeviceMapper.ToDomain).ToArray(),
+                Leader = dto.Leader?.ToDomain(),
+                Leaders = dto.Leaders?.Select(DeviceMapper.ToDomain).ToArray(),
+                Ui = dto.Ui?.ToDomain(),
+                Uis = dto.Uis?.Select(DeviceMapper.ToDomain).ToArray()
+            };
+
+        /// <summary>
+        /// Maps a <see cref="TadoDefaultZoneOverlayResponse"/> to a <see cref="DefaultZoneOverlay"/> domain entity.
+        /// </summary>
+        public static DefaultZoneOverlay ToDomain(this TadoDefaultZoneOverlayResponse dto)
+            => new()
+            {
+                TerminationCondition = dto.TerminationCondition?.ToDomain()
+            };
     }
 }

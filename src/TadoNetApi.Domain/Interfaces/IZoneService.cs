@@ -30,6 +30,16 @@ namespace TadoNetApi.Domain.Interfaces
         Task<IReadOnlyList<Capability>> GetZoneCapabilitiesAsync(int homeId, int zoneId, CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Fetches the control configuration for a zone, including heating circuit and device duties.
+        /// </summary>
+        Task<ZoneControl> GetZoneControlAsync(int homeId, int zoneId, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Fetches the default overlay configuration for a zone.
+        /// </summary>
+        Task<DefaultZoneOverlay> GetDefaultZoneOverlayAsync(int homeId, int zoneId, CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Fetches the early start settings for a zone.
         /// </summary>
         Task<EarlyStart> GetEarlyStartAsync(int homeId, int zoneId, CancellationToken cancellationToken = default);

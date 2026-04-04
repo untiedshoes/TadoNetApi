@@ -66,5 +66,30 @@ namespace TadoNetApi.Tests.Services
             Assert.NotNull(state);
             Assert.Equal("HOME", state?.Presence);
         }
+
+        [Fact]
+        public async Task GetUsersAsync_ReturnsUsers()
+        {
+            // Arrange
+            var expectedUsers = new List<User>
+            {
+                new() { Id = "user-1", Name = "Alice Example", Email = "alice@example.com" },
+                new() { Id = "user-2", Name = "Bob Example", Email = "bob@example.com" }
+            };
+
+            var mockHomeService = new Mock<IHomeService>();
+            mockHomeService.Setup(s => s.GetUsersAsync(1, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedUsers);
+
+            var service = new HomeAppService(mockHomeService.Object);
+
+            // Act
+            var users = await service.GetUsersAsync(1, CancellationToken.None);
+
+            // Assert
+            Assert.Equal(2, users.Count);
+            Assert.Equal("Alice Example", users[0].Name);
+            Assert.Equal("Bob Example", users[1].Name);
+        }
     }
 }

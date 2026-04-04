@@ -47,6 +47,18 @@ namespace TadoNetApi.Application.Services
             => _deviceService.GetMobileDevicesAsync(homeId, cancellationToken);
 
         /// <summary>
+        /// Retrieves the measuring device for a zone.
+        /// </summary>
+        public Task<Device> GetZoneMeasuringDeviceAsync(int homeId, int zoneId, CancellationToken cancellationToken = default)
+            => _deviceService.GetZoneMeasuringDeviceAsync(homeId, zoneId, cancellationToken);
+
+        /// <summary>
+        /// Retrieves a specific mobile device.
+        /// </summary>
+        public Task<Item> GetMobileDeviceAsync(int homeId, int mobileDeviceId, CancellationToken cancellationToken = default)
+            => _deviceService.GetMobileDeviceAsync(homeId, mobileDeviceId, cancellationToken);
+
+        /// <summary>
         /// Retrieves the settings for a specific mobile device.
         /// </summary>
         public Task<Settings> GetMobileDeviceSettingsAsync(int homeId, int mobileDeviceId, CancellationToken cancellationToken = default)

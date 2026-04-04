@@ -8,6 +8,7 @@ using TadoNetApi.Infrastructure.Exceptions;
 using TadoNetApi.Infrastructure.Http;
 using TadoNetApi.Infrastructure.Mappers;
 using TadoNetApi.Domain.Interfaces;
+using TadoNetApi.Infrastructure.Validation;
 
 namespace TadoNetApi.Infrastructure.Services
 {
@@ -30,6 +31,8 @@ namespace TadoNetApi.Infrastructure.Services
         /// </summary>
         public async Task<IReadOnlyList<Zone>> GetZonesAsync(int homeId, CancellationToken cancellationToken = default)
         {
+            Guard.PositiveId(homeId, nameof(homeId));
+
             try
             {
                 var response = await _httpClient.GetAsync<List<TadoZoneResponse>>(
@@ -50,6 +53,9 @@ namespace TadoNetApi.Infrastructure.Services
         /// </summary>
         public async Task<Zone> GetZoneAsync(int homeId, int zoneId, CancellationToken cancellationToken = default)
         {
+            Guard.PositiveId(homeId, nameof(homeId));
+            Guard.PositiveId(zoneId, nameof(zoneId));
+
             try
             {
                 var response = await _httpClient.GetAsync<TadoZoneResponse>(
@@ -73,6 +79,9 @@ namespace TadoNetApi.Infrastructure.Services
         /// </summary>
         public async Task<State> GetZoneStateAsync(int homeId, int zoneId, CancellationToken cancellationToken = default)
         {
+            Guard.PositiveId(homeId, nameof(homeId));
+            Guard.PositiveId(zoneId, nameof(zoneId));
+
             try
             {
                 var response = await _httpClient.GetAsync<TadoStateResponse>(
@@ -96,6 +105,9 @@ namespace TadoNetApi.Infrastructure.Services
         /// </summary>
         public async Task<ZoneSummary?> GetZoneSummaryAsync(int homeId, int zoneId, CancellationToken cancellationToken = default)
         {
+            Guard.PositiveId(homeId, nameof(homeId));
+            Guard.PositiveId(zoneId, nameof(zoneId));
+
             try
             {
                 var response = await _httpClient.GetAsync<TadoZoneSummaryResponse>(
@@ -121,6 +133,9 @@ namespace TadoNetApi.Infrastructure.Services
         /// </summary>
         public async Task<IReadOnlyList<Capability>> GetZoneCapabilitiesAsync(int homeId, int zoneId, CancellationToken cancellationToken = default)
         {
+            Guard.PositiveId(homeId, nameof(homeId));
+            Guard.PositiveId(zoneId, nameof(zoneId));
+
             try
             {
                 var rawResponse = await _httpClient.GetAsync<JsonElement>(
@@ -172,10 +187,65 @@ namespace TadoNetApi.Infrastructure.Services
         }
 
         /// <summary>
+        /// Returns the zone control details including heating circuit and grouped devices.
+        /// </summary>
+        public async Task<ZoneControl> GetZoneControlAsync(int homeId, int zoneId, CancellationToken cancellationToken = default)
+        {
+            Guard.PositiveId(homeId, nameof(homeId));
+            Guard.PositiveId(zoneId, nameof(zoneId));
+
+            try
+            {
+                var response = await _httpClient.GetAsync<TadoZoneControlResponse>(
+                    $"homes/{homeId}/zones/{zoneId}/control",
+                    cancellationToken);
+
+                if (response == null)
+                    throw new TadoApiException(HttpStatusCode.NotFound, $"Zone control for zone {zoneId} not found.");
+
+                return response.ToDomain();
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new TadoApiException(HttpStatusCode.ServiceUnavailable,
+                    $"Failed to retrieve zone control: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Returns the default overlay configuration for a zone.
+        /// </summary>
+        public async Task<DefaultZoneOverlay> GetDefaultZoneOverlayAsync(int homeId, int zoneId, CancellationToken cancellationToken = default)
+        {
+            Guard.PositiveId(homeId, nameof(homeId));
+            Guard.PositiveId(zoneId, nameof(zoneId));
+
+            try
+            {
+                var response = await _httpClient.GetAsync<TadoDefaultZoneOverlayResponse>(
+                    $"homes/{homeId}/zones/{zoneId}/defaultOverlay",
+                    cancellationToken);
+
+                if (response == null)
+                    throw new TadoApiException(HttpStatusCode.NotFound, $"Default zone overlay for zone {zoneId} not found.");
+
+                return response.ToDomain();
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new TadoApiException(HttpStatusCode.ServiceUnavailable,
+                    $"Failed to retrieve default zone overlay: {ex.Message}");
+            }
+        }
+
+        /// <summary>
         /// Returns early start settings for a zone.
         /// </summary>
         public async Task<EarlyStart> GetEarlyStartAsync(int homeId, int zoneId, CancellationToken cancellationToken = default)
         {
+            Guard.PositiveId(homeId, nameof(homeId));
+            Guard.PositiveId(zoneId, nameof(zoneId));
+
             try
             {
                 var response = await _httpClient.GetAsync<TadoEarlyStartResponse>(
@@ -238,8 +308,8 @@ namespace TadoNetApi.Infrastructure.Services
         /// <returns>Boolean indicating if the request was successful.</returns>
         public async Task<bool> SetEarlyStartAsync(int homeId, int zoneId, bool enabled, CancellationToken cancellationToken = default)
         {
-            if (homeId <= 0) throw new ArgumentOutOfRangeException(nameof(homeId), "Home ID must be a positive integer.");
-            if (zoneId <= 0) throw new ArgumentOutOfRangeException(nameof(zoneId), "Zone ID must be a positive integer.");
+            Guard.PositiveId(homeId, nameof(homeId));
+            Guard.PositiveId(zoneId, nameof(zoneId));
 
             return await _httpClient.SendAsync(
                 $"homes/{homeId}/zones/{zoneId}/earlyStart",
@@ -272,8 +342,8 @@ namespace TadoNetApi.Infrastructure.Services
         /// <returns>The updated zone summary, or null if the response could not be deserialized.</returns>
         public async Task<ZoneSummary?> SetHeatingTemperatureCelsiusAsync(int homeId, int zoneId, double temperature, DurationModes durationMode, TimeSpan? timer = null, CancellationToken cancellationToken = default)
         {
-            if (homeId <= 0) throw new ArgumentOutOfRangeException(nameof(homeId), "Home ID must be a positive integer.");
-            if (zoneId <= 0) throw new ArgumentOutOfRangeException(nameof(zoneId), "Zone ID must be a positive integer.");
+            Guard.PositiveId(homeId, nameof(homeId));
+            Guard.PositiveId(zoneId, nameof(zoneId));
 
             return await SetTemperatureAsync(homeId, zoneId, temperature, null, DeviceTypes.Heating, durationMode, timer, cancellationToken);
         }

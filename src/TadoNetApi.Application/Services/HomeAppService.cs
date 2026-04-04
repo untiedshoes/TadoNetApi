@@ -23,12 +23,20 @@ public class HomeAppService
     /// <summary>
     /// Retrieves a specific home by ID.
     /// </summary>
-    public Task<House?> GetHomeAsync(int homeId, CancellationToken cancellationToken) => _homeService.GetHomeAsync(homeId, cancellationToken);
+    public Task<House?> GetHomeAsync(int homeId, CancellationToken cancellationToken) => 
+        _homeService.GetHomeAsync(homeId, cancellationToken);
 
     /// <summary>
     /// Retrieves the state of a home.
     /// </summary>
-    public Task<HomeState?> GetHomeStateAsync(int homeId, CancellationToken cancellationToken) => _homeService.GetHomeStateAsync(homeId, cancellationToken);
+    public Task<HomeState?> GetHomeStateAsync(int homeId, CancellationToken cancellationToken) => 
+        _homeService.GetHomeStateAsync(homeId, cancellationToken);
+
+    /// <summary>
+    /// Retrieves the users associated with a home.
+    /// </summary>
+    public Task<IReadOnlyList<User>> GetUsersAsync(int homeId, CancellationToken cancellationToken) => 
+        _homeService.GetUsersAsync(homeId, cancellationToken);
 
     /// <summary>
     /// Sets the presence state of a home.

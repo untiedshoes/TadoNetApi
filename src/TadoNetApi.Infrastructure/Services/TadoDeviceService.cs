@@ -6,6 +6,7 @@ using TadoNetApi.Infrastructure.Dtos.Responses.MobileDevice;
 using TadoNetApi.Infrastructure.Exceptions;
 using TadoNetApi.Infrastructure.Http;
 using TadoNetApi.Infrastructure.Mappers;
+using TadoNetApi.Infrastructure.Validation;
 
 namespace TadoNetApi.Infrastructure.Services
 {
@@ -34,6 +35,8 @@ namespace TadoNetApi.Infrastructure.Services
         /// <exception cref="TadoApiException">Thrown if the API request fails.</exception>
         public async Task<IReadOnlyList<Device>> GetDevicesAsync(int homeId, CancellationToken cancellationToken = default)
         {
+            Guard.PositiveId(homeId, nameof(homeId));
+
             try
             {
                 var response = await _httpClient.GetAsync<List<TadoDeviceResponse>>(
@@ -58,6 +61,8 @@ namespace TadoNetApi.Infrastructure.Services
         /// <exception cref="TadoApiException">Thrown if the API request fails.</exception>
         public async Task<IReadOnlyList<DeviceListEntry>> GetDeviceListAsync(int homeId, CancellationToken cancellationToken = default)
         {
+            Guard.PositiveId(homeId, nameof(homeId));
+
             try
             {
                 var response = await _httpClient.GetAsync<TadoDeviceListResponse>(
@@ -83,6 +88,9 @@ namespace TadoNetApi.Infrastructure.Services
         /// <exception cref="TadoApiException">Thrown if the device is not found or request fails.</exception>
         public async Task<Device> GetDeviceAsync(int homeId, int deviceId, CancellationToken cancellationToken = default)
         {
+            Guard.PositiveId(homeId, nameof(homeId));
+            Guard.PositiveId(deviceId, nameof(deviceId));
+
             try
             {
                 var response = await _httpClient.GetAsync<TadoDeviceResponse>(
@@ -111,6 +119,8 @@ namespace TadoNetApi.Infrastructure.Services
         /// <exception cref="TadoApiException">Thrown if request fails.</exception>
         public async Task<Temperature> GetZoneTemperatureOffsetAsync(int deviceId, CancellationToken cancellationToken = default)
         {
+            Guard.PositiveId(deviceId, nameof(deviceId));
+
             try
             {
                 var response = await _httpClient.GetAsync<TadoTemperatureResponse>(
@@ -139,6 +149,8 @@ namespace TadoNetApi.Infrastructure.Services
         /// <exception cref="TadoApiException">Thrown if the API request fails.</exception>
         public async Task<IReadOnlyList<Item>> GetMobileDevicesAsync(int homeId, CancellationToken cancellationToken = default)
         {
+            Guard.PositiveId(homeId, nameof(homeId));
+
             try
             {
                 var response = await _httpClient.GetAsync<List<TadoMobileItemResponse>>(
@@ -155,6 +167,70 @@ namespace TadoNetApi.Infrastructure.Services
         }
 
         /// <summary>
+        /// Retrieves the measuring device for the specified zone.
+        /// </summary>
+        /// <param name="homeId">The ID of the home.</param>
+        /// <param name="zoneId">The ID of the zone.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>The <see cref="Device"/> used as the measuring device for the zone.</returns>
+        /// <exception cref="TadoApiException">Thrown if the device is not found or the request fails.</exception>
+        public async Task<Device> GetZoneMeasuringDeviceAsync(int homeId, int zoneId, CancellationToken cancellationToken = default)
+        {
+            Guard.PositiveId(homeId, nameof(homeId));
+            Guard.PositiveId(zoneId, nameof(zoneId));
+
+            try
+            {
+                var response = await _httpClient.GetAsync<TadoDeviceResponse>(
+                    $"homes/{homeId}/zones/{zoneId}/measuringDevice",
+                    cancellationToken);
+
+                if (response == null)
+                    throw new TadoApiException(System.Net.HttpStatusCode.NotFound,
+                        $"Measuring device for zone {zoneId} not found.");
+
+                return response.ToDomain();
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new TadoApiException(System.Net.HttpStatusCode.ServiceUnavailable,
+                    $"Failed to retrieve zone measuring device: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Retrieves a specific mobile device for the specified home.
+        /// </summary>
+        /// <param name="homeId">The ID of the home.</param>
+        /// <param name="mobileDeviceId">The ID of the mobile device.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>The <see cref="Item"/> for the mobile device.</returns>
+        /// <exception cref="TadoApiException">Thrown if the device is not found or the request fails.</exception>
+        public async Task<Item> GetMobileDeviceAsync(int homeId, int mobileDeviceId, CancellationToken cancellationToken = default)
+        {
+            Guard.PositiveId(homeId, nameof(homeId));
+            Guard.PositiveId(mobileDeviceId, nameof(mobileDeviceId));
+
+            try
+            {
+                var response = await _httpClient.GetAsync<TadoMobileItemResponse>(
+                    $"homes/{homeId}/mobileDevices/{mobileDeviceId}",
+                    cancellationToken);
+
+                if (response == null)
+                    throw new TadoApiException(System.Net.HttpStatusCode.NotFound,
+                        $"Mobile device {mobileDeviceId} not found.");
+
+                return response.ToDomain();
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new TadoApiException(System.Net.HttpStatusCode.ServiceUnavailable,
+                    $"Failed to retrieve mobile device: {ex.Message}");
+            }
+        }
+
+        /// <summary>
         /// Retrieves the settings for a specific mobile device.
         /// </summary>
         /// <param name="homeId">The ID of the home.</param>
@@ -164,6 +240,9 @@ namespace TadoNetApi.Infrastructure.Services
         /// <exception cref="TadoApiException">Thrown if the device is not found or request fails.</exception>
         public async Task<Settings> GetMobileDeviceSettingsAsync(int homeId, int mobileDeviceId, CancellationToken cancellationToken = default)
         {
+            Guard.PositiveId(homeId, nameof(homeId));
+            Guard.PositiveId(mobileDeviceId, nameof(mobileDeviceId));
+
             try
             {
                 var response = await _httpClient.GetAsync<TadoMobileSettingsResponse>(

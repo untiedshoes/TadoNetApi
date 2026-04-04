@@ -189,6 +189,69 @@ namespace TadoNetApi.Tests.Services
         }
 
         /// <summary>
+        /// Tests that <see cref="ZoneAppService.GetZoneControlAsync"/> returns correctly mapped zone control details.
+        /// </summary>
+        [Fact]
+        public async Task GetZoneControlAsync_ReturnsMappedZoneControl()
+        {
+            // Arrange
+            var expectedZoneControl = new ZoneControl
+            {
+                Type = "HEATING",
+                EarlyStartEnabled = true,
+                HeatingCircuit = 1,
+                Duties = new ZoneControlDuties
+                {
+                    Type = "HEATING",
+                    Leader = new Device { SerialNo = "SU1234567890" }
+                }
+            };
+
+            var (service, mock) = CreateService();
+            mock.Setup(s => s.GetZoneControlAsync(1, 1, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedZoneControl);
+
+            // Act
+            var control = await service.GetZoneControlAsync(1, 1);
+
+            // Assert
+            Assert.NotNull(control);
+            Assert.Equal("HEATING", control.Type);
+            Assert.True(control.EarlyStartEnabled);
+            Assert.Equal(1, control.HeatingCircuit);
+            Assert.Equal("SU1234567890", control.Duties?.Leader?.SerialNo);
+        }
+
+        /// <summary>
+        /// Tests that <see cref="ZoneAppService.GetDefaultZoneOverlayAsync"/> returns correctly mapped default overlay details.
+        /// </summary>
+        [Fact]
+        public async Task GetDefaultZoneOverlayAsync_ReturnsMappedDefaultOverlay()
+        {
+            // Arrange
+            var expectedDefaultOverlay = new DefaultZoneOverlay
+            {
+                TerminationCondition = new Termination
+                {
+                    Type = "Timer",
+                    DurationInSeconds = 900
+                }
+            };
+
+            var (service, mock) = CreateService();
+            mock.Setup(s => s.GetDefaultZoneOverlayAsync(1, 1, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedDefaultOverlay);
+
+            // Act
+            var defaultOverlay = await service.GetDefaultZoneOverlayAsync(1, 1);
+
+            // Assert
+            Assert.NotNull(defaultOverlay);
+            Assert.Equal("Timer", defaultOverlay.TerminationCondition?.Type);
+            Assert.Equal(900, defaultOverlay.TerminationCondition?.DurationInSeconds);
+        }
+
+        /// <summary>
         /// Tests that <see cref="ZoneAppService.GetEarlyStartAsync"/> returns early start settings.
         /// </summary>
         [Fact]

@@ -34,6 +34,16 @@ public interface IDeviceService
     Task<IReadOnlyList<Item>> GetMobileDevicesAsync(int homeId, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Retrieves the measuring device for a zone.
+    /// </summary>
+    Task<Device> GetZoneMeasuringDeviceAsync(int homeId, int zoneId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Retrieves a specific mobile device for the specified home.
+    /// </summary>
+    Task<Item> GetMobileDeviceAsync(int homeId, int mobileDeviceId, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Retrieves the settings for a specific mobile device.
     /// </summary>
     Task<Settings> GetMobileDeviceSettingsAsync(int homeId, int mobileDeviceId, CancellationToken cancellationToken = default);

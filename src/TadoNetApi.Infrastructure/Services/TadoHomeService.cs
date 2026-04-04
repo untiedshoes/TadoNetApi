@@ -2,8 +2,10 @@ using TadoNetApi.Domain.Entities;
 using TadoNetApi.Domain.Interfaces;
 using TadoNetApi.Infrastructure.Dtos.Requests;
 using TadoNetApi.Infrastructure.Dtos.Responses;
+using TadoNetApi.Infrastructure.Exceptions;
 using TadoNetApi.Infrastructure.Http;
 using TadoNetApi.Infrastructure.Mappers;
+using TadoNetApi.Infrastructure.Validation;
 
 namespace TadoNetApi.Infrastructure.Services;
 
@@ -24,6 +26,8 @@ public class TadoHomeService : IHomeService
     /// <inheritdoc/>
     public async Task<House?> GetHomeAsync(int homeId, CancellationToken cancellationToken = default)
     {
+        Guard.PositiveId(homeId, nameof(homeId));
+
         var dto = await _httpClient.GetAsync<TadoHouseResponse>($"homes/{homeId}", cancellationToken);
 
         return dto == null ? null : HouseMapper.ToDomain(dto);
@@ -32,9 +36,31 @@ public class TadoHomeService : IHomeService
     /// <inheritdoc/>
     public async Task<HomeState?> GetHomeStateAsync(int homeId, CancellationToken cancellationToken = default)
     {
+        Guard.PositiveId(homeId, nameof(homeId));
+
         var dto = await _httpClient.GetAsync<TadoHomeStateResponse>($"homes/{homeId}/state", cancellationToken);
 
         return dto == null ? null : dto.ToDomain();
+    }
+
+    /// <inheritdoc/>
+    public async Task<IReadOnlyList<User>> GetUsersAsync(int homeId, CancellationToken cancellationToken = default)
+    {
+        Guard.PositiveId(homeId, nameof(homeId));
+
+        try
+        {
+            var response = await _httpClient.GetAsync<List<TadoUserResponse>>(
+                $"homes/{homeId}/users",
+                cancellationToken) ?? new List<TadoUserResponse>();
+
+            return UserMapper.ToDomainList(response);
+        }
+        catch (HttpRequestException ex)
+        {
+            throw new TadoApiException(System.Net.HttpStatusCode.ServiceUnavailable,
+                $"Failed to retrieve users: {ex.Message}");
+        }
     }
 
     #endregion
@@ -44,6 +70,8 @@ public class TadoHomeService : IHomeService
     /// <inheritdoc/>
     public async Task SetHomePresenceAsync(int homeId, string presence, CancellationToken cancellationToken = default)
     {
+        Guard.PositiveId(homeId, nameof(homeId));
+
         var request = new SetHomePresenceRequest
         {
             presence = presence

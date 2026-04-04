@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\TadoNetApi.Domain\TadoNetApi.Domain.csproj" />
-    <ProjectReference Include="..\TadoNetApi.Application\TadoNetApi.Application.csproj" />
-    <ProjectReference Include="..\TadoNetApi.Infrastructure\TadoNetApi.Infrastructure.csproj" />
+    <ProjectReference Include="..\src\TadoNetApi.Domain\TadoNetApi.Domain.csproj" />
+    <ProjectReference Include="..\src\TadoNetApi.Application\TadoNetApi.Application.csproj" />
+    <ProjectReference Include="..\src\TadoNetApi.Infrastructure\TadoNetApi.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -79,7 +79,7 @@ foreach (var home in me.Homes ?? [])
 A runnable console app is included at:
 
 ```
-src/TadoNetApi.Playground
+TadoNetApi.Playground
 ```
 
 The playground is intentionally simple. It is there to exercise the real authentication flow, query live Tado data, and show the intended usage pattern for the library without hiding everything behind sample-only helper code.
@@ -119,30 +119,30 @@ In practice, this gives:
 
 ```text
 TadoNetApi/
-├─ Domain/              # Core business entities and enums
-│  ├─ Entities/         # Home, Zone, Device, Weather, User, State, ZoneSummary, etc.
-│  └─ Enums/            # DeviceTypes, PowerStates, TerminationTypes, etc.
-│
-├─ Application/         # Application services and interfaces
-│  ├─ Services/         # AppServices (HomeAppService, ZoneAppService, DeviceAppService, UserAppService)
-│  └─ Interfaces/       # IService interfaces (IZoneService, IDeviceService, etc.)
-│
-├─ Infrastructure/      # External concerns and implementations
-│  ├─ Auth/             # TadoAuthService for OAuth2 device authorization
-│  ├─ Config/           # TadoApiConfig for credentials and settings
-│  ├─ Converters/       # JSON converters for enums
-│  ├─ Dtos/             # API request/response DTOs
-│  ├─ Extensions/       # DI registration extensions
-│  ├─ Http/             # TadoHttpClient with auth, retries, throttling
-│  ├─ Mappers/          # DTO to Domain entity mapping
-│  └─ Services/         # Concrete service implementations (TadoZoneService, etc.)
-│
-├─ Playground/          # Console app demonstrating API usage
-├─ Tests/               # Unit and integration tests
-│  ├─ Domain/           # Entity tests
-│  ├─ Services/         # Service tests
-│  ├─ Mocks/            # Mock services for testing
-│  └─ Integration/      # Real API integration tests
+├─ src/
+│  ├─ TadoNetApi.Domain/         # Core business entities, enums, and interfaces
+│  │  ├─ Entities/               # Home, Zone, Device, Weather, User, State, ZoneSummary, etc.
+│  │  ├─ Enums/                  # DeviceTypes, PowerStates, TerminationTypes, etc.
+│  │  └─ Interfaces/             # Domain service contracts (IHomeService, IZoneService, etc.)
+│  ├─ TadoNetApi.Application/    # Consumer-facing application services
+│  │  └─ Services/               # HomeAppService, ZoneAppService, DeviceAppService, etc.
+│  └─ TadoNetApi.Infrastructure/ # External API integration and transport concerns
+│     ├─ Auth/                   # TadoAuthService for OAuth2 device authorization
+│     ├─ Config/                 # TadoApiConfig for credentials and settings
+│     ├─ Converters/             # JSON converters for enums
+│     ├─ Dtos/                   # API request/response DTOs
+│     ├─ Extensions/             # DI registration extensions
+│     ├─ Http/                   # TadoHttpClient with auth, retries, throttling
+│     ├─ Mappers/                # DTO to domain entity mapping
+│     └─ Services/               # Concrete service implementations (TadoZoneService, etc.)
+├─ TadoNetApi.Playground/        # Console app demonstrating API usage
+├─ tests/                        # Unit and integration tests
+│  ├─ Application/Services/      # AppService delegation/orchestration tests
+│  ├─ Domain/                    # Entity tests
+│  ├─ Infrastructure/Services/   # HTTP, mapping, and command behavior tests
+│  ├─ Integration/               # Real API integration tests
+│  └─ Mocks/                     # Mock services and HTTP helpers
+├─ docs/                         # Machine-readable SDK reference and supporting docs
 └─ .gitignore
 ```
 
@@ -227,7 +227,7 @@ export TADO_VERBOSE_HTTP_LOGS="true"
 ### 4. Run the Playground
 
 ```bash
-cd src/TadoNetApi.Playground
+cd TadoNetApi.Playground
 dotnet run
 ```
 
@@ -296,7 +296,7 @@ Console.WriteLine($"Weather: {weather.WeatherState?.Value ?? weather.WeatherStat
 
 ```
 
-For the complete runnable example, see [src/TadoNetApi.Playground/Program.cs](src/TadoNetApi.Playground/Program.cs).
+For the complete runnable example, see [TadoNetApi.Playground/Program.cs](TadoNetApi.Playground/Program.cs).
 
 ---
 

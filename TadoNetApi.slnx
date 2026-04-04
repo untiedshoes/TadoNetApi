@@ -3,7 +3,7 @@
     <Project Path="src/TadoNetApi.Application/TadoNetApi.Application.csproj" />
     <Project Path="src/TadoNetApi.Domain/TadoNetApi.Domain.csproj" />
     <Project Path="src/TadoNetApi.Infrastructure/TadoNetApi.Infrastructure.csproj" />
-    <Project Path="src/TadoNetApi.Playground/TadoNetApi.Playground.csproj" />
   </Folder>
+  <Project Path="TadoNetApi.Playground/TadoNetApi.Playground.csproj" />
   <Project Path="tests/tests.csproj" />
 </Solution>

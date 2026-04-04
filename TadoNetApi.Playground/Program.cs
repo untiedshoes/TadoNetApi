@@ -258,6 +258,8 @@ class Program
                 foreach (var device in devices)
                 {
                     Console.WriteLine($"   • Device Type: {device.DeviceType}");
+                    if (!string.IsNullOrWhiteSpace(device.DeviceTypeName))
+                        Console.WriteLine($"       Device Name: {device.DeviceTypeName} ({device.DeviceType})");
                     Console.WriteLine($"       Serial: {device.SerialNo}");
                     Console.WriteLine($"       Short Serial: {device.ShortSerialNo}");
                     Console.WriteLine($"       Firmware: {device.CurrentFwVersion}");
@@ -275,7 +277,9 @@ class Program
                     {
                         sayHiDeviceId = device.ShortSerialNo;
                         sayHiDeviceSerialNo = device.SerialNo;
-                        sayHiDeviceName = device.DeviceType ?? device.SerialNo ?? "Unknown Device";
+                        sayHiDeviceName = !string.IsNullOrWhiteSpace(device.DeviceTypeName)
+                            ? $"{device.DeviceTypeName} ({device.DeviceType})"
+                            : device.DeviceType ?? device.SerialNo ?? "Unknown Device";
 
                         if (zoneByDeviceShortSerial.TryGetValue(sayHiDeviceId, out var matchedZoneByShortSerial))
                         {

@@ -11,6 +11,11 @@ namespace TadoNetApi.Domain.Entities
         public string? DeviceType { get; set; }
 
         /// <summary>
+        /// The friendly name for the hardware device type when known.
+        /// </summary>
+        public string? DeviceTypeName => DeviceTypeCatalogue.GetFriendlyName(DeviceType);
+
+        /// <summary>
         /// The full serial number of the device
         /// </summary>
         public string? SerialNo { get; set; }

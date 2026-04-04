@@ -59,15 +59,71 @@ namespace TadoNetApi.Tests.Infrastructure.Services
 
             var thermostat = devices.First(d => d.SerialNo == "123456789");
             Assert.Equal("THERMOSTAT", thermostat.DeviceType);
+            Assert.Null(thermostat.DeviceTypeName);
             Assert.Equal("123456789", thermostat.SerialNo);
             Assert.Equal("123456", thermostat.ShortSerialNo);
             Assert.Equal("1.0.0", thermostat.CurrentFwVersion);
 
             var radiator = devices.First(d => d.SerialNo == "987654321");
             Assert.Equal("RADIATOR", radiator.DeviceType);
+            Assert.Null(radiator.DeviceTypeName);
             Assert.Equal("987654321", radiator.SerialNo);
             Assert.Equal("987654", radiator.ShortSerialNo);
             Assert.Equal("1.0.0", radiator.CurrentFwVersion);
+        }
+
+        /// <summary>
+        /// Tests that known device type codes expose a friendly hardware name.
+        /// </summary>
+        [Fact(DisplayName = "GetDevicesAsync maps known device type codes to friendly names")]
+        public async Task GetDevicesAsync_MapsKnownDeviceTypeNames()
+        {
+            var tadoDevices = new List<TadoDeviceResponse>
+            {
+                new()
+                {
+                    DeviceType = "VA02",
+                    SerialNo = "VA0467490560",
+                    ShortSerialNo = "VA0467490560",
+                    CurrentFwVersion = "215.1"
+                }
+            };
+
+            var mockHttp = MockTadoHttpClient.CreateGet(tadoDevices);
+            var service = new TadoDeviceService(mockHttp.Object);
+
+            var devices = await service.GetDevicesAsync(homeId: 1, CancellationToken.None);
+
+            var device = Assert.Single(devices);
+            Assert.Equal("VA02", device.DeviceType);
+            Assert.Equal("Smart Radiator Thermostat V3+", device.DeviceTypeName);
+        }
+
+        /// <summary>
+        /// Tests that device type codes with revision suffixes still resolve to a friendly name.
+        /// </summary>
+        [Fact(DisplayName = "GetDevicesAsync maps suffixed device type codes to friendly names")]
+        public async Task GetDevicesAsync_MapsSuffixedDeviceTypeNames()
+        {
+            var tadoDevices = new List<TadoDeviceResponse>
+            {
+                new()
+                {
+                    DeviceType = "SU02B",
+                    SerialNo = "SU3339800320",
+                    ShortSerialNo = "SU3339800320",
+                    CurrentFwVersion = "215.1"
+                }
+            };
+
+            var mockHttp = MockTadoHttpClient.CreateGet(tadoDevices);
+            var service = new TadoDeviceService(mockHttp.Object);
+
+            var devices = await service.GetDevicesAsync(homeId: 1, CancellationToken.None);
+
+            var device = Assert.Single(devices);
+            Assert.Equal("SU02B", device.DeviceType);
+            Assert.Equal("Wireless Temperature Sensor V3+", device.DeviceTypeName);
         }
 
         /// <summary>
@@ -114,6 +170,7 @@ namespace TadoNetApi.Tests.Infrastructure.Services
             Assert.Equal(3, entry.ZoneId);
             Assert.NotNull(entry.Device);
             Assert.Equal("SU3339800320", entry.Device!.SerialNo);
+            Assert.Equal("Wireless Temperature Sensor V3+", entry.Device.DeviceTypeName);
             Assert.Equal("SU3339800320", entry.Device.ShortSerialNo);
             Assert.Contains("UI", entry.ZoneDuties!);
         }
@@ -258,6 +315,7 @@ namespace TadoNetApi.Tests.Infrastructure.Services
 
             // Assert
             Assert.NotNull(device);
+            Assert.Equal("Wireless Temperature Sensor V3+", device.DeviceTypeName);
             Assert.Equal("SU02", device.DeviceType);
             Assert.Equal("SU1234567890", device.SerialNo);
             Assert.Equal("215.1", device.CurrentFwVersion);

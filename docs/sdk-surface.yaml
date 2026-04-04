@@ -997,6 +997,7 @@ models:
     file: src/TadoNetApi.Domain/Entities/Device.cs
     properties:
       - { name: DeviceType, type: string?, role: type }
+      - { name: DeviceTypeName, type: string?, role: friendly-type-name }
       - { name: SerialNo, type: string?, role: serial }
       - { name: ShortSerialNo, type: string?, role: short-serial }
       - { name: CurrentFwVersion, type: string?, role: firmware }

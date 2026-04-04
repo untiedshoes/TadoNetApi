@@ -4,30 +4,118 @@
 [![Build Status](https://github.com/untiedshoes/TadoNetApi/actions/workflows/dotnet.yml/badge.svg)](https://github.com/untiedshoes/TadoNetApi/actions/workflows/dotnet.yml)
 [![Tests](https://img.shields.io/github/actions/workflow/status/untiedshoes/TadoNetApi/dotnet.yml?branch=main&label=unit%20tests&logo=xunit)](https://github.com/untiedshoes/TadoNetApi/actions/workflows/dotnet.yml)
 [![License](https://img.shields.io/github/license/untiedshoes/TadoNetApi.svg)](LICENSE)
-[![Code Quality](https://img.shields.io/badge/code%20quality-A-brightgreen.svg)](#) <!-- Optional, placeholder for future SonarCloud/CodeFactor integration -->
 
-> `TadoNetApi` is a .NET 10 library providing a Clean Architecture implementation for the Tado Smart Heating system. It allows full interaction with Tado homes, zones, devices, schedules, and weather, including OAuth2 device authorization, overlays, and API throttling.  
+> `TadoNetApi` is a .NET 10 library for working with the Tado smart heating platform through a clean, testable, service-oriented API.
 
-The library is designed with **SOLID principles** and **reliability in mind**, featuring retry-aware HTTP clients, cancellation token support, and comprehensive unit and integration tests.
+It wraps the Tado API behind application and domain services, handles OAuth2 device authorization, maps DTOs into domain models, and keeps the integration code isolated from the rest of the application. The project is structured as a reusable SDK, but it also works well as a portfolio piece because it shows practical API integration work rather than just framework scaffolding.
+
+## What this project demonstrates
+
+- Designing a maintainable .NET SDK over a third-party REST API
+- Implementing OAuth2 device authorization and token lifecycle handling
+- Separating domain, application, and infrastructure concerns cleanly
+- Building resilient HTTP integrations with retries, cancellation, and error handling
+- Using DTO-to-domain mapping instead of leaking transport models across the codebase
+- Verifying behavior with unit tests, integration tests, and spec-parity reviews
 
 ---
 
 ## Features
 
-- **Core Domain Entities**: Home, Zone, Device, Weather, User, State, ZoneSummary, and related value objects
-- **Application Services**: HomeAppService, ZoneAppService, DeviceAppService, UserAppService for business logic orchestration
-- **Infrastructure Services**: TadoZoneService, TadoDeviceService, etc. with full API integration
-- **Authentication**: OAuth2 device authorization flow with TadoAuthService
-- **HTTP Client**: TadoHttpClient with automatic bearer token management, retry logic, throttling, and cancellation support
-- **Mapping Layer**: Comprehensive DTO-to-domain mappers for all entities
-- **Clean Architecture**: Strict separation between Domain, Application, and Infrastructure layers
-- **Playground Console App**: Complete demonstration of API usage with real authentication and data fetching
-- **Error Handling**: Graceful handling of API edge cases (e.g., missing overlays, null responses)
-- **Testing**: xUnit + Moq for unit tests, integration tests for real API validation
+- Clean separation between domain models, application services, and infrastructure concerns
+- Typed support for key Tado areas including homes, zones, devices, weather, and user context
+- Consumer-facing application services for common read and command workflows
+- OAuth2 device authorization and token lifecycle handling via `TadoAuthService`
+- Retry-aware and cancellation-aware HTTP integration with throttling support
+- DTO-to-domain mapping so transport models do not leak through the public surface
+- A runnable playground that uses the real auth flow and live API calls
+- Unit and integration tests covering mapping, service behavior, and command paths
+
+---
+
+## Why this project?
+Tado exposes a useful API surface, but there is no official .NET SDK that presents it in a way that feels natural to use in a modern application.
+
+This project exists to close that gap. It turns a relatively awkward external API into a set of clear service contracts and domain models that are easier to test, extend, and reason about. It also gave me a real integration problem to solve end to end: authentication, transport concerns, mapping, command payloads, edge cases, and incremental endpoint coverage.
+
+---
+
+## Quick C# Example
+
+The library is designed to be consumed through dependency injection and application services. A minimal authenticated flow looks like this:
+
+```csharp
+var services = new ServiceCollection();
+
+services.AddTadoInfrastructure(new TadoApiConfig
+{
+    Username = Environment.GetEnvironmentVariable("TADO_USERNAME") ?? string.Empty,
+    Password = Environment.GetEnvironmentVariable("TADO_PASSWORD") ?? string.Empty
+});
+
+using var provider = services.BuildServiceProvider();
+
+var authService = provider.GetRequiredService<ITadoAuthService>();
+var userService = provider.GetRequiredService<UserAppService>();
+
+var deviceCode = await authService.StartDeviceAuthorisationAsync();
+
+await authService.WaitForDeviceTokenAsync(
+    deviceCode.DeviceCode,
+    deviceCode.Interval,
+    deviceCode.ExpiresIn);
+
+var me = await userService.GetMeAsync();
+
+foreach (var home in me.Homes ?? [])
+{
+    Console.WriteLine(home.Name);
+}
+```
+
+---
+
+## Playground
+A runnable console app is included at:
+
+```
+src/TadoNetApi.Playground
+```
+
+The playground is intentionally simple. It is there to exercise the real authentication flow, query live Tado data, and show the intended usage pattern for the library without hiding everything behind sample-only helper code.
+
+---
+
+## Tech Stack
+
+- .NET 10 (`net10.0`)
+- C# with nullable reference types and implicit usings enabled
+- Clean Architecture across Domain, Application, Infrastructure, and Playground layers
+- `Microsoft.Extensions.Http` for DI-friendly HTTP client composition
+- OAuth2 device authorization against the Tado platform
+- `Newtonsoft.Json` for API serialization, DTO binding, and custom enum converters
+- `Microsoft.Extensions.Logging.Console` for playground/runtime logging
+- Async/await with cancellation-token support across service boundaries
+- xUnit + Moq + Coverlet for unit testing and coverage collection
+- Community Tado API v2 OpenAPI/Swagger definitions used for endpoint parity review
 
 ---
 
 ## Architecture Overview
+
+The codebase is split into four layers:
+
+- Domain → Core business models and rules
+- Application → Use cases and orchestration
+- Infrastructure → External API integration
+- Presentation (Playground) → Example usage
+
+That split keeps the transport details and API quirks out of the rest of the codebase, while making the integration testable and easier to evolve as more endpoints are added.
+
+In practice, this gives:
+- Separation of concerns
+- Testability
+- Long-term maintainability
 
 ```text
 TadoNetApi/
@@ -74,30 +162,30 @@ TadoNetApi/
 
 ## Service Reference
 
-Application Services are the consumer-facing layer and are used directly by the Playground via dependency injection.
+Application services are the main entry point for consumers. In practice, these are the types a host application, or the playground, resolves from DI.
 
 ### Application Services
 
-| Service | Used For | Key Methods | Returns |
-|-------|-------|-------|-------|
-| UserAppService | Retrieve current authenticated user context | GetMeAsync | User |
-| HomeAppService | Read home details/state and set presence | GetHomeAsync, GetHomeStateAsync, SetHomePresenceAsync | House?, HomeState?, Task |
-| ZoneAppService | Read zone data and send zone temperature/early-start commands | GetZonesAsync, GetZoneAsync, GetZoneStateAsync, GetZoneSummaryAsync, GetZoneCapabilitiesAsync, GetEarlyStartAsync, GetZoneTemperatureOffsetAsync, SetEarlyStartAsync, SetHeatingTemperatureCelsiusAsync | IReadOnlyList<Zone>, Zone, State, ZoneSummary?, IReadOnlyList<Capability>, EarlyStart, Temperature, bool |
-| DeviceAppService | Read device/mobile-device data and send device commands | GetDevicesAsync, GetDeviceListAsync, GetDeviceAsync, GetZoneTemperatureOffsetAsync, GetMobileDevicesAsync, GetMobileDeviceSettingsAsync, SetDeviceChildLockAsync, SayHiAsync, SetZoneTemperatureOffsetCelsiusAsync | IReadOnlyList<Device>, IReadOnlyList<DeviceListEntry>, Device, Temperature, IReadOnlyList<Item>, Settings, bool |
-| WeatherAppService | Read weather data for a home | GetWeatherAsync | Weather |
+| Service | Responsibility | Main Methods |
+|-------|-------|-------|
+| UserAppService | Retrieve the current authenticated user and home context | `GetMeAsync` |
+| HomeAppService | Read home data and manage presence state | `GetHomeAsync`, `GetHomeStateAsync`, `SetHomePresenceAsync` |
+| ZoneAppService | Read zone data and send zone-level commands | `GetZonesAsync`, `GetZoneAsync`, `GetZoneStateAsync`, `GetZoneSummaryAsync`, `GetZoneCapabilitiesAsync`, `GetEarlyStartAsync`, `GetZoneTemperatureOffsetAsync`, `SetEarlyStartAsync`, `SetHeatingTemperatureCelsiusAsync` |
+| DeviceAppService | Read device and mobile-device data and send device-level commands | `GetDevicesAsync`, `GetDeviceListAsync`, `GetDeviceAsync`, `GetZoneTemperatureOffsetAsync`, `GetMobileDevicesAsync`, `GetMobileDeviceSettingsAsync`, `SetDeviceChildLockAsync`, `SayHiAsync`, `SetZoneTemperatureOffsetCelsiusAsync` |
+| WeatherAppService | Read weather data for a home | `GetWeatherAsync` |
 
 ### Infrastructure Services
 
-Infrastructure Services are the API-integration implementations behind domain interfaces. They call Tado endpoints, map DTOs to domain models, and return domain entities.
+Infrastructure services are the API-facing implementations behind the domain interfaces. They handle HTTP calls, auth, DTO serialization, mapping, and command payloads.
 
-| Service | Used For | Implements | Returns |
-|-------|-------|-------|-------|
-| TadoUserService | User endpoint operations | IUserService | User |
-| TadoHomeService | Home and home-state operations, presence updates | IHomeService | House?, HomeState?, Task |
-| TadoZoneService | Zone retrieval plus zone control commands (early start and overlay temperature) | IZoneService | IReadOnlyList<Zone>, Zone, State, ZoneSummary?, IReadOnlyList<Capability>, EarlyStart, Temperature, bool |
-| TadoDeviceService | Device/mobile-device retrieval plus device commands (child lock, identify, offset) | IDeviceService | IReadOnlyList<Device>, IReadOnlyList<DeviceListEntry>, Device, Temperature, IReadOnlyList<Item>, Settings, bool |
-| TadoWeatherService | Weather endpoint operations | IWeatherService | Weather |
-| TadoAuthService | OAuth2 device authorization and token lifecycle | ITadoAuthService | Device auth response, token state, access token strings |
+| Service | Responsibility | Interface |
+|-------|-------|-------|
+| TadoUserService | User endpoint integration | `IUserService` |
+| TadoHomeService | Home retrieval, home state, and presence updates | `IHomeService` |
+| TadoZoneService | Zone retrieval plus early-start and overlay-temperature commands | `IZoneService` |
+| TadoDeviceService | Device and mobile-device retrieval plus child-lock, identify, and offset commands | `IDeviceService` |
+| TadoWeatherService | Weather endpoint integration | `IWeatherService` |
+| TadoAuthService | OAuth2 device authorization and token lifecycle | `ITadoAuthService` |
 
 Service flow in this project: Playground -> Application Services -> Domain Interfaces -> Infrastructure Services -> Tado API.
 
@@ -105,10 +193,12 @@ Service flow in this project: Playground -> Application Services -> Domain Inter
 
 ## Getting Started
 
+The quickest way to explore the library is to run the playground against a real Tado account.
+
 ### 1. Prerequisites
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)  
-- Tado V3 account and credentials  
+- [.NET 10 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
+- A Tado account with valid credentials
 
 ### 2. Clone the repo
 
@@ -118,11 +208,18 @@ cd TadoNetApi
 ```
 
 ### 3. Configure your Tado credentials
+
 Set your Tado credentials as environment variables:
 
 ```bash
 export TADO_USERNAME="your-email@example.com"
 export TADO_PASSWORD="your-password"
+```
+
+If you want verbose `HttpClient` logging in the playground, you can also set:
+
+```bash
+export TADO_VERBOSE_HTTP_LOGS="true"
 ```
 
 ### 4. Run the Playground
@@ -132,15 +229,17 @@ cd src/TadoNetApi.Playground
 dotnet run
 ```
 
-This will:
+The playground will:
 
 - Perform OAuth2 device authorization with Tado
-- Fetch and display user information and associated homes
-- List all zones with current temperature, humidity, heating power, and overlay details (if active)
-- Display device information including connection status, battery state, and capabilities
-- Demonstrate error handling for API edge cases (e.g., missing overlays)
+- Fetch the authenticated user and associated homes
+- Query live zone, device, and weather data
+- Show the intended application-service usage pattern
+- Exercise edge cases already handled by the library, such as missing overlays
 
-### Usage (Playground Example)
+### Playground Example
+
+The example below is a trimmed version of the runnable console flow. It shows the intended DI setup and a typical first query path.
 
 ```csharp
 using System;
@@ -199,10 +298,14 @@ For the complete runnable example, see [src/TadoNetApi.Playground/Program.cs](sr
 
 ---
 
-### Testing
-- Unit tests are located in the tests folder
-- Uses xUnit + Moq
-- Tests cover domain logic, mappers, and service behavior
+## Testing
+
+The test project covers domain behavior, mapping, service-level logic, and selected integration paths against the real API surface.
+
+- Unit tests live in the `tests` project
+- xUnit is used as the test framework
+- Moq is used for isolation around infrastructure dependencies
+- Coverlet is included for coverage collection
 
 Run tests with:
 ```bash
@@ -211,7 +314,7 @@ dotnet test
 
 ---
 
-### Notes
+## Notes
 
 - API calls include automatic retry logic and rate limiting awareness
 - Supports OAuth2 device authorization flow for secure authentication
@@ -221,50 +324,76 @@ dotnet test
 - Playground demonstrates real-world usage with proper error handling
 - All services use dependency injection for testability and flexibility
 
-#### TODO: Send Command Parity
+## Roadmap / Spec Gap Analysis
 
-- [ ] Implement `SetOpenWindowAsync` -> `POST homes/{homeId}/zones/{zoneId}/state/openWindow/activate`
-///   Activates temporary open-window mode on a zone and lets the API switch behavior accordingly.
-- [ ] Implement `ResetOpenWindowAsync` -> `DELETE homes/{homeId}/zones/{zoneId}/state/openWindow`
-///   Clears open-window override and returns zone control to normal logic.
-- [ ] Review/align home presence command parity (`SetHomePresence` in reference uses `PUT homes/{homeId}/presenceLock`)
-///   Confirm endpoint contract differences and align request path/method with intended presence-lock semantics.
-- [ ] Implement `SetEarlyStartAsync` -> `PUT homes/{homeId}/zones/{zoneId}/earlyStart`
-///   Enables or disables early-start preheating for a zone.
-- [ ] Implement `SayHiAsync` (device identify) -> `POST devices/{deviceId}/identify`
-///   Triggers physical identify action on a specific device for pairing and troubleshooting.
-- [ ] Implement `SetDeviceChildLockAsync` -> `PUT devices/{deviceId}/childLock`
-///   Sends `childLockEnabled` state to lock or unlock device controls.
-- [ ] Implement `SetZoneTemperatureOffsetCelsiusAsync` -> `PUT devices/{deviceId}/temperatureOffset`
-///   Writes Celsius calibration offset for the selected device sensor.
-- [ ] Implement `SetZoneTemperatureOffsetFahrenheitAsync` -> `PUT devices/{deviceId}/temperatureOffset`
-///   Writes Fahrenheit calibration offset for the selected device sensor.
-- [ ] Implement `SetHeatingTemperatureCelsiusAsync` (default duration wrapper)
-///   Convenience API that sets heating target in Celsius until next manual change.
-- [ ] Implement `SetHeatingTemperatureCelsiusAsync` (duration/timer overload)
-///   Sets heating target in Celsius with explicit termination mode and optional timer seconds.
-- [ ] Implement `SetHeatingTemperatureFahrenheitAsync` (default duration wrapper)
-///   Convenience API that sets heating target in Fahrenheit until next manual change.
-- [ ] Implement `SetHeatingTemperatureFahrenheitAsync` (duration/timer overload)
-///   Sets heating target in Fahrenheit with explicit termination mode and optional timer seconds.
-- [ ] Implement `SetHotWaterTemperatureCelsiusAsync` (duration/timer)
-///   Sets hot-water target in Celsius using overlay termination settings.
-- [ ] Implement `SetHotWaterTemperatureFahrenheitAsync` (duration/timer)
-///   Sets hot-water target in Fahrenheit using overlay termination settings.
-- [ ] Implement shared `SetTemperatureAsync` overlay command core -> `PUT homes/{homeId}/zones/{zoneId}/overlay`
-///   Centralizes overlay payload creation (`setting`, `power`, `temperature`, `termination`) to avoid duplicated command logic.
-- [ ] Implement `SwitchHeatingOffAsync` (default duration wrapper)
-///   Convenience API to turn heating off until next manual change.
-- [ ] Implement `SwitchHeatingOffAsync` (duration/timer overload)
-///   Turns heating off for explicit duration mode and optional timer window.
-- [ ] Implement `SwitchHotWaterOffAsync` (duration/timer)
-///   Turns hot water off using the same overlay and termination model.
-- [ ] Add DTOs/builders for overlay command payload (`setting`, `termination`, timer duration)
-///   Introduces typed request models and helper builders to guarantee API-compatible JSON.
-- [ ] Add unit tests for all new send commands (payload shape, endpoint, HTTP verb)
-///   Verifies endpoint path, method, expected status handling, and serialized request body.
-- [ ] Add integration tests for at least one heating set command and one device set command
-///   Validates end-to-end behavior against live API for a zone overlay and a device-level command.
+The list below reflects the current gap between this library and the community managed tado API v2 OpenAPI definition.
+
+##### Alignment / Review
+
+- [ ] Review `GetDeviceAsync` path alignment against spec -> `GET /devices/{deviceId}`
+- [ ] Review `SetHomePresenceAsync` parity against spec -> `PUT /homes/{homeId}/presenceLock`
+- [ ] Add `ResetHomePresenceAsync` -> `DELETE /homes/{homeId}/presenceLock`
+- [ ] Review overlay request contract for `SetHeatingTemperatureCelsiusAsync` against spec examples using `termination.typeSkillBasedApp`
+
+##### Home / User / Invitation Services
+
+- [ ] Implement `GetUsersAsync` -> `GET /homes/{homeId}/users`
+- [ ] Implement `GetAirComfortAsync` -> `GET /homes/{homeId}/airComfort`
+- [ ] Implement `SetAwayRadiusInMetersAsync` -> `PUT /homes/{homeId}/awayRadiusInMeters`
+- [ ] Implement `SetHomeDetailsAsync` -> `PUT /homes/{homeId}/details`
+- [ ] Implement `GetIncidentDetectionAsync` -> `GET /homes/{homeId}/incidentDetection`
+- [ ] Implement `SetIncidentDetectionAsync` -> `PUT /homes/{homeId}/incidentDetection`
+- [ ] Implement `GetHeatingCircuitsAsync` -> `GET /homes/{homeId}/heatingCircuits`
+- [ ] Implement `GetHeatingSystemAsync` -> `GET /homes/{homeId}/heatingSystem`
+- [ ] Implement `GetFlowTemperatureOptimizationAsync` -> `GET /homes/{homeId}/flowTemperatureOptimization`
+- [ ] Implement `SetFlowTemperatureOptimizationAsync` -> `PUT /homes/{homeId}/flowTemperatureOptimization`
+- [ ] Implement invitation service methods -> `GET /homes/{homeId}/invitations`, `POST /homes/{homeId}/invitations`, `DELETE /homes/{homeId}/invitations/{invitationToken}`, `POST /homes/{homeId}/invitations/{invitationToken}/resend`
+
+##### Zone Services
+
+- [ ] Implement `CreateZoneAsync` -> `POST /homes/{homeId}/zones`
+- [ ] Implement `SetZoneDetailsAsync` -> `PUT /homes/{homeId}/zones/{zoneId}/details`
+- [ ] Implement `SetOpenWindowDetectionAsync` -> `PUT /homes/{homeId}/zones/{zoneId}/openWindowDetection`
+- [ ] Implement `ActivateOpenWindowAsync` -> `POST /homes/{homeId}/zones/{zoneId}/state/openWindow/activate`
+- [ ] Implement `ResetOpenWindowAsync` -> `DELETE /homes/{homeId}/zones/{zoneId}/state/openWindow`
+- [ ] Implement `GetDefaultZoneOverlayAsync` -> `GET /homes/{homeId}/zones/{zoneId}/defaultOverlay`
+- [ ] Implement `SetDefaultZoneOverlayAsync` -> `PUT /homes/{homeId}/zones/{zoneId}/defaultOverlay`
+- [ ] Implement `DeleteZoneOverlayAsync` -> `DELETE /homes/{homeId}/zones/{zoneId}/overlay`
+- [ ] Implement `SetHeatingTemperatureFahrenheitAsync` -> `PUT /homes/{homeId}/zones/{zoneId}/overlay`
+- [ ] Implement `SetHotWaterTemperatureCelsiusAsync` -> `PUT /homes/{homeId}/zones/{zoneId}/overlay`
+- [ ] Implement `SetHotWaterTemperatureFahrenheitAsync` -> `PUT /homes/{homeId}/zones/{zoneId}/overlay`
+- [ ] Implement `SwitchHeatingOffAsync` -> `PUT /homes/{homeId}/zones/{zoneId}/overlay`
+- [ ] Implement `SwitchHotWaterOffAsync` -> `PUT /homes/{homeId}/zones/{zoneId}/overlay`
+- [ ] Implement bulk overlay operations -> `POST /homes/{homeId}/overlay`, `DELETE /homes/{homeId}/overlay`
+- [ ] Implement `GetAwayConfigurationAsync` -> `GET /homes/{homeId}/zones/{zoneId}/schedule/awayConfiguration`
+- [ ] Implement `SetAwayConfigurationAsync` -> `PUT /homes/{homeId}/zones/{zoneId}/schedule/awayConfiguration`
+- [ ] Implement schedule/timetable operations -> `GET|PUT /homes/{homeId}/zones/{zoneId}/schedule/activeTimetable`, `GET /homes/{homeId}/zones/{zoneId}/schedule/timetables`, `GET /homes/{homeId}/zones/{zoneId}/schedule/timetables/{timetableTypeId}`, `GET|PUT /homes/{homeId}/zones/{zoneId}/schedule/timetables/{timetableTypeId}/blocks/{dayType}`, `GET /homes/{homeId}/zones/{zoneId}/schedule/timetables/{timetableTypeId}/blocks`
+- [ ] Implement `GetZoneDayReportAsync` -> `GET /homes/{homeId}/zones/{zoneId}/dayReport`
+
+##### Device / Mobile Device Services
+
+- [ ] Implement `GetMobileDeviceAsync` -> `GET /homes/{homeId}/mobileDevices/{mobileDeviceId}`
+- [ ] Implement `DeleteMobileDeviceAsync` -> `DELETE /homes/{homeId}/mobileDevices/{mobileDeviceId}`
+- [ ] Implement `SetMobileDeviceSettingsAsync` -> `PUT /homes/{homeId}/mobileDevices/{mobileDeviceId}/settings`
+- [ ] Implement `GetZoneControlAsync` -> `GET /homes/{homeId}/zones/{zoneId}/control`
+- [ ] Implement `SetHeatingCircuitAsync` -> `PUT /homes/{homeId}/zones/{zoneId}/control/heatingCircuit`
+- [ ] Implement `MoveDeviceToZoneAsync` -> `POST /homes/{homeId}/zones/{zoneId}/devices`
+- [ ] Implement `GetZoneMeasuringDeviceAsync` -> `GET /homes/{homeId}/zones/{zoneId}/measuringDevice`
+- [ ] Implement `SetZoneMeasuringDeviceAsync` -> `PUT /homes/{homeId}/zones/{zoneId}/measuringDevice`
+- [ ] Implement `SetZoneTemperatureOffsetFahrenheitAsync` -> `PUT /devices/{deviceId}/temperatureOffset`
+- [ ] Implement installation endpoints -> `GET /homes/{homeId}/installations`, `GET /homes/{homeId}/installations/{installationId}`
+
+##### Specialized / Optional Services
+
+- [ ] Considering adding bridge service -> `GET /bridges/{bridgeId}`
+- [ ] Considering adding boiler-by-bridge service -> `GET /homeByBridge/{bridgeId}/boilerInfo`, `GET|PUT /homeByBridge/{bridgeId}/boilerMaxOutputTemperature`, `GET /homeByBridge/{bridgeId}/boilerWiringInstallationState`
+
+##### Testing / Documentation
+
+- [ ] Add unit tests for `GetDeviceListAsync` application-service passthrough and error-path coverage
+- [ ] Add unit tests for remaining command payload variants (Fahrenheit, hot water, off/wrapper flows)
+- [ ] Add integration tests for `GetDeviceListAsync` and at least one zone overlay command
+- [ ] Keep README service reference and TODO list synchronized with implemented spec coverage
 
 ---
 

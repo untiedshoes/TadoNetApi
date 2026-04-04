@@ -24,6 +24,11 @@ namespace TadoNetApi.Tests.Services
                 TemperatureUnit = "C",
                 InstallationCompleted = true,
                 ChristmasModeEnabled = false,
+                IncidentDetection = new IncidentDetection
+                {
+                    Enabled = true,
+                    Supported = true
+                },
                 ContactDetails = new ContactDetails(),
                 Address = new Address(),
                 Geolocation = new Geolocation()
@@ -42,6 +47,7 @@ namespace TadoNetApi.Tests.Services
             Assert.NotNull(home);
             Assert.Equal(1, home?.Id);
             Assert.Equal("My Home", home?.Name);
+            Assert.True(home?.IncidentDetection?.Enabled);
         }
 
         [Fact]
@@ -160,6 +166,58 @@ namespace TadoNetApi.Tests.Services
             Assert.NotNull(incidentDetection);
             Assert.True(incidentDetection.Enabled);
             Assert.True(incidentDetection.Supported);
+        }
+
+        [Fact]
+        public async Task GetHeatingCircuitsAsync_ReturnsHeatingCircuits()
+        {
+            var expectedCircuits = new List<HeatingCircuit>
+            {
+                new() { Number = 1, DriverSerialNo = "BR3209250550", DriverShortSerialNo = "BR3209250550" }
+            };
+
+            var mockHomeService = new Mock<IHomeService>();
+            mockHomeService.Setup(s => s.GetHeatingCircuitsAsync(1, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedCircuits);
+
+            var service = new HomeAppService(mockHomeService.Object);
+
+            var circuits = await service.GetHeatingCircuitsAsync(1, CancellationToken.None);
+
+            Assert.Single(circuits);
+            Assert.Equal(1, circuits[0].Number);
+            Assert.Equal("BR3209250550", circuits[0].DriverSerialNo);
+        }
+
+        [Fact]
+        public async Task GetHeatingSystemAsync_ReturnsHeatingSystem()
+        {
+            var expectedHeatingSystem = new HeatingSystem
+            {
+                Boiler = new Boiler
+                {
+                    Present = true,
+                    Id = 2699,
+                    Found = true
+                },
+                UnderfloorHeating = new UnderfloorHeating
+                {
+                    Present = false
+                }
+            };
+
+            var mockHomeService = new Mock<IHomeService>();
+            mockHomeService.Setup(s => s.GetHeatingSystemAsync(1, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedHeatingSystem);
+
+            var service = new HomeAppService(mockHomeService.Object);
+
+            var heatingSystem = await service.GetHeatingSystemAsync(1, CancellationToken.None);
+
+            Assert.NotNull(heatingSystem);
+            Assert.True(heatingSystem.Boiler?.Present);
+            Assert.Equal(2699, heatingSystem.Boiler?.Id);
+            Assert.False(heatingSystem.UnderfloorHeating?.Present);
         }
     }
 }

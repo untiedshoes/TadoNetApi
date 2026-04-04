@@ -40,6 +40,9 @@ namespace TadoNetApi.Infrastructure.Dtos.Responses
         [JsonPropertyName("christmasModeEnabled")]
         public bool ChristmasModeEnabled { get; set; }
 
+        [JsonPropertyName("incidentDetection")]
+        public TadoIncidentDetectionResponse? IncidentDetection { get; set; }
+
         [JsonPropertyName("contactDetails")]
         public TadoContactDetailsResponse ContactDetails { get; set; }
 

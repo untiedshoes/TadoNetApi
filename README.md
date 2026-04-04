@@ -169,7 +169,7 @@ Application services are the main entry point for consumers. In practice, these 
 | Service | Responsibility | Main Methods |
 |-------|-------|-------|
 | UserAppService | Retrieve the current authenticated user and home context | `GetMeAsync` |
-| HomeAppService | Read home data, home users, comfort and diagnostic indicators, and manage presence state | `GetHomeAsync`, `GetHomeStateAsync`, `GetUsersAsync`, `GetAirComfortAsync`, `GetIncidentDetectionAsync`, `SetHomePresenceAsync` |
+| HomeAppService | Read home data, home users, comfort, heating, and diagnostic indicators, and manage presence state | `GetHomeAsync`, `GetHomeStateAsync`, `GetUsersAsync`, `GetAirComfortAsync`, `GetIncidentDetectionAsync`, `GetHeatingCircuitsAsync`, `GetHeatingSystemAsync`, `SetHomePresenceAsync` |
 | ZoneAppService | Read zone data and send zone-level commands | `GetZonesAsync`, `GetZoneAsync`, `GetZoneStateAsync`, `GetZoneSummaryAsync`, `GetZoneCapabilitiesAsync`, `GetZoneControlAsync`, `GetDefaultZoneOverlayAsync`, `GetEarlyStartAsync`, `GetZoneTemperatureOffsetAsync`, `SetEarlyStartAsync`, `SetHeatingTemperatureCelsiusAsync` |
 | DeviceAppService | Read device and mobile-device data and send device-level commands | `GetDevicesAsync`, `GetDeviceListAsync`, `GetDeviceAsync`, `GetZoneTemperatureOffsetAsync`, `GetMobileDevicesAsync`, `GetMobileDeviceAsync`, `GetMobileDeviceSettingsAsync`, `GetZoneMeasuringDeviceAsync`, `SetDeviceChildLockAsync`, `SayHiAsync`, `SetZoneTemperatureOffsetCelsiusAsync` |
 | WeatherAppService | Read weather data for a home | `GetWeatherAsync` |
@@ -181,7 +181,7 @@ Infrastructure services are the API-facing implementations behind the domain int
 | Service | Responsibility | Interface |
 |-------|-------|-------|
 | TadoUserService | User endpoint integration | `IUserService` |
-| TadoHomeService | Home retrieval, home users, air comfort, incident detection, home state, and presence updates | `IHomeService` |
+| TadoHomeService | Home retrieval, home users, air comfort, heating, incident detection, home state, and presence updates | `IHomeService` |
 | TadoZoneService | Zone retrieval plus early-start and overlay-temperature commands | `IZoneService` |
 | TadoDeviceService | Device and mobile-device retrieval plus child-lock, identify, and offset commands | `IDeviceService` |
 | TadoWeatherService | Weather endpoint integration | `IWeatherService` |
@@ -340,8 +340,6 @@ The list below reflects the current gap between this library and the community m
 - [ ] Implement `SetAwayRadiusInMetersAsync` -> `PUT /homes/{homeId}/awayRadiusInMeters`
 - [ ] Implement `SetHomeDetailsAsync` -> `PUT /homes/{homeId}/details`
 - [ ] Implement `SetIncidentDetectionAsync` -> `PUT /homes/{homeId}/incidentDetection`
-- [ ] Implement `GetHeatingCircuitsAsync` -> `GET /homes/{homeId}/heatingCircuits`
-- [ ] Implement `GetHeatingSystemAsync` -> `GET /homes/{homeId}/heatingSystem`
 - [ ] Implement `GetFlowTemperatureOptimizationAsync` -> `GET /homes/{homeId}/flowTemperatureOptimization`
 - [ ] Implement `SetFlowTemperatureOptimizationAsync` -> `PUT /homes/{homeId}/flowTemperatureOptimization`
 - [ ] Implement invitation service methods -> `GET /homes/{homeId}/invitations`, `POST /homes/{homeId}/invitations`, `DELETE /homes/{homeId}/invitations/{invitationToken}`, `POST /homes/{homeId}/invitations/{invitationToken}/resend`

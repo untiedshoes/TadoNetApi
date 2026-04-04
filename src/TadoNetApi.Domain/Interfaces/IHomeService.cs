@@ -38,6 +38,18 @@ public interface IHomeService
     Task<IncidentDetection> GetIncidentDetectionAsync(int homeId, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Retrieves the heating circuits configured for a home.
+    /// </summary>
+    /// <param name="homeId">The ID of the home.</param>
+    Task<IReadOnlyList<HeatingCircuit>> GetHeatingCircuitsAsync(int homeId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Retrieves the heating system configuration for a home.
+    /// </summary>
+    /// <param name="homeId">The ID of the home.</param>
+    Task<HeatingSystem> GetHeatingSystemAsync(int homeId, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Sets the presence state of a home (e.g., HOME, AWAY).
     /// </summary>
     /// <param name="homeId">The ID of the home.</param>

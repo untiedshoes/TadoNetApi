@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using System;
+using TadoNetApi.Domain.Entities;
 using TadoNetApi.Infrastructure.Dtos.Responses;
 using TadoNetApi.Infrastructure.Services;
 using TadoNetApi.Tests.Mocks;
@@ -11,6 +12,43 @@ namespace TadoNetApi.Tests.Services
 {
     public class TadoHomeServiceTests
     {
+        [Fact(DisplayName = "GetHomeAsync returns mapped house with incident detection")]
+        public async Task GetHomeAsync_ReturnsMappedHouseWithIncidentDetection()
+        {
+            var response = new TadoHouseResponse
+            {
+                Id = 1,
+                Name = "My Home",
+                DateTimeZone = "Europe/London",
+                DateCreated = new DateTime(2025, 1, 1, 12, 0, 0, DateTimeKind.Utc),
+                TemperatureUnit = "C",
+                InstallationCompleted = true,
+                Partner = new object(),
+                SimpleSmartScheduleEnabled = true,
+                AwayRadiusInMeters = 400,
+                License = "PREMIUM",
+                ChristmasModeEnabled = false,
+                IncidentDetection = new TadoIncidentDetectionResponse
+                {
+                    Enabled = true,
+                    Supported = true
+                },
+                ContactDetails = new TadoContactDetailsResponse(),
+                Address = new TadoAddressResponse(),
+                Geolocation = new TadoGeolocationResponse()
+            };
+
+            var mockHttp = MockTadoHttpClient.CreateGet(response);
+            var service = new TadoHomeService(mockHttp.Object);
+
+            var home = await service.GetHomeAsync(homeId: 1, CancellationToken.None);
+
+            Assert.NotNull(home);
+            Assert.Equal("My Home", home!.Name);
+            Assert.True(home.IncidentDetection?.Enabled);
+            Assert.True(home.IncidentDetection?.Supported);
+        }
+
         [Fact(DisplayName = "GetUsersAsync returns mapped users")]
         public async Task GetUsersAsync_ReturnsMappedUsers()
         {
@@ -116,6 +154,59 @@ namespace TadoNetApi.Tests.Services
             // Assert
             Assert.True(incidentDetection.Enabled);
             Assert.False(incidentDetection.Supported);
+        }
+
+        [Fact(DisplayName = "GetHeatingCircuitsAsync returns mapped heating circuits")]
+        public async Task GetHeatingCircuitsAsync_ReturnsMappedHeatingCircuits()
+        {
+            var response = new List<TadoHeatingCircuitResponse>
+            {
+                new()
+                {
+                    Number = 1,
+                    DriverSerialNo = "BR3209250550",
+                    DriverShortSerialNo = "BR3209250550"
+                }
+            };
+
+            var mockHttp = MockTadoHttpClient.CreateGet(response);
+            var service = new TadoHomeService(mockHttp.Object);
+
+            var circuits = await service.GetHeatingCircuitsAsync(homeId: 1, CancellationToken.None);
+
+            Assert.Single(circuits);
+            Assert.Equal(1, circuits[0].Number);
+            Assert.Equal("BR3209250550", circuits[0].DriverSerialNo);
+            Assert.Equal("BR3209250550", circuits[0].DriverShortSerialNo);
+        }
+
+        [Fact(DisplayName = "GetHeatingSystemAsync returns mapped heating system")]
+        public async Task GetHeatingSystemAsync_ReturnsMappedHeatingSystem()
+        {
+            var response = new TadoHeatingSystemResponse
+            {
+                Boiler = new TadoBoilerResponse
+                {
+                    Present = true,
+                    Id = 2699,
+                    Found = true
+                },
+                UnderfloorHeating = new TadoUnderfloorHeatingResponse
+                {
+                    Present = false
+                }
+            };
+
+            var mockHttp = MockTadoHttpClient.CreateGet(response);
+            var service = new TadoHomeService(mockHttp.Object);
+
+            var heatingSystem = await service.GetHeatingSystemAsync(homeId: 1, CancellationToken.None);
+
+            Assert.NotNull(heatingSystem);
+            Assert.True(heatingSystem.Boiler?.Present);
+            Assert.Equal(2699, heatingSystem.Boiler?.Id);
+            Assert.True(heatingSystem.Boiler?.Found);
+            Assert.False(heatingSystem.UnderfloorHeating?.Present);
         }
     }
 }

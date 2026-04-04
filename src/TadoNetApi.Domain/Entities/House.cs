@@ -27,6 +27,8 @@ namespace   TadoNetApi.Domain.Entities
 
         public bool ChristmasModeEnabled { get; set; }
 
+        public IncidentDetection? IncidentDetection { get; set; }
+
         public ContactDetails ContactDetails { get; set; }
 
         public Address Address { get; set; }

@@ -26,6 +26,7 @@ namespace TadoNetApi.Infrastructure.Mappers
                 AwayRadiusInMeters = dto.AwayRadiusInMeters,
                 License = dto.License,
                 ChristmasModeEnabled = dto.ChristmasModeEnabled,
+                IncidentDetection = dto.IncidentDetection?.ToDomain(),
                 ContactDetails = dto.ContactDetails?.ToDomain() ?? new ContactDetails(),
                 Address = dto.Address?.ToDomain() ?? new Address(),
                 Geolocation = dto.Geolocation?.ToDomain() ?? new Geolocation()

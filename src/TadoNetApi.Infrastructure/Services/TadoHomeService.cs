@@ -111,6 +111,50 @@ public class TadoHomeService : IHomeService
         }
     }
 
+    /// <inheritdoc/>
+    public async Task<IReadOnlyList<HeatingCircuit>> GetHeatingCircuitsAsync(int homeId, CancellationToken cancellationToken = default)
+    {
+        Guard.PositiveId(homeId, nameof(homeId));
+
+        try
+        {
+            var response = await _httpClient.GetAsync<List<TadoHeatingCircuitResponse>>(
+                $"homes/{homeId}/heatingCircuits",
+                cancellationToken) ?? new List<TadoHeatingCircuitResponse>();
+
+            return response.Select(circuit => circuit.ToDomain()).ToList();
+        }
+        catch (HttpRequestException ex)
+        {
+            throw new TadoApiException(System.Net.HttpStatusCode.ServiceUnavailable,
+                $"Failed to retrieve heating circuits: {ex.Message}");
+        }
+    }
+
+    /// <inheritdoc/>
+    public async Task<HeatingSystem> GetHeatingSystemAsync(int homeId, CancellationToken cancellationToken = default)
+    {
+        Guard.PositiveId(homeId, nameof(homeId));
+
+        try
+        {
+            var response = await _httpClient.GetAsync<TadoHeatingSystemResponse>(
+                $"homes/{homeId}/heatingSystem",
+                cancellationToken);
+
+            if (response == null)
+                throw new TadoApiException(System.Net.HttpStatusCode.NotFound,
+                    $"Heating system for home {homeId} not found.");
+
+            return response.ToDomain();
+        }
+        catch (HttpRequestException ex)
+        {
+            throw new TadoApiException(System.Net.HttpStatusCode.ServiceUnavailable,
+                $"Failed to retrieve heating system: {ex.Message}");
+        }
+    }
+
     #endregion
 
     #region Send Commands

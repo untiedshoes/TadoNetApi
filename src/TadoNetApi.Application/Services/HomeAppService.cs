@@ -51,6 +51,18 @@ public class HomeAppService
         _homeService.GetIncidentDetectionAsync(homeId, cancellationToken);
 
     /// <summary>
+    /// Retrieves the heating circuits configured for a home.
+    /// </summary>
+    public Task<IReadOnlyList<HeatingCircuit>> GetHeatingCircuitsAsync(int homeId, CancellationToken cancellationToken) =>
+        _homeService.GetHeatingCircuitsAsync(homeId, cancellationToken);
+
+    /// <summary>
+    /// Retrieves the heating system configuration for a home.
+    /// </summary>
+    public Task<HeatingSystem> GetHeatingSystemAsync(int homeId, CancellationToken cancellationToken) =>
+        _homeService.GetHeatingSystemAsync(homeId, cancellationToken);
+
+    /// <summary>
     /// Sets the presence state of a home.
     /// </summary>
     public Task SetHomePresenceAsync(int homeId, string presence, CancellationToken cancellationToken) =>

@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using TadoNetApi.Application.Services;
+using TadoNetApi.Infrastructure.Config;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -16,7 +17,7 @@ namespace TadoNetApi.Tests.Integration
         public TadoIntegrationTests()
         {
             var services = new ServiceCollection();
-            var config = new Infrastructure.Config.TadoApiConfig
+            var config = new TadoApiConfig
             {
                 Username = System.Environment.GetEnvironmentVariable("TADO_USERNAME") ?? "",
                 Password = System.Environment.GetEnvironmentVariable("TADO_PASSWORD") ?? "",

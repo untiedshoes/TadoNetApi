@@ -6,7 +6,7 @@ using TadoNetApi.Infrastructure.Services;
 using TadoNetApi.Tests.Mocks;
 using Xunit;
 
-namespace TadoNetApi.Tests.Services
+namespace TadoNetApi.Tests.Infrastructure.Services
 {
     public class TadoZoneServiceReadTests
     {

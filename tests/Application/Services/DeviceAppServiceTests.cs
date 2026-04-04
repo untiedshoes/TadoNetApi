@@ -6,7 +6,7 @@ using TadoNetApi.Domain.Entities.MobileDevice;
 using TadoNetApi.Domain.Interfaces;
 using Xunit;
 
-namespace TadoNetApi.Tests.Services
+namespace TadoNetApi.Tests.Application.Services
 {
     public class DeviceAppServiceTests
     {

@@ -11,13 +11,13 @@ using TadoNetApi.Application.Services;
 using TadoNetApi.Domain.Interfaces;
 using Xunit;
 
-namespace TadoNetApi.Tests.Services
+namespace TadoNetApi.Tests.Application.Services
 {
     /// <summary>
     /// Unit tests for <see cref="ZoneAppService"/>.
     /// Covers zone retrieval, zone state mapping, zone summary mapping, and error handling.
     /// </summary>
-    public class ZoneServiceTests
+    public class ZoneAppServiceTests
     {
         /// <summary>
         /// Creates a <see cref="ZoneAppService"/> with a mocked IZoneService.

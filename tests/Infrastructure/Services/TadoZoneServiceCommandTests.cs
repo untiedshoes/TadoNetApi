@@ -10,7 +10,7 @@ using TadoNetApi.Infrastructure.Http;
 using TadoNetApi.Infrastructure.Services;
 using Xunit;
 
-namespace TadoNetApi.Tests.Services
+namespace TadoNetApi.Tests.Infrastructure.Services
 {
     /// <summary>
     /// Unit tests for command-style operations in <see cref="TadoZoneService"/>.

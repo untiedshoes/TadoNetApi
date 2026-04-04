@@ -8,9 +8,9 @@ using TadoNetApi.Infrastructure.Dtos.Requests;
 using TadoNetApi.Tests.Mocks;
 using Xunit;
 
-namespace TadoNetApi.Tests.Services
+namespace TadoNetApi.Tests.Infrastructure.Services
 {
-    public class WeatherServiceTests
+    public class TadoWeatherServiceTests
     {
         [Fact]
         public async Task GetWeatherAsync_ReturnsWeather()

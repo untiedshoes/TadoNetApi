@@ -14,13 +14,13 @@ using TadoNetApi.Infrastructure.Services;
 using TadoNetApi.Tests.Mocks;
 using Xunit;
 
-namespace TadoNetApi.Tests.Services
+namespace TadoNetApi.Tests.Infrastructure.Services
 {
     /// <summary>
     /// Tests for <see cref="TadoDeviceService"/>, including domain mapping, transient failures,
     /// and retry logic.
     /// </summary>
-    public class DeviceServiceTests
+    public class TadoDeviceServiceTests
     {
         /// <summary>
         /// Tests that <see cref="TadoDeviceService.GetDevicesAsync"/> returns a mapped list of devices.

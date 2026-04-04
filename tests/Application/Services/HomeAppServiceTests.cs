@@ -8,9 +8,9 @@ using TadoNetApi.Application.Services;
 using TadoNetApi.Domain.Interfaces;
 using Xunit;
 
-namespace TadoNetApi.Tests.Services
+namespace TadoNetApi.Tests.Application.Services
 {
-    public class HomeServiceTests
+    public class HomeAppServiceTests
     {
         [Fact]
         public async Task GetHomeAsync_ReturnsHome()

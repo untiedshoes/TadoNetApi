@@ -6,7 +6,7 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
-## [0.9.0] - 2026-04-05
+## [0.8.3] - 2026-04-05
 
 ### Added
 - Added `CreateZoneAsync` for `POST /homes/{homeId}/zones` with support for the optional `force` query flag.

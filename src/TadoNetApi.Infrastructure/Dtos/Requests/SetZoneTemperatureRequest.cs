@@ -44,7 +44,7 @@ public class SetZoneTemperatureValueRequest
 
 public class SetZoneTemperatureTerminationRequest
 {
-    [JsonPropertyName("type")]
+    [JsonPropertyName("typeSkillBasedApp")]
     [JsonConverter(typeof(DurationModeConverter))]
     public DurationModes? CurrentType { get; set; }
 

@@ -175,7 +175,7 @@ If you want a machine-readable map of the SDK surface, including method signatur
 | Service | Responsibility | Main Methods |
 |-------|-------|-------|
 | UserAppService | Retrieve the current authenticated user and home context | `GetMeAsync` |
-| HomeAppService | Read home data, home users, comfort, heating, flow-temperature optimisation, and diagnostic indicators, and manage presence state | `GetHomeAsync`, `GetHomeStateAsync`, `GetUsersAsync`, `GetAirComfortAsync`, `GetIncidentDetectionAsync`, `GetHeatingCircuitsAsync`, `GetHeatingSystemAsync`, `GetFlowTemperatureOptimisationAsync`, `SetHomePresenceAsync` |
+| HomeAppService | Read home data, home users, comfort, heating, flow-temperature optimisation, and diagnostic indicators, and manage presence state | `GetHomeAsync`, `GetHomeStateAsync`, `GetUsersAsync`, `GetAirComfortAsync`, `GetIncidentDetectionAsync`, `GetHeatingCircuitsAsync`, `GetHeatingSystemAsync`, `GetFlowTemperatureOptimisationAsync`, `SetHomePresenceAsync`, `ResetHomePresenceAsync` |
 | ZoneAppService | Read zone data, away-configuration settings, day reports, and send zone-level commands | `GetZonesAsync`, `GetZoneAsync`, `GetZoneStateAsync`, `GetZoneSummaryAsync`, `GetZoneCapabilitiesAsync`, `GetZoneControlAsync`, `GetDefaultZoneOverlayAsync`, `GetEarlyStartAsync`, `GetAwayConfigurationAsync`, `GetZoneDayReportAsync`, `GetZoneTemperatureOffsetAsync`, `SetEarlyStartAsync`, `SetHeatingTemperatureCelsiusAsync` |
 | DeviceAppService | Read device and mobile-device data and send device-level commands | `GetDevicesAsync`, `GetDeviceListAsync`, `GetDeviceAsync`, `GetZoneTemperatureOffsetAsync`, `GetMobileDevicesAsync`, `GetMobileDeviceAsync`, `GetMobileDeviceSettingsAsync`, `GetZoneMeasuringDeviceAsync`, `SetDeviceChildLockAsync`, `SayHiAsync`, `SetZoneTemperatureOffsetCelsiusAsync` |
 | WeatherAppService | Read weather data for a home | `GetWeatherAsync` |
@@ -187,7 +187,7 @@ Infrastructure services are the API-facing implementations behind the domain int
 | Service | Responsibility | Main Methods | Interface |
 |-------|-------|-------|-------|
 | TadoUserService | User endpoint integration | `GetMeAsync` | `IUserService` |
-| TadoHomeService | Home retrieval, home users, air comfort, heating, flow-temperature optimisation, incident detection, home state, and presence updates | `GetHomeAsync`, `GetHomeStateAsync`, `GetUsersAsync`, `GetAirComfortAsync`, `GetIncidentDetectionAsync`, `GetHeatingCircuitsAsync`, `GetHeatingSystemAsync`, `GetFlowTemperatureOptimisationAsync`, `SetHomePresenceAsync` | `IHomeService` |
+| TadoHomeService | Home retrieval, home users, air comfort, heating, flow-temperature optimisation, incident detection, home state, and presence updates | `GetHomeAsync`, `GetHomeStateAsync`, `GetUsersAsync`, `GetAirComfortAsync`, `GetIncidentDetectionAsync`, `GetHeatingCircuitsAsync`, `GetHeatingSystemAsync`, `GetFlowTemperatureOptimisationAsync`, `SetHomePresenceAsync`, `ResetHomePresenceAsync` | `IHomeService` |
 | TadoZoneService | Zone retrieval, away-configuration reads, day-report reads, plus early-start and overlay-temperature commands | `GetZonesAsync`, `GetZoneAsync`, `GetZoneStateAsync`, `GetZoneSummaryAsync`, `GetZoneCapabilitiesAsync`, `GetZoneControlAsync`, `GetDefaultZoneOverlayAsync`, `GetEarlyStartAsync`, `GetAwayConfigurationAsync`, `GetZoneDayReportAsync`, `GetZoneTemperatureOffsetAsync`, `SetEarlyStartAsync`, `SetHeatingTemperatureCelsiusAsync` | `IZoneService` |
 | TadoDeviceService | Device and mobile-device retrieval plus child-lock, identify, and offset commands | `GetDevicesAsync`, `GetDeviceListAsync`, `GetDeviceAsync`, `GetZoneTemperatureOffsetAsync`, `GetMobileDevicesAsync`, `GetMobileDeviceAsync`, `GetMobileDeviceSettingsAsync`, `GetZoneMeasuringDeviceAsync`, `SetDeviceChildLockAsync`, `SayHiAsync`, `SetZoneTemperatureOffsetCelsiusAsync` | `IDeviceService` |
 | TadoWeatherService | Weather endpoint integration | `GetWeatherAsync` | `IWeatherService` |
@@ -352,9 +352,6 @@ This is in place so SDK consumers can log, surface, or react to throttling with 
 The list below reflects the current gap between this library and the community managed tado API v2 OpenAPI definition.
 
 ##### Alignment / Review
-
-- [ ] Add `ResetHomePresenceAsync` -> `DELETE /homes/{homeId}/presenceLock`
-- [ ] Review overlay request contract for `SetHeatingTemperatureCelsiusAsync` against spec examples using `termination.typeSkillBasedApp`
 
 ##### Home / User / Invitation Services
 

@@ -2,6 +2,7 @@ using System;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Text.Json;
 using Moq;
 using TadoNetApi.Domain.Enums;
 using TadoNetApi.Infrastructure.Dtos.Requests;
@@ -22,6 +23,7 @@ namespace TadoNetApi.Tests.Infrastructure.Services
         {
             // Arrange
             SetZoneTemperatureRequest? capturedRequest = null;
+            string? capturedJson = null;
             var mockHttp = new Mock<ITadoHttpClient>();
 
             mockHttp
@@ -29,7 +31,11 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                     It.IsAny<string>(),
                     It.IsAny<SetZoneTemperatureRequest>(),
                     It.IsAny<CancellationToken>()))
-                .Callback<string, SetZoneTemperatureRequest, CancellationToken>((_, req, _) => capturedRequest = req)
+                .Callback<string, SetZoneTemperatureRequest, CancellationToken>((_, req, _) =>
+                {
+                    capturedRequest = req;
+                    capturedJson = JsonSerializer.Serialize(req);
+                })
                 .ReturnsAsync(new TadoZoneSummaryResponse
                 {
                     Termination = new TadoTerminationResponse { CurrentType = DurationModes.UntilNextManualChange }
@@ -52,6 +58,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
             Assert.Null(capturedRequest.Termination.DurationInSeconds);
             Assert.Equal(PowerStates.On, capturedRequest.Setting.Power);
             Assert.Equal(21.0, capturedRequest.Setting.Temperature?.Celsius);
+            Assert.NotNull(capturedJson);
+            Assert.Contains("\"typeSkillBasedApp\":\"MANUAL\"", capturedJson);
+            Assert.DoesNotContain("\"type\":\"MANUAL\"", capturedJson);
             Assert.Equal(DurationModes.UntilNextManualChange.ToString(), response?.Termination?.Type);
 
             mockHttp.Verify(c => c.PutAsync<SetZoneTemperatureRequest, TadoZoneSummaryResponse>(
@@ -65,6 +74,7 @@ namespace TadoNetApi.Tests.Infrastructure.Services
         {
             // Arrange
             SetZoneTemperatureRequest? capturedRequest = null;
+            string? capturedJson = null;
             var mockHttp = new Mock<ITadoHttpClient>();
 
             mockHttp
@@ -72,7 +82,11 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                     It.IsAny<string>(),
                     It.IsAny<SetZoneTemperatureRequest>(),
                     It.IsAny<CancellationToken>()))
-                .Callback<string, SetZoneTemperatureRequest, CancellationToken>((_, req, _) => capturedRequest = req)
+                .Callback<string, SetZoneTemperatureRequest, CancellationToken>((_, req, _) =>
+                {
+                    capturedRequest = req;
+                    capturedJson = JsonSerializer.Serialize(req);
+                })
                 .ReturnsAsync(new TadoZoneSummaryResponse
                 {
                     Termination = new TadoTerminationResponse
@@ -97,6 +111,10 @@ namespace TadoNetApi.Tests.Infrastructure.Services
             Assert.NotNull(capturedRequest);
             Assert.Equal(DurationModes.Timer, capturedRequest!.Termination.CurrentType);
             Assert.Equal(900, capturedRequest.Termination.DurationInSeconds);
+            Assert.NotNull(capturedJson);
+            Assert.Contains("\"typeSkillBasedApp\":\"TIMER\"", capturedJson);
+            Assert.DoesNotContain("\"type\":\"TIMER\"", capturedJson);
+            Assert.Contains("\"durationInSeconds\":900", capturedJson);
             Assert.Equal(DurationModes.Timer.ToString(), response?.Termination?.Type);
             Assert.Equal(900, response?.Termination?.DurationInSeconds);
         }

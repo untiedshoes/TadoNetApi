@@ -6,8 +6,17 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [0.8.2] - 2026-04-05
+
 ### Added
-- No unreleased changes yet.
+- Added `ResetHomePresenceAsync` for `DELETE /homes/{homeId}/presenceLock`.
+
+### Changed
+- Aligned `SetHeatingTemperatureCelsiusAsync` overlay requests with the upstream `termination.typeSkillBasedApp` contract.
+
+### Fixed
+- Added focused tests for the `ResetHomePresenceAsync` delete command route, HTTP method, and expected status code.
+- Strengthened `SetHeatingTemperatureCelsiusAsync` command tests to assert the serialized overlay payload shape.
 
 ## [0.8.1] - 2026-04-05
 

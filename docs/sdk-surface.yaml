@@ -154,6 +154,17 @@ services:
             nullable: false
           summary: Updates the home presence mode.
 
+        - name: ResetHomePresenceAsync
+          kind: command
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+          returns:
+            type: void
+            nullable: false
+          summary: Removes the manual presence lock and returns control to geo-tracking.
+
     - name: ZoneAppService
       interface: IZoneService
       implementation: TadoZoneService

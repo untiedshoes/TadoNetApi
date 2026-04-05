@@ -207,6 +207,18 @@ public class TadoHomeService : IHomeService
             request);
     }
 
+    /// <inheritdoc/>
+    public async Task ResetHomePresenceAsync(int homeId, CancellationToken cancellationToken = default)
+    {
+        Guard.PositiveId(homeId, nameof(homeId));
+
+        await _httpClient.SendAsync(
+            $"homes/{homeId}/presenceLock",
+            HttpMethod.Delete,
+            cancellationToken,
+            System.Net.HttpStatusCode.NoContent);
+    }
+
     #endregion
 
 }

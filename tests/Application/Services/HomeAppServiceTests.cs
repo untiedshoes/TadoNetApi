@@ -270,5 +270,19 @@ namespace TadoNetApi.Tests.Application.Services
 
             mockHomeService.Verify(s => s.SetHomePresenceAsync(1, "HOME", It.IsAny<CancellationToken>()), Times.Once);
         }
+
+        [Fact]
+        public async Task ResetHomePresenceAsync_PassesThroughToDomainService()
+        {
+            var mockHomeService = new Mock<IHomeService>();
+            mockHomeService.Setup(s => s.ResetHomePresenceAsync(1, It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
+
+            var service = new HomeAppService(mockHomeService.Object);
+
+            await service.ResetHomePresenceAsync(1, CancellationToken.None);
+
+            mockHomeService.Verify(s => s.ResetHomePresenceAsync(1, It.IsAny<CancellationToken>()), Times.Once);
+        }
     }
 }

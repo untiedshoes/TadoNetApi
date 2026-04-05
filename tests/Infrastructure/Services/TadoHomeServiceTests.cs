@@ -292,5 +292,31 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                 It.IsAny<HttpStatusCode>(),
                 It.IsAny<object?>()), Times.Never);
         }
+
+        [Fact(DisplayName = "ResetHomePresenceAsync sends the spec-aligned presence lock delete command")]
+        public async Task ResetHomePresenceAsync_SendsSpecAlignedPresenceLockDeleteCommand()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.SendAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<HttpMethod>(),
+                    It.IsAny<CancellationToken>(),
+                    It.IsAny<HttpStatusCode>(),
+                    It.IsAny<object?>()))
+                .ReturnsAsync(true);
+
+            var service = new TadoHomeService(mockHttp.Object);
+
+            await service.ResetHomePresenceAsync(homeId: 1, CancellationToken.None);
+
+            mockHttp.Verify(c => c.SendAsync(
+                    "homes/1/presenceLock",
+                    HttpMethod.Delete,
+                    It.IsAny<CancellationToken>(),
+                    HttpStatusCode.NoContent,
+                    null),
+                Times.Once);
+        }
     }
 }

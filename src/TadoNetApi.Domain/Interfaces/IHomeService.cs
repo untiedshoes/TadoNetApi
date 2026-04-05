@@ -61,4 +61,10 @@ public interface IHomeService
     /// <param name="homeId">The ID of the home.</param>
     /// <param name="presence">The new presence state.</param>
     Task SetHomePresenceAsync(int homeId, string presence, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Resets the manually set presence state of a home and returns control to geo-tracking.
+    /// </summary>
+    /// <param name="homeId">The ID of the home.</param>
+    Task ResetHomePresenceAsync(int homeId, CancellationToken cancellationToken = default);
 }

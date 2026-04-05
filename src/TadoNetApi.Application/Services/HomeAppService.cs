@@ -73,4 +73,10 @@ public class HomeAppService
     /// </summary>
     public Task SetHomePresenceAsync(int homeId, string presence, CancellationToken cancellationToken) =>
         _homeService.SetHomePresenceAsync(homeId, presence, cancellationToken);
+
+    /// <summary>
+    /// Resets the manually set presence state of a home.
+    /// </summary>
+    public Task ResetHomePresenceAsync(int homeId, CancellationToken cancellationToken) =>
+        _homeService.ResetHomePresenceAsync(homeId, cancellationToken);
 }

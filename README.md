@@ -11,6 +11,8 @@ It wraps the Tado API behind application and domain services, handles OAuth2 dev
 
 If you want a machine-readable map of the SDK surface, including method signatures and the top-level model returned by each method, see `docs/sdk-surface.yaml`. It is intended as a companion to the README for contributors, integrators, and AI tooling.
 
+Release history is tracked in `CHANGELOG.md`, with git tags intended to mirror released versions.
+
 ## What this project demonstrates
 
 - Designing a maintainable .NET SDK over a third-party REST API

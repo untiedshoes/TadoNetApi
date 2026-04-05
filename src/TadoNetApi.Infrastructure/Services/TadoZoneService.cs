@@ -470,6 +470,26 @@ namespace TadoNetApi.Infrastructure.Services
         }
 
         /// <summary>
+        /// Deletes the currently active manual overlay for a zone.
+        /// </summary>
+        /// <param name="homeId">The ID of the home.</param>
+        /// <param name="zoneId">The ID of the zone whose overlay should be deleted.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns><see langword="true"/> when the command succeeds.</returns>
+        public async Task<bool> DeleteZoneOverlayAsync(int homeId, int zoneId, CancellationToken cancellationToken = default)
+        {
+            Guard.PositiveId(homeId, nameof(homeId));
+            Guard.PositiveId(zoneId, nameof(zoneId));
+
+            return await _httpClient.SendAsync(
+                $"homes/{homeId}/zones/{zoneId}/overlay",
+                HttpMethod.Delete,
+                cancellationToken,
+                HttpStatusCode.OK,
+                null);
+        }
+
+        /// <summary>
         /// Sets the heating temperature in Celsius for a zone, keeping it until the next manual change.
         /// </summary>
         /// <param name="homeId">The ID of the home.</param>
@@ -479,6 +499,84 @@ namespace TadoNetApi.Infrastructure.Services
         /// <returns>The updated zone summary, or null if the response could not be deserialized.</returns>
         public Task<ZoneSummary?> SetHeatingTemperatureCelsiusAsync(int homeId, int zoneId, double temperature, CancellationToken cancellationToken = default)
             => SetHeatingTemperatureCelsiusAsync(homeId, zoneId, temperature, DurationModes.UntilNextManualChange, null, cancellationToken);
+
+        /// <summary>
+        /// Sets the heating temperature in Fahrenheit for a zone.
+        /// </summary>
+        /// <param name="homeId">The ID of the home.</param>
+        /// <param name="zoneId">The ID of the zone.</param>
+        /// <param name="temperature">The target temperature in Fahrenheit.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>The updated zone summary, or null if the response could not be deserialized.</returns>
+        public async Task<ZoneSummary?> SetHeatingTemperatureFahrenheitAsync(int homeId, int zoneId, double temperature, CancellationToken cancellationToken = default)
+        {
+            Guard.PositiveId(homeId, nameof(homeId));
+            Guard.PositiveId(zoneId, nameof(zoneId));
+
+            return await SetTemperatureAsync(homeId, zoneId, null, temperature, DeviceTypes.Heating, DurationModes.UntilNextManualChange, null, cancellationToken);
+        }
+
+        /// <summary>
+        /// Sets the hot water temperature in Celsius for a zone.
+        /// </summary>
+        /// <param name="homeId">The ID of the home.</param>
+        /// <param name="zoneId">The ID of the zone.</param>
+        /// <param name="temperature">The target temperature in Celsius.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>The updated zone summary, or null if the response could not be deserialized.</returns>
+        public async Task<ZoneSummary?> SetHotWaterTemperatureCelsiusAsync(int homeId, int zoneId, double temperature, CancellationToken cancellationToken = default)
+        {
+            Guard.PositiveId(homeId, nameof(homeId));
+            Guard.PositiveId(zoneId, nameof(zoneId));
+
+            return await SetTemperatureAsync(homeId, zoneId, temperature, null, DeviceTypes.HotWater, DurationModes.UntilNextManualChange, null, cancellationToken);
+        }
+
+        /// <summary>
+        /// Sets the hot water temperature in Fahrenheit for a zone.
+        /// </summary>
+        /// <param name="homeId">The ID of the home.</param>
+        /// <param name="zoneId">The ID of the zone.</param>
+        /// <param name="temperature">The target temperature in Fahrenheit.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>The updated zone summary, or null if the response could not be deserialized.</returns>
+        public async Task<ZoneSummary?> SetHotWaterTemperatureFahrenheitAsync(int homeId, int zoneId, double temperature, CancellationToken cancellationToken = default)
+        {
+            Guard.PositiveId(homeId, nameof(homeId));
+            Guard.PositiveId(zoneId, nameof(zoneId));
+
+            return await SetTemperatureAsync(homeId, zoneId, null, temperature, DeviceTypes.HotWater, DurationModes.UntilNextManualChange, null, cancellationToken);
+        }
+
+        /// <summary>
+        /// Switches heating off for a zone.
+        /// </summary>
+        /// <param name="homeId">The ID of the home.</param>
+        /// <param name="zoneId">The ID of the zone.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>The updated zone summary, or null if the response could not be deserialized.</returns>
+        public async Task<ZoneSummary?> SwitchHeatingOffAsync(int homeId, int zoneId, CancellationToken cancellationToken = default)
+        {
+            Guard.PositiveId(homeId, nameof(homeId));
+            Guard.PositiveId(zoneId, nameof(zoneId));
+
+            return await SetTemperatureAsync(homeId, zoneId, null, null, DeviceTypes.Heating, DurationModes.UntilNextManualChange, null, cancellationToken);
+        }
+
+        /// <summary>
+        /// Switches hot water off for a zone.
+        /// </summary>
+        /// <param name="homeId">The ID of the home.</param>
+        /// <param name="zoneId">The ID of the zone.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>The updated zone summary, or null if the response could not be deserialized.</returns>
+        public async Task<ZoneSummary?> SwitchHotWaterOffAsync(int homeId, int zoneId, CancellationToken cancellationToken = default)
+        {
+            Guard.PositiveId(homeId, nameof(homeId));
+            Guard.PositiveId(zoneId, nameof(zoneId));
+
+            return await SetTemperatureAsync(homeId, zoneId, null, null, DeviceTypes.HotWater, DurationModes.UntilNextManualChange, null, cancellationToken);
+        }
 
         /// <summary>
         /// Sets the heating temperature in Celsius for a zone for the specified duration.

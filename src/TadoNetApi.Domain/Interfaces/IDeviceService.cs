@@ -86,6 +86,25 @@ public interface IDeviceService
     Task<Settings> GetMobileDeviceSettingsAsync(int homeId, int mobileDeviceId, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Deletes a specific mobile device from the specified home.
+    /// </summary>
+    /// <param name="homeId">The ID of the home containing the mobile device.</param>
+    /// <param name="mobileDeviceId">The ID of the mobile device to delete.</param>
+    /// <param name="cancellationToken">The cancellation token to observe.</param>
+    /// <returns><see langword="true"/> when the command succeeds.</returns>
+    Task<bool> DeleteMobileDeviceAsync(int homeId, int mobileDeviceId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Updates the settings for a specific mobile device.
+    /// </summary>
+    /// <param name="homeId">The ID of the home containing the mobile device.</param>
+    /// <param name="mobileDeviceId">The ID of the mobile device to update.</param>
+    /// <param name="settings">The settings to apply to the mobile device.</param>
+    /// <param name="cancellationToken">The cancellation token to observe.</param>
+    /// <returns><see langword="true"/> when the command succeeds.</returns>
+    Task<bool> SetMobileDeviceSettingsAsync(int homeId, int mobileDeviceId, Settings settings, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Turns child lock on or off for a device.
     /// </summary>
     /// <param name="device">The device whose child lock should be updated.</param>

@@ -364,6 +364,20 @@ services:
             nullable: false
           summary: Creates a new zone and moves the specified devices into it.
 
+        - name: DeleteZoneOverlayAsync
+          kind: command
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+            - name: zoneId
+              type: int
+              validation: positive-id
+          returns:
+            type: bool
+            nullable: false
+          summary: Deletes the currently active manual overlay for a zone.
+
         - name: SetEarlyStartAsync
           kind: command
           parameters:
@@ -398,6 +412,92 @@ services:
             source: domain
             modelFile: src/TadoNetApi.Domain/Entities/ZoneSummary.cs
           summary: Sets a manual heating overlay and returns the resulting zone summary.
+
+        - name: SetHeatingTemperatureFahrenheitAsync
+          kind: command
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+            - name: zoneId
+              type: int
+              validation: positive-id
+            - name: temperature
+              type: double
+          returns:
+            type: ZoneSummary
+            nullable: true
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/ZoneSummary.cs
+          summary: Sets a manual heating overlay in Fahrenheit and returns the resulting zone summary.
+
+        - name: SetHotWaterTemperatureCelsiusAsync
+          kind: command
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+            - name: zoneId
+              type: int
+              validation: positive-id
+            - name: temperature
+              type: double
+          returns:
+            type: ZoneSummary
+            nullable: true
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/ZoneSummary.cs
+          summary: Sets a manual hot water overlay in Celsius and returns the resulting zone summary.
+
+        - name: SetHotWaterTemperatureFahrenheitAsync
+          kind: command
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+            - name: zoneId
+              type: int
+              validation: positive-id
+            - name: temperature
+              type: double
+          returns:
+            type: ZoneSummary
+            nullable: true
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/ZoneSummary.cs
+          summary: Sets a manual hot water overlay in Fahrenheit and returns the resulting zone summary.
+
+        - name: SwitchHeatingOffAsync
+          kind: command
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+            - name: zoneId
+              type: int
+              validation: positive-id
+          returns:
+            type: ZoneSummary
+            nullable: true
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/ZoneSummary.cs
+          summary: Switches heating off for a zone and returns the resulting zone summary.
+
+        - name: SwitchHotWaterOffAsync
+          kind: command
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+            - name: zoneId
+              type: int
+              validation: positive-id
+          returns:
+            type: ZoneSummary
+            nullable: true
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/ZoneSummary.cs
+          summary: Switches hot water off for a zone and returns the resulting zone summary.
 
         - name: SetHeatingTemperatureCelsiusAsync
           overload: timed
@@ -557,6 +657,37 @@ services:
             source: domain
             modelFile: src/TadoNetApi.Domain/Entities/MobileDevice/Settings.cs
           summary: Returns settings for one mobile device.
+
+        - name: DeleteMobileDeviceAsync
+          kind: command
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+            - name: mobileDeviceId
+              type: int
+              validation: positive-id
+          returns:
+            type: bool
+            nullable: false
+          summary: Deletes a specific mobile device from the home.
+
+        - name: SetMobileDeviceSettingsAsync
+          kind: command
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+            - name: mobileDeviceId
+              type: int
+              validation: positive-id
+            - name: settings
+              type: MobileDevice.Settings
+              source: caller-provided
+          returns:
+            type: bool
+            nullable: false
+          summary: Updates the settings for a specific mobile device.
 
         - name: SetDeviceChildLockAsync
           overload: by-device-model

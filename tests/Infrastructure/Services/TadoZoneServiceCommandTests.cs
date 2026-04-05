@@ -18,6 +18,34 @@ namespace TadoNetApi.Tests.Infrastructure.Services
     /// </summary>
     public class TadoZoneServiceCommandTests
     {
+        [Fact(DisplayName = "DeleteZoneOverlayAsync sends the spec-aligned overlay delete command")]
+        public async Task DeleteZoneOverlayAsync_SendsSpecAlignedOverlayDeleteCommand()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+
+            mockHttp
+                .Setup(c => c.SendAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<HttpMethod>(),
+                    It.IsAny<CancellationToken>(),
+                    It.IsAny<System.Net.HttpStatusCode>(),
+                    It.IsAny<object?>()))
+                .ReturnsAsync(true);
+
+            var service = new TadoZoneService(mockHttp.Object);
+
+            var deleted = await service.DeleteZoneOverlayAsync(1, 2, CancellationToken.None);
+
+            Assert.True(deleted);
+            mockHttp.Verify(c => c.SendAsync(
+                    "homes/1/zones/2/overlay",
+                    HttpMethod.Delete,
+                    It.IsAny<CancellationToken>(),
+                    System.Net.HttpStatusCode.OK,
+                    null),
+                Times.Once);
+        }
+
         [Fact(DisplayName = "CreateZoneAsync sends the spec-aligned zone creation command")]
         public async Task CreateZoneAsync_SendsSpecAlignedZoneCreationCommand()
         {
@@ -173,6 +201,144 @@ namespace TadoNetApi.Tests.Infrastructure.Services
             Assert.Contains("\"durationInSeconds\":900", capturedJson);
             Assert.Equal(DurationModes.Timer.ToString(), response?.Termination?.Type);
             Assert.Equal(900, response?.Termination?.DurationInSeconds);
+        }
+
+        [Fact(DisplayName = "SetHeatingTemperatureFahrenheitAsync sends a Fahrenheit heating overlay")]
+        public async Task SetHeatingTemperatureFahrenheitAsync_SendsFahrenheitHeatingOverlay()
+        {
+            string? capturedJson = null;
+            var mockHttp = new Mock<ITadoHttpClient>();
+
+            mockHttp
+                .Setup(c => c.PutAsync<SetZoneTemperatureRequest, TadoZoneSummaryResponse>(
+                    It.IsAny<string>(),
+                    It.IsAny<SetZoneTemperatureRequest>(),
+                    It.IsAny<CancellationToken>()))
+                .Callback<string, SetZoneTemperatureRequest, CancellationToken>((_, req, _) =>
+                {
+                    capturedJson = JsonSerializer.Serialize(req);
+                })
+                .ReturnsAsync(new TadoZoneSummaryResponse());
+
+            var service = new TadoZoneService(mockHttp.Object);
+
+            await service.SetHeatingTemperatureFahrenheitAsync(1, 2, 72.5, CancellationToken.None);
+
+            Assert.NotNull(capturedJson);
+            Assert.Contains("\"type\":\"HEATING\"", capturedJson);
+            Assert.Contains("\"power\":\"ON\"", capturedJson);
+            Assert.Contains("\"fahrenheit\":72.5", capturedJson);
+            Assert.DoesNotContain("\"celsius\"", capturedJson);
+        }
+
+        [Fact(DisplayName = "SetHotWaterTemperatureCelsiusAsync sends a Celsius hot water overlay")]
+        public async Task SetHotWaterTemperatureCelsiusAsync_SendsCelsiusHotWaterOverlay()
+        {
+            string? capturedJson = null;
+            var mockHttp = new Mock<ITadoHttpClient>();
+
+            mockHttp
+                .Setup(c => c.PutAsync<SetZoneTemperatureRequest, TadoZoneSummaryResponse>(
+                    It.IsAny<string>(),
+                    It.IsAny<SetZoneTemperatureRequest>(),
+                    It.IsAny<CancellationToken>()))
+                .Callback<string, SetZoneTemperatureRequest, CancellationToken>((_, req, _) =>
+                {
+                    capturedJson = JsonSerializer.Serialize(req);
+                })
+                .ReturnsAsync(new TadoZoneSummaryResponse());
+
+            var service = new TadoZoneService(mockHttp.Object);
+
+            await service.SetHotWaterTemperatureCelsiusAsync(1, 2, 55.0, CancellationToken.None);
+
+            Assert.NotNull(capturedJson);
+            Assert.Contains("\"type\":\"HOT_WATER\"", capturedJson);
+            Assert.Contains("\"power\":\"ON\"", capturedJson);
+            Assert.Contains("\"celsius\":55", capturedJson);
+            Assert.DoesNotContain("\"fahrenheit\"", capturedJson);
+        }
+
+        [Fact(DisplayName = "SetHotWaterTemperatureFahrenheitAsync sends a Fahrenheit hot water overlay")]
+        public async Task SetHotWaterTemperatureFahrenheitAsync_SendsFahrenheitHotWaterOverlay()
+        {
+            string? capturedJson = null;
+            var mockHttp = new Mock<ITadoHttpClient>();
+
+            mockHttp
+                .Setup(c => c.PutAsync<SetZoneTemperatureRequest, TadoZoneSummaryResponse>(
+                    It.IsAny<string>(),
+                    It.IsAny<SetZoneTemperatureRequest>(),
+                    It.IsAny<CancellationToken>()))
+                .Callback<string, SetZoneTemperatureRequest, CancellationToken>((_, req, _) =>
+                {
+                    capturedJson = JsonSerializer.Serialize(req);
+                })
+                .ReturnsAsync(new TadoZoneSummaryResponse());
+
+            var service = new TadoZoneService(mockHttp.Object);
+
+            await service.SetHotWaterTemperatureFahrenheitAsync(1, 2, 131.0, CancellationToken.None);
+
+            Assert.NotNull(capturedJson);
+            Assert.Contains("\"type\":\"HOT_WATER\"", capturedJson);
+            Assert.Contains("\"power\":\"ON\"", capturedJson);
+            Assert.Contains("\"fahrenheit\":131", capturedJson);
+            Assert.DoesNotContain("\"celsius\"", capturedJson);
+        }
+
+        [Fact(DisplayName = "SwitchHeatingOffAsync sends an off heating overlay")]
+        public async Task SwitchHeatingOffAsync_SendsOffHeatingOverlay()
+        {
+            string? capturedJson = null;
+            var mockHttp = new Mock<ITadoHttpClient>();
+
+            mockHttp
+                .Setup(c => c.PutAsync<SetZoneTemperatureRequest, TadoZoneSummaryResponse>(
+                    It.IsAny<string>(),
+                    It.IsAny<SetZoneTemperatureRequest>(),
+                    It.IsAny<CancellationToken>()))
+                .Callback<string, SetZoneTemperatureRequest, CancellationToken>((_, req, _) =>
+                {
+                    capturedJson = JsonSerializer.Serialize(req);
+                })
+                .ReturnsAsync(new TadoZoneSummaryResponse());
+
+            var service = new TadoZoneService(mockHttp.Object);
+
+            await service.SwitchHeatingOffAsync(1, 2, CancellationToken.None);
+
+            Assert.NotNull(capturedJson);
+            Assert.Contains("\"type\":\"HEATING\"", capturedJson);
+            Assert.Contains("\"power\":\"OFF\"", capturedJson);
+            Assert.DoesNotContain("\"temperature\"", capturedJson);
+        }
+
+        [Fact(DisplayName = "SwitchHotWaterOffAsync sends an off hot water overlay")]
+        public async Task SwitchHotWaterOffAsync_SendsOffHotWaterOverlay()
+        {
+            string? capturedJson = null;
+            var mockHttp = new Mock<ITadoHttpClient>();
+
+            mockHttp
+                .Setup(c => c.PutAsync<SetZoneTemperatureRequest, TadoZoneSummaryResponse>(
+                    It.IsAny<string>(),
+                    It.IsAny<SetZoneTemperatureRequest>(),
+                    It.IsAny<CancellationToken>()))
+                .Callback<string, SetZoneTemperatureRequest, CancellationToken>((_, req, _) =>
+                {
+                    capturedJson = JsonSerializer.Serialize(req);
+                })
+                .ReturnsAsync(new TadoZoneSummaryResponse());
+
+            var service = new TadoZoneService(mockHttp.Object);
+
+            await service.SwitchHotWaterOffAsync(1, 2, CancellationToken.None);
+
+            Assert.NotNull(capturedJson);
+            Assert.Contains("\"type\":\"HOT_WATER\"", capturedJson);
+            Assert.Contains("\"power\":\"OFF\"", capturedJson);
+            Assert.DoesNotContain("\"temperature\"", capturedJson);
         }
     }
 }

@@ -176,8 +176,8 @@ If you want a machine-readable map of the SDK surface, including method signatur
 |-------|-------|-------|
 | UserAppService | Retrieve the current authenticated user and home context | `GetMeAsync` |
 | HomeAppService | Read home data, home users, comfort, heating, flow-temperature optimisation, and diagnostic indicators, and manage presence state | `GetHomeAsync`, `GetHomeStateAsync`, `GetUsersAsync`, `GetAirComfortAsync`, `GetIncidentDetectionAsync`, `GetHeatingCircuitsAsync`, `GetHeatingSystemAsync`, `GetFlowTemperatureOptimisationAsync`, `SetHomePresenceAsync`, `ResetHomePresenceAsync` |
-| ZoneAppService | Read zone data, away-configuration settings, day reports, and send zone-level commands | `GetZonesAsync`, `GetZoneAsync`, `GetZoneStateAsync`, `GetZoneSummaryAsync`, `GetZoneCapabilitiesAsync`, `GetZoneControlAsync`, `GetDefaultZoneOverlayAsync`, `GetEarlyStartAsync`, `GetAwayConfigurationAsync`, `GetZoneDayReportAsync`, `GetZoneTemperatureOffsetAsync`, `CreateZoneAsync`, `SetEarlyStartAsync`, `SetHeatingTemperatureCelsiusAsync` |
-| DeviceAppService | Read device and mobile-device data and send device-level commands | `GetDevicesAsync`, `GetDeviceListAsync`, `GetDeviceAsync`, `GetZoneTemperatureOffsetAsync`, `GetMobileDevicesAsync`, `GetMobileDeviceAsync`, `GetMobileDeviceSettingsAsync`, `GetZoneMeasuringDeviceAsync`, `SetDeviceChildLockAsync`, `SayHiAsync`, `SetZoneTemperatureOffsetCelsiusAsync` |
+| ZoneAppService | Read zone data, away-configuration settings, day reports, and send zone-level commands | `GetZonesAsync`, `GetZoneAsync`, `GetZoneStateAsync`, `GetZoneSummaryAsync`, `GetZoneCapabilitiesAsync`, `GetZoneControlAsync`, `GetDefaultZoneOverlayAsync`, `GetEarlyStartAsync`, `GetAwayConfigurationAsync`, `GetZoneDayReportAsync`, `GetZoneTemperatureOffsetAsync`, `CreateZoneAsync`, `DeleteZoneOverlayAsync`, `SetEarlyStartAsync`, `SetHeatingTemperatureCelsiusAsync`, `SetHeatingTemperatureFahrenheitAsync`, `SetHotWaterTemperatureCelsiusAsync`, `SetHotWaterTemperatureFahrenheitAsync`, `SwitchHeatingOffAsync`, `SwitchHotWaterOffAsync` |
+| DeviceAppService | Read device and mobile-device data and send device-level commands | `GetDevicesAsync`, `GetDeviceListAsync`, `GetDeviceAsync`, `GetZoneTemperatureOffsetAsync`, `GetMobileDevicesAsync`, `GetMobileDeviceAsync`, `GetMobileDeviceSettingsAsync`, `GetZoneMeasuringDeviceAsync`, `DeleteMobileDeviceAsync`, `SetMobileDeviceSettingsAsync`, `SetDeviceChildLockAsync`, `SayHiAsync`, `SetZoneTemperatureOffsetCelsiusAsync` |
 | WeatherAppService | Read weather data for a home | `GetWeatherAsync` |
 
 ### Infrastructure Services
@@ -188,8 +188,8 @@ Infrastructure services are the API-facing implementations behind the domain int
 |-------|-------|-------|-------|
 | TadoUserService | User endpoint integration | `GetMeAsync` | `IUserService` |
 | TadoHomeService | Home retrieval, home users, air comfort, heating, flow-temperature optimisation, incident detection, home state, and presence updates | `GetHomeAsync`, `GetHomeStateAsync`, `GetUsersAsync`, `GetAirComfortAsync`, `GetIncidentDetectionAsync`, `GetHeatingCircuitsAsync`, `GetHeatingSystemAsync`, `GetFlowTemperatureOptimisationAsync`, `SetHomePresenceAsync`, `ResetHomePresenceAsync` | `IHomeService` |
-| TadoZoneService | Zone retrieval, away-configuration reads, day-report reads, plus zone creation, early-start, and overlay-temperature commands | `GetZonesAsync`, `GetZoneAsync`, `GetZoneStateAsync`, `GetZoneSummaryAsync`, `GetZoneCapabilitiesAsync`, `GetZoneControlAsync`, `GetDefaultZoneOverlayAsync`, `GetEarlyStartAsync`, `GetAwayConfigurationAsync`, `GetZoneDayReportAsync`, `GetZoneTemperatureOffsetAsync`, `CreateZoneAsync`, `SetEarlyStartAsync`, `SetHeatingTemperatureCelsiusAsync` | `IZoneService` |
-| TadoDeviceService | Device and mobile-device retrieval plus child-lock, identify, and offset commands | `GetDevicesAsync`, `GetDeviceListAsync`, `GetDeviceAsync`, `GetZoneTemperatureOffsetAsync`, `GetMobileDevicesAsync`, `GetMobileDeviceAsync`, `GetMobileDeviceSettingsAsync`, `GetZoneMeasuringDeviceAsync`, `SetDeviceChildLockAsync`, `SayHiAsync`, `SetZoneTemperatureOffsetCelsiusAsync` | `IDeviceService` |
+| TadoZoneService | Zone retrieval, away-configuration reads, day-report reads, plus zone creation, overlay deletion, early-start, and overlay-temperature commands | `GetZonesAsync`, `GetZoneAsync`, `GetZoneStateAsync`, `GetZoneSummaryAsync`, `GetZoneCapabilitiesAsync`, `GetZoneControlAsync`, `GetDefaultZoneOverlayAsync`, `GetEarlyStartAsync`, `GetAwayConfigurationAsync`, `GetZoneDayReportAsync`, `GetZoneTemperatureOffsetAsync`, `CreateZoneAsync`, `DeleteZoneOverlayAsync`, `SetEarlyStartAsync`, `SetHeatingTemperatureCelsiusAsync`, `SetHeatingTemperatureFahrenheitAsync`, `SetHotWaterTemperatureCelsiusAsync`, `SetHotWaterTemperatureFahrenheitAsync`, `SwitchHeatingOffAsync`, `SwitchHotWaterOffAsync` | `IZoneService` |
+| TadoDeviceService | Device and mobile-device retrieval plus mobile-device deletion, settings updates, child-lock, identify, and offset commands | `GetDevicesAsync`, `GetDeviceListAsync`, `GetDeviceAsync`, `GetZoneTemperatureOffsetAsync`, `GetMobileDevicesAsync`, `GetMobileDeviceAsync`, `GetMobileDeviceSettingsAsync`, `GetZoneMeasuringDeviceAsync`, `DeleteMobileDeviceAsync`, `SetMobileDeviceSettingsAsync`, `SetDeviceChildLockAsync`, `SayHiAsync`, `SetZoneTemperatureOffsetCelsiusAsync` | `IDeviceService` |
 | TadoWeatherService | Weather endpoint integration | `GetWeatherAsync` | `IWeatherService` |
 | TadoAuthService | OAuth2 device authorization and token lifecycle | `StartDeviceAuthorisationAsync`, `WaitForDeviceTokenAsync`, `GetAccessTokenAsync` | `ITadoAuthService` |
 
@@ -368,20 +368,12 @@ The list below reflects the current gap between this library and the community m
 - [ ] Implement `ActivateOpenWindowAsync` -> `POST /homes/{homeId}/zones/{zoneId}/state/openWindow/activate`
 - [ ] Implement `ResetOpenWindowAsync` -> `DELETE /homes/{homeId}/zones/{zoneId}/state/openWindow`
 - [ ] Implement `SetDefaultZoneOverlayAsync` -> `PUT /homes/{homeId}/zones/{zoneId}/defaultOverlay`
-- [ ] Implement `DeleteZoneOverlayAsync` -> `DELETE /homes/{homeId}/zones/{zoneId}/overlay`
-- [ ] Implement `SetHeatingTemperatureFahrenheitAsync` -> `PUT /homes/{homeId}/zones/{zoneId}/overlay`
-- [ ] Implement `SetHotWaterTemperatureCelsiusAsync` -> `PUT /homes/{homeId}/zones/{zoneId}/overlay`
-- [ ] Implement `SetHotWaterTemperatureFahrenheitAsync` -> `PUT /homes/{homeId}/zones/{zoneId}/overlay`
-- [ ] Implement `SwitchHeatingOffAsync` -> `PUT /homes/{homeId}/zones/{zoneId}/overlay`
-- [ ] Implement `SwitchHotWaterOffAsync` -> `PUT /homes/{homeId}/zones/{zoneId}/overlay`
 - [ ] Implement bulk overlay operations -> `POST /homes/{homeId}/overlay`, `DELETE /homes/{homeId}/overlay`
 - [ ] Implement `SetAwayConfigurationAsync` -> `PUT /homes/{homeId}/zones/{zoneId}/schedule/awayConfiguration`
 - [ ] Implement schedule/timetable operations -> `GET|PUT /homes/{homeId}/zones/{zoneId}/schedule/activeTimetable`, `GET /homes/{homeId}/zones/{zoneId}/schedule/timetables`, `GET /homes/{homeId}/zones/{zoneId}/schedule/timetables/{timetableTypeId}`, `GET|PUT /homes/{homeId}/zones/{zoneId}/schedule/timetables/{timetableTypeId}/blocks/{dayType}`, `GET /homes/{homeId}/zones/{zoneId}/schedule/timetables/{timetableTypeId}/blocks`
 
 ##### Device / Mobile Device Services
 
-- [ ] Implement `DeleteMobileDeviceAsync` -> `DELETE /homes/{homeId}/mobileDevices/{mobileDeviceId}`
-- [ ] Implement `SetMobileDeviceSettingsAsync` -> `PUT /homes/{homeId}/mobileDevices/{mobileDeviceId}/settings`
 - [ ] Implement `SetHeatingCircuitAsync` -> `PUT /homes/{homeId}/zones/{zoneId}/control/heatingCircuit`
 - [ ] Implement `MoveDeviceToZoneAsync` -> `POST /homes/{homeId}/zones/{zoneId}/devices`
 - [ ] Implement `SetZoneMeasuringDeviceAsync` -> `PUT /homes/{homeId}/zones/{zoneId}/measuringDevice`

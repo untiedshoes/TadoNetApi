@@ -188,6 +188,89 @@ namespace TadoNetApi.Tests.Application.Services
             Assert.Equal(1, capabilities[0].Temperatures?.Celsius?.Step);
         }
 
+        [Fact]
+        public async Task DeleteZoneOverlayAsync_PassesThroughToDomainService()
+        {
+            var (service, mock) = CreateService();
+            mock.Setup(s => s.DeleteZoneOverlayAsync(1, 2, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(true);
+
+            var deleted = await service.DeleteZoneOverlayAsync(1, 2, CancellationToken.None);
+
+            Assert.True(deleted);
+            mock.Verify(s => s.DeleteZoneOverlayAsync(1, 2, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task SetHeatingTemperatureFahrenheitAsync_PassesThroughToDomainService()
+        {
+            var expected = new ZoneSummary();
+            var (service, mock) = CreateService();
+            mock.Setup(s => s.SetHeatingTemperatureFahrenheitAsync(1, 2, 72.5, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expected);
+
+            var result = await service.SetHeatingTemperatureFahrenheitAsync(1, 2, 72.5, CancellationToken.None);
+
+            Assert.Same(expected, result);
+            mock.Verify(s => s.SetHeatingTemperatureFahrenheitAsync(1, 2, 72.5, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task SetHotWaterTemperatureCelsiusAsync_PassesThroughToDomainService()
+        {
+            var expected = new ZoneSummary();
+            var (service, mock) = CreateService();
+            mock.Setup(s => s.SetHotWaterTemperatureCelsiusAsync(1, 2, 55.0, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expected);
+
+            var result = await service.SetHotWaterTemperatureCelsiusAsync(1, 2, 55.0, CancellationToken.None);
+
+            Assert.Same(expected, result);
+            mock.Verify(s => s.SetHotWaterTemperatureCelsiusAsync(1, 2, 55.0, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task SetHotWaterTemperatureFahrenheitAsync_PassesThroughToDomainService()
+        {
+            var expected = new ZoneSummary();
+            var (service, mock) = CreateService();
+            mock.Setup(s => s.SetHotWaterTemperatureFahrenheitAsync(1, 2, 131.0, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expected);
+
+            var result = await service.SetHotWaterTemperatureFahrenheitAsync(1, 2, 131.0, CancellationToken.None);
+
+            Assert.Same(expected, result);
+            mock.Verify(s => s.SetHotWaterTemperatureFahrenheitAsync(1, 2, 131.0, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task SwitchHeatingOffAsync_PassesThroughToDomainService()
+        {
+            var expected = new ZoneSummary();
+            var (service, mock) = CreateService();
+            mock.Setup(s => s.SwitchHeatingOffAsync(1, 2, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expected);
+
+            var result = await service.SwitchHeatingOffAsync(1, 2, CancellationToken.None);
+
+            Assert.Same(expected, result);
+            mock.Verify(s => s.SwitchHeatingOffAsync(1, 2, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task SwitchHotWaterOffAsync_PassesThroughToDomainService()
+        {
+            var expected = new ZoneSummary();
+            var (service, mock) = CreateService();
+            mock.Setup(s => s.SwitchHotWaterOffAsync(1, 2, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expected);
+
+            var result = await service.SwitchHotWaterOffAsync(1, 2, CancellationToken.None);
+
+            Assert.Same(expected, result);
+            mock.Verify(s => s.SwitchHotWaterOffAsync(1, 2, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
         /// <summary>
         /// Tests that <see cref="ZoneAppService.GetZoneControlAsync"/> returns correctly mapped zone control details.
         /// </summary>

@@ -86,6 +86,37 @@ namespace TadoNetApi.Tests.Application.Services
         }
 
         [Fact]
+        public async Task DeleteMobileDeviceAsync_PassesThroughToDomainService()
+        {
+            var mockDeviceService = new Mock<IDeviceService>();
+            mockDeviceService.Setup(s => s.DeleteMobileDeviceAsync(1, 42, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(true);
+
+            var service = new DeviceAppService(mockDeviceService.Object);
+
+            var deleted = await service.DeleteMobileDeviceAsync(1, 42, CancellationToken.None);
+
+            Assert.True(deleted);
+            mockDeviceService.Verify(s => s.DeleteMobileDeviceAsync(1, 42, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task SetMobileDeviceSettingsAsync_PassesThroughToDomainService()
+        {
+            var settings = new Settings { GeoTrackingEnabled = true };
+            var mockDeviceService = new Mock<IDeviceService>();
+            mockDeviceService.Setup(s => s.SetMobileDeviceSettingsAsync(1, 42, settings, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(true);
+
+            var service = new DeviceAppService(mockDeviceService.Object);
+
+            var updated = await service.SetMobileDeviceSettingsAsync(1, 42, settings, CancellationToken.None);
+
+            Assert.True(updated);
+            mockDeviceService.Verify(s => s.SetMobileDeviceSettingsAsync(1, 42, settings, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
         public async Task GetDeviceAsync_LegacyOverload_PassesThroughToDomainService()
         {
             var expectedDevice = new Device

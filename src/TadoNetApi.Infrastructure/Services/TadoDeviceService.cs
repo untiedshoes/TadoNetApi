@@ -1,6 +1,7 @@
 using TadoNetApi.Domain.Entities;
 using TadoNetApi.Domain.Entities.MobileDevice;
 using TadoNetApi.Domain.Interfaces;
+using TadoNetApi.Infrastructure.Dtos.Requests;
 using TadoNetApi.Infrastructure.Dtos.Responses;
 using TadoNetApi.Infrastructure.Dtos.Responses.MobileDevice;
 using TadoNetApi.Infrastructure.Exceptions;
@@ -280,6 +281,54 @@ namespace TadoNetApi.Infrastructure.Services
         #endregion
 
         #region Send Commands
+
+        /// <summary>
+        /// Deletes a specific mobile device from the specified home.
+        /// </summary>
+        /// <param name="homeId">The ID of the home.</param>
+        /// <param name="mobileDeviceId">The ID of the mobile device to delete.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns><see langword="true"/> when the command succeeds.</returns>
+        public async Task<bool> DeleteMobileDeviceAsync(int homeId, int mobileDeviceId, CancellationToken cancellationToken = default)
+        {
+            Guard.PositiveId(homeId, nameof(homeId));
+            Guard.PositiveId(mobileDeviceId, nameof(mobileDeviceId));
+
+            return await _httpClient.SendAsync(
+                $"homes/{homeId}/mobileDevices/{mobileDeviceId}",
+                HttpMethod.Delete,
+                cancellationToken,
+                System.Net.HttpStatusCode.OK,
+                null);
+        }
+
+        /// <summary>
+        /// Updates the settings for a specific mobile device.
+        /// </summary>
+        /// <param name="homeId">The ID of the home.</param>
+        /// <param name="mobileDeviceId">The ID of the mobile device to update.</param>
+        /// <param name="settings">The settings to apply to the mobile device.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns><see langword="true"/> when the command succeeds.</returns>
+        public async Task<bool> SetMobileDeviceSettingsAsync(int homeId, int mobileDeviceId, Settings settings, CancellationToken cancellationToken = default)
+        {
+            Guard.PositiveId(homeId, nameof(homeId));
+            Guard.PositiveId(mobileDeviceId, nameof(mobileDeviceId));
+
+            ArgumentNullException.ThrowIfNull(settings);
+
+            var request = new SetMobileDeviceSettingsRequest
+            {
+                GeoTrackingEnabled = settings.GeoTrackingEnabled
+            };
+
+            return await _httpClient.SendAsync(
+                $"homes/{homeId}/mobileDevices/{mobileDeviceId}/settings",
+                HttpMethod.Put,
+                cancellationToken,
+                System.Net.HttpStatusCode.OK,
+                request);
+        }
 
         /// <summary>
         /// Turns the child lock on or off on the provided Tado device.

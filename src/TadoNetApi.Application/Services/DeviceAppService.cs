@@ -102,6 +102,27 @@ namespace TadoNetApi.Application.Services
             => _deviceService.GetMobileDeviceSettingsAsync(homeId, mobileDeviceId, cancellationToken);
 
         /// <summary>
+        /// Deletes a specific mobile device from the specified home.
+        /// </summary>
+        /// <param name="homeId">The ID of the home containing the mobile device.</param>
+        /// <param name="mobileDeviceId">The ID of the mobile device to delete.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns><see langword="true"/> when the command succeeds.</returns>
+        public Task<bool> DeleteMobileDeviceAsync(int homeId, int mobileDeviceId, CancellationToken cancellationToken = default)
+            => _deviceService.DeleteMobileDeviceAsync(homeId, mobileDeviceId, cancellationToken);
+
+        /// <summary>
+        /// Updates the settings for a specific mobile device.
+        /// </summary>
+        /// <param name="homeId">The ID of the home containing the mobile device.</param>
+        /// <param name="mobileDeviceId">The ID of the mobile device to update.</param>
+        /// <param name="settings">The settings to apply to the mobile device.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns><see langword="true"/> when the command succeeds.</returns>
+        public Task<bool> SetMobileDeviceSettingsAsync(int homeId, int mobileDeviceId, Settings settings, CancellationToken cancellationToken = default)
+            => _deviceService.SetMobileDeviceSettingsAsync(homeId, mobileDeviceId, settings, cancellationToken);
+
+        /// <summary>
         /// Turns child lock on or off for a device.
         /// </summary>
         /// <param name="device">The device whose child lock should be updated.</param>

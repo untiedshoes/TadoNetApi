@@ -128,6 +128,15 @@ namespace TadoNetApi.Domain.Interfaces
         Task CreateZoneAsync(int homeId, string zoneType, IReadOnlyList<string> deviceSerialNumbers, bool? force = null, CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Deletes the currently active manual overlay for a zone.
+        /// </summary>
+        /// <param name="homeId">The ID of the home containing the zone.</param>
+        /// <param name="zoneId">The ID of the zone whose overlay should be deleted.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns><see langword="true"/> when the command succeeds.</returns>
+        Task<bool> DeleteZoneOverlayAsync(int homeId, int zoneId, CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Sets the heating temperature in Celsius for a zone, keeping it until the next manual change.
         /// </summary>
         /// <param name="homeId">The ID of the home containing the zone.</param>
@@ -136,6 +145,54 @@ namespace TadoNetApi.Domain.Interfaces
         /// <param name="cancellationToken">The cancellation token to observe.</param>
         /// <returns>The resulting zone summary, or <see langword="null"/> when no payload is returned.</returns>
         Task<ZoneSummary?> SetHeatingTemperatureCelsiusAsync(int homeId, int zoneId, double temperature, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Sets the heating temperature in Fahrenheit for a zone.
+        /// </summary>
+        /// <param name="homeId">The ID of the home containing the zone.</param>
+        /// <param name="zoneId">The ID of the zone to update.</param>
+        /// <param name="temperature">The target temperature in Fahrenheit.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>The resulting zone summary, or <see langword="null"/> when no payload is returned.</returns>
+        Task<ZoneSummary?> SetHeatingTemperatureFahrenheitAsync(int homeId, int zoneId, double temperature, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Sets the hot water temperature in Celsius for a zone.
+        /// </summary>
+        /// <param name="homeId">The ID of the home containing the zone.</param>
+        /// <param name="zoneId">The ID of the zone to update.</param>
+        /// <param name="temperature">The target temperature in Celsius.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>The resulting zone summary, or <see langword="null"/> when no payload is returned.</returns>
+        Task<ZoneSummary?> SetHotWaterTemperatureCelsiusAsync(int homeId, int zoneId, double temperature, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Sets the hot water temperature in Fahrenheit for a zone.
+        /// </summary>
+        /// <param name="homeId">The ID of the home containing the zone.</param>
+        /// <param name="zoneId">The ID of the zone to update.</param>
+        /// <param name="temperature">The target temperature in Fahrenheit.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>The resulting zone summary, or <see langword="null"/> when no payload is returned.</returns>
+        Task<ZoneSummary?> SetHotWaterTemperatureFahrenheitAsync(int homeId, int zoneId, double temperature, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Switches heating off for a zone.
+        /// </summary>
+        /// <param name="homeId">The ID of the home containing the zone.</param>
+        /// <param name="zoneId">The ID of the zone to update.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>The resulting zone summary, or <see langword="null"/> when no payload is returned.</returns>
+        Task<ZoneSummary?> SwitchHeatingOffAsync(int homeId, int zoneId, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Switches hot water off for a zone.
+        /// </summary>
+        /// <param name="homeId">The ID of the home containing the zone.</param>
+        /// <param name="zoneId">The ID of the zone to update.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>The resulting zone summary, or <see langword="null"/> when no payload is returned.</returns>
+        Task<ZoneSummary?> SwitchHotWaterOffAsync(int homeId, int zoneId, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Sets the heating temperature in Celsius for a zone for the specified duration.

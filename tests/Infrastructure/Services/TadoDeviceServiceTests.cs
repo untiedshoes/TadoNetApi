@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Moq;
 using TadoNetApi.Domain.Entities;
+using TadoNetApi.Domain.Entities.MobileDevice;
 using TadoNetApi.Infrastructure.Dtos.Responses;
 using TadoNetApi.Infrastructure.Dtos.Responses.MobileDevice;
 using TadoNetApi.Infrastructure.Exceptions;
@@ -403,6 +404,100 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                     HttpStatusCode.OK,
                     It.Is<object?>(b => b != null && JsonSerializer.Serialize(b).Contains("\"celsius\":1.5"))),
                 Times.Once);
+        }
+
+        /// <summary>
+        /// Tests that <see cref="TadoDeviceService.DeleteMobileDeviceAsync"/>
+        /// sends the expected command endpoint.
+        /// </summary>
+        [Fact(DisplayName = "DeleteMobileDeviceAsync sends the spec-aligned mobile device delete command")]
+        public async Task DeleteMobileDeviceAsync_SendsSpecAlignedMobileDeviceDeleteCommand()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.SendAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<HttpMethod>(),
+                    It.IsAny<CancellationToken>(),
+                    It.IsAny<HttpStatusCode>(),
+                    It.IsAny<object?>()))
+                .ReturnsAsync(true);
+
+            var service = new TadoDeviceService(mockHttp.Object);
+
+            var deleted = await service.DeleteMobileDeviceAsync(1, 42, CancellationToken.None);
+
+            Assert.True(deleted);
+            mockHttp.Verify(c => c.SendAsync(
+                    "homes/1/mobileDevices/42",
+                    HttpMethod.Delete,
+                    It.IsAny<CancellationToken>(),
+                    HttpStatusCode.OK,
+                    null),
+                Times.Once);
+        }
+
+        /// <summary>
+        /// Tests that <see cref="TadoDeviceService.SetMobileDeviceSettingsAsync"/>
+        /// sends the expected mobile device settings payload and endpoint.
+        /// </summary>
+        [Fact(DisplayName = "SetMobileDeviceSettingsAsync sends the spec-aligned mobile device settings command")]
+        public async Task SetMobileDeviceSettingsAsync_SendsSpecAlignedMobileDeviceSettingsCommand()
+        {
+            string? capturedJson = null;
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.SendAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<HttpMethod>(),
+                    It.IsAny<CancellationToken>(),
+                    It.IsAny<HttpStatusCode>(),
+                    It.IsAny<object?>()))
+                .Callback<string, HttpMethod, CancellationToken, HttpStatusCode, object?>((_, _, _, _, body) =>
+                {
+                    capturedJson = body == null ? null : JsonSerializer.Serialize(body);
+                })
+                .ReturnsAsync(true);
+
+            var service = new TadoDeviceService(mockHttp.Object);
+
+            var updated = await service.SetMobileDeviceSettingsAsync(
+                1,
+                42,
+                new Settings { GeoTrackingEnabled = true },
+                CancellationToken.None);
+
+            Assert.True(updated);
+            Assert.NotNull(capturedJson);
+            Assert.Contains("\"geoTrackingEnabled\":true", capturedJson);
+            mockHttp.Verify(c => c.SendAsync(
+                    "homes/1/mobileDevices/42/settings",
+                    HttpMethod.Put,
+                    It.IsAny<CancellationToken>(),
+                    HttpStatusCode.OK,
+                    It.IsAny<object?>()),
+                Times.Once);
+        }
+
+        /// <summary>
+        /// Tests that <see cref="TadoDeviceService.SetMobileDeviceSettingsAsync"/>
+        /// rejects null settings.
+        /// </summary>
+        [Fact(DisplayName = "SetMobileDeviceSettingsAsync rejects null settings")]
+        public async Task SetMobileDeviceSettingsAsync_RejectsNullSettings()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            var service = new TadoDeviceService(mockHttp.Object);
+
+            await Assert.ThrowsAsync<ArgumentNullException>(() =>
+                service.SetMobileDeviceSettingsAsync(1, 42, null!, CancellationToken.None));
+
+            mockHttp.Verify(c => c.SendAsync(
+                It.IsAny<string>(),
+                It.IsAny<HttpMethod>(),
+                It.IsAny<CancellationToken>(),
+                It.IsAny<HttpStatusCode>(),
+                It.IsAny<object?>()), Times.Never);
         }
     }
 }

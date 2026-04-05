@@ -427,6 +427,19 @@ services:
         - name: GetDeviceAsync
           kind: read
           parameters:
+            - name: deviceId
+              type: string
+              validation: non-empty
+          returns:
+            type: Device
+            nullable: false
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/Device.cs
+          summary: Returns one device by its Tado device identifier.
+
+        - name: GetDeviceAsync
+          kind: read
+          parameters:
             - name: homeId
               type: int
               validation: positive-id
@@ -438,7 +451,7 @@ services:
             nullable: false
             source: domain
             modelFile: src/TadoNetApi.Domain/Entities/Device.cs
-          summary: Returns one device within a home.
+          summary: Legacy overload that returns one device by numeric identifier while routing through the device-scoped endpoint.
 
         - name: GetZoneTemperatureOffsetAsync
           kind: read

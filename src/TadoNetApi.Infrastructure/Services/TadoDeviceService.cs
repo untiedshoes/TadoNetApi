@@ -79,22 +79,21 @@ namespace TadoNetApi.Infrastructure.Services
         }
 
         /// <summary>
-        /// Retrieves a single device by home and device ID.
+        /// Retrieves a single device by its Tado device identifier.
         /// </summary>
-        /// <param name="homeId">The home ID.</param>
-        /// <param name="deviceId">The device ID.</param>
+        /// <param name="deviceId">The Tado device identifier, typically the device serial number.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <returns>The <see cref="Device"/>.</returns>
         /// <exception cref="TadoApiException">Thrown if the device is not found or request fails.</exception>
-        public async Task<Device> GetDeviceAsync(int homeId, int deviceId, CancellationToken cancellationToken = default)
+        public async Task<Device> GetDeviceAsync(string deviceId, CancellationToken cancellationToken = default)
         {
-            Guard.PositiveId(homeId, nameof(homeId));
-            Guard.PositiveId(deviceId, nameof(deviceId));
+            if (string.IsNullOrWhiteSpace(deviceId))
+                throw new ArgumentException("Device ID must be provided.", nameof(deviceId));
 
             try
             {
                 var response = await _httpClient.GetAsync<TadoDeviceResponse>(
-                    $"homes/{homeId}/devices/{deviceId}",
+                    $"devices/{deviceId}",
                     cancellationToken);
 
                 if (response == null)
@@ -108,6 +107,22 @@ namespace TadoNetApi.Infrastructure.Services
                 throw new TadoApiException(System.Net.HttpStatusCode.ServiceUnavailable,
                     $"Failed to retrieve device: {ex.Message}");
             }
+        }
+
+        /// <summary>
+        /// Retrieves a single device by a legacy numeric identifier.
+        /// The supplied home ID is retained for compatibility but is not required by the upstream API route.
+        /// </summary>
+        /// <param name="homeId">The home ID retained for compatibility.</param>
+        /// <param name="deviceId">The legacy numeric device identifier.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        /// <returns>The <see cref="Device"/>.</returns>
+        public Task<Device> GetDeviceAsync(int homeId, int deviceId, CancellationToken cancellationToken = default)
+        {
+            Guard.PositiveId(homeId, nameof(homeId));
+            Guard.PositiveId(deviceId, nameof(deviceId));
+
+            return GetDeviceAsync(deviceId.ToString(), cancellationToken);
         }
 
         /// <summary>

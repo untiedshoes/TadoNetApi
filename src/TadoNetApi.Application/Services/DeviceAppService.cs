@@ -31,6 +31,12 @@ namespace TadoNetApi.Application.Services
         /// <summary>
         /// Retrieves a single device by ID.
         /// </summary>
+        public Task<Device> GetDeviceAsync(string deviceId, CancellationToken cancellationToken = default)
+            => _deviceService.GetDeviceAsync(deviceId, cancellationToken);
+
+        /// <summary>
+        /// Retrieves a single device by legacy numeric ID.
+        /// </summary>
         public Task<Device> GetDeviceAsync(int homeId, int deviceId, CancellationToken cancellationToken = default)
             => _deviceService.GetDeviceAsync(homeId, deviceId, cancellationToken);
 

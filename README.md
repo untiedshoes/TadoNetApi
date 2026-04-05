@@ -353,7 +353,6 @@ The list below reflects the current gap between this library and the community m
 
 ##### Alignment / Review
 
-- [ ] Review `GetDeviceAsync` path alignment against spec -> `GET /devices/{deviceId}`
 - [ ] Review `SetHomePresenceAsync` parity against spec -> `PUT /homes/{homeId}/presenceLock`
 - [ ] Add `ResetHomePresenceAsync` -> `DELETE /homes/{homeId}/presenceLock`
 - [ ] Review overlay request contract for `SetHeatingTemperatureCelsiusAsync` against spec examples using `termination.typeSkillBasedApp`

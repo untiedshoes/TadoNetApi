@@ -213,10 +213,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
         /// <summary>
         /// Tests that <see cref="TadoDeviceService.GetDeviceAsync"/> returns a single mapped device.
         /// </summary>
-        [Fact(DisplayName = "GetDeviceAsync returns mapped device")]
-        public async Task GetDeviceAsync_ReturnsMappedDevice()
+        [Fact(DisplayName = "GetDeviceAsync string overload uses the spec-aligned device path")]
+        public async Task GetDeviceAsync_StringOverload_UsesSpecAlignedDevicePath()
         {
-            // Arrange
             var tadoDevice = new TadoDeviceResponse
             {
                 DeviceType = "THERMOSTAT",
@@ -225,18 +224,51 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                 CurrentFwVersion = "1.0.0"
             };
 
-            var mockHttp = MockTadoHttpClient.CreateGet(tadoDevice);
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.GetAsync<TadoDeviceResponse>("devices/SU1234567890", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(tadoDevice);
+
             var service = new TadoDeviceService(mockHttp.Object);
 
-            // Act
-            var device = await service.GetDeviceAsync(homeId: 1, deviceId: 1, CancellationToken.None);
+            var device = await service.GetDeviceAsync("SU1234567890", CancellationToken.None);
 
-            // Assert
             Assert.NotNull(device);
             Assert.Equal("THERMOSTAT", device.DeviceType);
             Assert.Equal("123456789", device.SerialNo);
             Assert.Equal("123456", device.ShortSerialNo);
             Assert.Equal("1.0.0", device.CurrentFwVersion);
+            mockHttp.Verify(c => c.GetAsync<TadoDeviceResponse>("devices/SU1234567890", It.IsAny<CancellationToken>()), Times.Once);
+            mockHttp.Verify(c => c.GetAsync<TadoDeviceResponse>(It.Is<string>(path => path.StartsWith("homes/")), It.IsAny<CancellationToken>()), Times.Never);
+        }
+
+        /// <summary>
+        /// Tests that the legacy GetDeviceAsync overload still routes through the device-scoped endpoint.
+        /// </summary>
+        [Fact(DisplayName = "GetDeviceAsync legacy overload uses the spec-aligned device path")]
+        public async Task GetDeviceAsync_LegacyOverload_UsesSpecAlignedDevicePath()
+        {
+            var tadoDevice = new TadoDeviceResponse
+            {
+                DeviceType = "THERMOSTAT",
+                SerialNo = "123",
+                ShortSerialNo = "123",
+                CurrentFwVersion = "1.0.0"
+            };
+
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.GetAsync<TadoDeviceResponse>("devices/123", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(tadoDevice);
+
+            var service = new TadoDeviceService(mockHttp.Object);
+
+            var device = await service.GetDeviceAsync(homeId: 1, deviceId: 123, CancellationToken.None);
+
+            Assert.NotNull(device);
+            Assert.Equal("123", device.SerialNo);
+            mockHttp.Verify(c => c.GetAsync<TadoDeviceResponse>("devices/123", It.IsAny<CancellationToken>()), Times.Once);
+            mockHttp.Verify(c => c.GetAsync<TadoDeviceResponse>(It.Is<string>(path => path.StartsWith("homes/")), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         /// <summary>

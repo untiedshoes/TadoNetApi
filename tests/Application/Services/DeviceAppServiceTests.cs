@@ -2,6 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Moq;
 using TadoNetApi.Application.Services;
+using TadoNetApi.Domain.Entities;
 using TadoNetApi.Domain.Entities.MobileDevice;
 using TadoNetApi.Domain.Interfaces;
 using Xunit;
@@ -10,6 +11,28 @@ namespace TadoNetApi.Tests.Application.Services
 {
     public class DeviceAppServiceTests
     {
+        [Fact]
+        public async Task GetDeviceAsync_StringOverload_PassesThroughToDomainService()
+        {
+            var expectedDevice = new Device
+            {
+                SerialNo = "SU1234567890",
+                DeviceType = "SU02"
+            };
+
+            var mockDeviceService = new Mock<IDeviceService>();
+            mockDeviceService.Setup(s => s.GetDeviceAsync("SU1234567890", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedDevice);
+
+            var service = new DeviceAppService(mockDeviceService.Object);
+
+            var device = await service.GetDeviceAsync("SU1234567890", CancellationToken.None);
+
+            Assert.NotNull(device);
+            Assert.Equal("SU1234567890", device.SerialNo);
+            mockDeviceService.Verify(s => s.GetDeviceAsync("SU1234567890", It.IsAny<CancellationToken>()), Times.Once);
+        }
+
         [Fact]
         public async Task GetMobileDeviceAsync_ReturnsMappedMobileDevice()
         {
@@ -60,6 +83,28 @@ namespace TadoNetApi.Tests.Application.Services
             Assert.NotNull(device);
             Assert.Equal("SU1234567890", device.SerialNo);
             Assert.Equal("SU02", device.DeviceType);
+        }
+
+        [Fact]
+        public async Task GetDeviceAsync_LegacyOverload_PassesThroughToDomainService()
+        {
+            var expectedDevice = new Device
+            {
+                SerialNo = "123",
+                DeviceType = "SU02"
+            };
+
+            var mockDeviceService = new Mock<IDeviceService>();
+            mockDeviceService.Setup(s => s.GetDeviceAsync(1, 123, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedDevice);
+
+            var service = new DeviceAppService(mockDeviceService.Object);
+
+            var device = await service.GetDeviceAsync(1, 123, CancellationToken.None);
+
+            Assert.NotNull(device);
+            Assert.Equal("123", device.SerialNo);
+            mockDeviceService.Verify(s => s.GetDeviceAsync(1, 123, It.IsAny<CancellationToken>()), Times.Once);
         }
     }
 }

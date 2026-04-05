@@ -19,7 +19,13 @@ public interface IDeviceService
     Task<IReadOnlyList<DeviceListEntry>> GetDeviceListAsync(int homeId, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Retrieves a single device by ID within a zone.
+    /// Retrieves a single device by its Tado device identifier.
+    /// </summary>
+    Task<Device> GetDeviceAsync(string deviceId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Retrieves a single device by a legacy integer identifier.
+    /// The home ID is retained for compatibility but is not required by the upstream API route.
     /// </summary>
     Task<Device> GetDeviceAsync(int homeId, int deviceId, CancellationToken cancellationToken = default);
 

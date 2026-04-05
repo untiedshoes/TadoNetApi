@@ -133,6 +133,7 @@ class Program
             // 3️⃣ Zones
             var zones = await zoneService.GetZonesAsync((int)homeId, cancellationToken);
             var zoneByDeviceShortSerial = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            var measuredZoneByDeviceSerial = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             var zoneNameById = zones
                 .Where(z => z.Id.HasValue)
                 .ToDictionary(z => z.Id!.Value, z => z.Name ?? "Unknown Zone");
@@ -177,6 +178,29 @@ class Program
                 var summary = await zoneService.GetZoneSummaryAsync((int)homeId, (int)zone.Id!, cancellationToken);
 
                 Console.WriteLine($"   - Zone: {zone.Name} (ID: {zone.Id}, Type: {zone.CurrentType})");
+
+                try
+                {
+                    var measuringDevice = await deviceService.GetZoneMeasuringDeviceAsync((int)homeId, (int)zone.Id!, cancellationToken);
+                    var measuringDeviceName = !string.IsNullOrWhiteSpace(measuringDevice.DeviceTypeName)
+                        ? measuringDevice.DeviceTypeName
+                        : measuringDevice.DeviceType ?? "Unknown Device";
+                    var measuringDeviceIdentifier = !string.IsNullOrWhiteSpace(measuringDevice.ShortSerialNo)
+                        ? measuringDevice.ShortSerialNo
+                        : measuringDevice.SerialNo ?? "Unknown Serial";
+
+                    if (!string.IsNullOrWhiteSpace(measuringDevice.ShortSerialNo))
+                        measuredZoneByDeviceSerial[measuringDevice.ShortSerialNo] = zone.Name ?? "Unknown Zone";
+
+                    if (!string.IsNullOrWhiteSpace(measuringDevice.SerialNo))
+                        measuredZoneByDeviceSerial[measuringDevice.SerialNo] = zone.Name ?? "Unknown Zone";
+
+                    Console.WriteLine($"       🌡 Measuring Device: {measuringDeviceName} ({measuringDeviceIdentifier})");
+                }
+                catch (TadoApiException ex)
+                {
+                    Console.WriteLine($"       ⚠️ Measuring Device Error ({ex.StatusCode}): {ex.Message}");
+                }
 
                 // 🌡 Current Temp
                 var temp = state.SensorDataPoints?.InsideTemperature?.Celsius;
@@ -268,6 +292,17 @@ class Program
                     Console.WriteLine($"       Child Lock Enabled: {device.ChildLockEnabled?.ToString() ?? "N/A"}");
                     if (device.Duties != null && device.Duties.Any())
                         Console.WriteLine($"       Duties: {string.Join(", ", device.Duties)}");
+
+                    var measuredZoneName = !string.IsNullOrWhiteSpace(device.ShortSerialNo)
+                        && measuredZoneByDeviceSerial.TryGetValue(device.ShortSerialNo, out var measuredZoneByShortSerial)
+                            ? measuredZoneByShortSerial
+                            : !string.IsNullOrWhiteSpace(device.SerialNo)
+                                && measuredZoneByDeviceSerial.TryGetValue(device.SerialNo, out var measuredZoneBySerial)
+                                    ? measuredZoneBySerial
+                                    : null;
+
+                    if (!string.IsNullOrWhiteSpace(measuredZoneName))
+                        Console.WriteLine($"       🌡 Measures Temperature For: {measuredZoneName}");
 
                     var canUseForSayHi = !string.IsNullOrWhiteSpace(device.ShortSerialNo)
                         && !device.ShortSerialNo.StartsWith("IB", StringComparison.OrdinalIgnoreCase)

@@ -9,6 +9,14 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 ### Added
 - No unreleased changes yet.
 
+## [0.8.1] - 2026-04-05
+
+### Changed
+- Aligned `SetHomePresenceAsync` with the upstream `PUT /homes/{homeId}/presenceLock` contract and `homePresence` request payload.
+
+### Fixed
+- Added focused tests for the `SetHomePresenceAsync` command route, HTTP method, expected status code, and payload shape.
+
 ## [0.8.0] - 2026-04-05
 
 ### Changed

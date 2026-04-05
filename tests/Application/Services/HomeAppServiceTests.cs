@@ -256,5 +256,19 @@ namespace TadoNetApi.Tests.Application.Services
             Assert.True(flowTemperatureOptimisation.AutoAdaptation?.Enabled);
             Assert.Equal("BR1234567890", flowTemperatureOptimisation.OpenThermDeviceSerialNumber);
         }
+
+        [Fact]
+        public async Task SetHomePresenceAsync_PassesThroughToDomainService()
+        {
+            var mockHomeService = new Mock<IHomeService>();
+            mockHomeService.Setup(s => s.SetHomePresenceAsync(1, "HOME", It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
+
+            var service = new HomeAppService(mockHomeService.Object);
+
+            await service.SetHomePresenceAsync(1, "HOME", CancellationToken.None);
+
+            mockHomeService.Verify(s => s.SetHomePresenceAsync(1, "HOME", It.IsAny<CancellationToken>()), Times.Once);
+        }
     }
 }

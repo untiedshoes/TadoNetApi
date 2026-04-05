@@ -188,16 +188,23 @@ public class TadoHomeService : IHomeService
     {
         Guard.PositiveId(homeId, nameof(homeId));
 
+        if (!string.Equals(presence, "HOME", StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(presence, "AWAY", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new ArgumentException("Presence must be HOME or AWAY.", nameof(presence));
+        }
+
         var request = new SetHomePresenceRequest
         {
-            presence = presence
+            HomePresence = presence.ToUpperInvariant()
         };
 
-        await _httpClient.PostAsync<SetHomePresenceRequest, object>(
-            $"homes/{homeId}/presence",
-            request,
-            cancellationToken
-        );
+        await _httpClient.SendAsync(
+            $"homes/{homeId}/presenceLock",
+            HttpMethod.Put,
+            cancellationToken,
+            System.Net.HttpStatusCode.NoContent,
+            request);
     }
 
     #endregion

@@ -1,9 +1,14 @@
 using System.Collections.Generic;
+using System.Net;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using System;
+using System.Text.Json;
+using Moq;
 using TadoNetApi.Domain.Entities;
 using TadoNetApi.Infrastructure.Dtos.Responses;
+using TadoNetApi.Infrastructure.Http;
 using TadoNetApi.Infrastructure.Services;
 using TadoNetApi.Tests.Mocks;
 using Xunit;
@@ -242,6 +247,50 @@ namespace TadoNetApi.Tests.Infrastructure.Services
             Assert.True(flowTemperatureOptimisation.AutoAdaptation?.Enabled);
             Assert.Equal(45, flowTemperatureOptimisation.AutoAdaptation?.MaxFlowTemperature);
             Assert.Equal("BR1234567890", flowTemperatureOptimisation.OpenThermDeviceSerialNumber);
+        }
+
+        [Fact(DisplayName = "SetHomePresenceAsync sends the spec-aligned presence lock command")]
+        public async Task SetHomePresenceAsync_SendsSpecAlignedPresenceLockCommand()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.SendAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<HttpMethod>(),
+                    It.IsAny<CancellationToken>(),
+                    It.IsAny<HttpStatusCode>(),
+                    It.IsAny<object?>()))
+                .ReturnsAsync(true);
+
+            var service = new TadoHomeService(mockHttp.Object);
+
+            await service.SetHomePresenceAsync(homeId: 1, presence: "HOME", CancellationToken.None);
+
+            mockHttp.Verify(c => c.SendAsync(
+                    "homes/1/presenceLock",
+                    HttpMethod.Put,
+                    It.IsAny<CancellationToken>(),
+                    HttpStatusCode.NoContent,
+                    It.Is<object?>(body => body != null && JsonSerializer.Serialize(body).Contains("\"homePresence\":\"HOME\""))),
+                Times.Once);
+        }
+
+        [Fact(DisplayName = "SetHomePresenceAsync rejects invalid presence values")]
+        public async Task SetHomePresenceAsync_RejectsInvalidPresenceValues()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            var service = new TadoHomeService(mockHttp.Object);
+
+            var exception = await Assert.ThrowsAsync<ArgumentException>(() =>
+                service.SetHomePresenceAsync(homeId: 1, presence: "MAYBE", CancellationToken.None));
+
+            Assert.Equal("presence", exception.ParamName);
+            mockHttp.Verify(c => c.SendAsync(
+                It.IsAny<string>(),
+                It.IsAny<HttpMethod>(),
+                It.IsAny<CancellationToken>(),
+                It.IsAny<HttpStatusCode>(),
+                It.IsAny<object?>()), Times.Never);
         }
     }
 }

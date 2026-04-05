@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace TadoNetApi.Infrastructure.Dtos.Requests;
 
 /// <summary>
@@ -6,5 +8,6 @@ namespace TadoNetApi.Infrastructure.Dtos.Requests;
 public class SetHomePresenceRequest
 {
     /// <summary>The presence state to set (e.g., HOME, AWAY).</summary>
-    public string presence { get; set; } = string.Empty;
+    [JsonPropertyName("homePresence")]
+    public string HomePresence { get; set; } = string.Empty;
 }

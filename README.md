@@ -9,6 +9,8 @@
 
 It wraps the Tado API behind application and domain services, handles OAuth2 device authorization, maps DTOs into domain models, and keeps the integration code isolated from the rest of the application. The project is structured as a reusable SDK, but it also works well as a portfolio piece because it shows practical API integration work rather than just framework scaffolding.
 
+If you want a machine-readable map of the SDK surface, including method signatures and the top-level model returned by each method, see `docs/sdk-surface.yaml`. It is intended as a companion to the README for contributors, integrators, and AI tooling.
+
 ## What this project demonstrates
 
 - Designing a maintainable .NET SDK over a third-party REST API

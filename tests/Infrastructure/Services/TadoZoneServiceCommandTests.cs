@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Text.Json;
+using System.Net;
 using Moq;
 using TadoNetApi.Domain.Enums;
 using TadoNetApi.Infrastructure.Dtos.Requests;
@@ -44,6 +45,88 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                     System.Net.HttpStatusCode.OK,
                     null),
                 Times.Once);
+        }
+
+        [Fact(DisplayName = "SetHeatingCircuitAsync sends the spec-aligned heating circuit command")]
+        public async Task SetHeatingCircuitAsync_SendsSpecAlignedHeatingCircuitCommand()
+        {
+            SetHeatingCircuitRequest? capturedRequest = null;
+            var mockHttp = new Mock<ITadoHttpClient>();
+
+            mockHttp
+                .Setup(c => c.PutAsync<SetHeatingCircuitRequest?, TadoZoneControlResponse>(
+                    It.IsAny<string>(),
+                    It.IsAny<SetHeatingCircuitRequest?>(),
+                    It.IsAny<CancellationToken>()))
+                .Callback<string, SetHeatingCircuitRequest?, CancellationToken>((_, req, _) =>
+                {
+                    capturedRequest = req;
+                })
+                .ReturnsAsync(new TadoZoneControlResponse
+                {
+                    Type = "HEATING",
+                    HeatingCircuit = 3
+                });
+
+            var service = new TadoZoneService(mockHttp.Object);
+
+            var result = await service.SetHeatingCircuitAsync(1, 2, 3, CancellationToken.None);
+
+            Assert.NotNull(capturedRequest);
+            Assert.Equal(3, capturedRequest!.CircuitNumber);
+            Assert.Equal(3, result.HeatingCircuit);
+            mockHttp.Verify(c => c.PutAsync<SetHeatingCircuitRequest?, TadoZoneControlResponse>(
+                "homes/1/zones/2/control/heatingCircuit",
+                It.Is<SetHeatingCircuitRequest?>(r => r != null && r.CircuitNumber == 3),
+                It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact(DisplayName = "SetHeatingCircuitAsync sends an empty body to remove the heating circuit assignment")]
+        public async Task SetHeatingCircuitAsync_NullCircuit_SendsEmptyBody()
+        {
+            SetHeatingCircuitRequest? capturedRequest = new SetHeatingCircuitRequest();
+            var mockHttp = new Mock<ITadoHttpClient>();
+
+            mockHttp
+                .Setup(c => c.PutAsync<SetHeatingCircuitRequest?, TadoZoneControlResponse>(
+                    It.IsAny<string>(),
+                    It.IsAny<SetHeatingCircuitRequest?>(),
+                    It.IsAny<CancellationToken>()))
+                .Callback<string, SetHeatingCircuitRequest?, CancellationToken>((_, req, _) =>
+                {
+                    capturedRequest = req;
+                })
+                .ReturnsAsync(new TadoZoneControlResponse
+                {
+                    Type = "HEATING",
+                    HeatingCircuit = null
+                });
+
+            var service = new TadoZoneService(mockHttp.Object);
+
+            var result = await service.SetHeatingCircuitAsync(1, 2, null, CancellationToken.None);
+
+            Assert.Null(capturedRequest);
+            Assert.Null(result.HeatingCircuit);
+            mockHttp.Verify(c => c.PutAsync<SetHeatingCircuitRequest?, TadoZoneControlResponse>(
+                "homes/1/zones/2/control/heatingCircuit",
+                null,
+                It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact(DisplayName = "SetHeatingCircuitAsync rejects non-positive circuit numbers")]
+        public async Task SetHeatingCircuitAsync_RejectsNonPositiveCircuitNumbers()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            var service = new TadoZoneService(mockHttp.Object);
+
+            await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
+                service.SetHeatingCircuitAsync(1, 2, 0, CancellationToken.None));
+
+            mockHttp.Verify(c => c.PutAsync<SetHeatingCircuitRequest?, TadoZoneControlResponse>(
+                It.IsAny<string>(),
+                It.IsAny<SetHeatingCircuitRequest?>(),
+                It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Fact(DisplayName = "CreateZoneAsync sends the spec-aligned zone creation command")]

@@ -202,6 +202,20 @@ namespace TadoNetApi.Tests.Application.Services
         }
 
         [Fact]
+        public async Task SetHeatingCircuitAsync_PassesThroughToDomainService()
+        {
+            var expected = new ZoneControl { HeatingCircuit = 3 };
+            var (service, mock) = CreateService();
+            mock.Setup(s => s.SetHeatingCircuitAsync(1, 2, 3, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expected);
+
+            var result = await service.SetHeatingCircuitAsync(1, 2, 3, CancellationToken.None);
+
+            Assert.Same(expected, result);
+            mock.Verify(s => s.SetHeatingCircuitAsync(1, 2, 3, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact]
         public async Task SetHeatingTemperatureFahrenheitAsync_PassesThroughToDomainService()
         {
             var expected = new ZoneSummary();

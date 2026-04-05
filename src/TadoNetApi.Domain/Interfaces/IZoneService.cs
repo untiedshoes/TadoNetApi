@@ -137,6 +137,16 @@ namespace TadoNetApi.Domain.Interfaces
         Task<bool> DeleteZoneOverlayAsync(int homeId, int zoneId, CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Assigns the zone to a specific heating circuit or removes the assignment.
+        /// </summary>
+        /// <param name="homeId">The ID of the home containing the zone.</param>
+        /// <param name="zoneId">The ID of the zone to update.</param>
+        /// <param name="circuitNumber">The heating circuit number to assign, or <see langword="null"/> to remove the assignment.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>The updated zone control details.</returns>
+        Task<ZoneControl> SetHeatingCircuitAsync(int homeId, int zoneId, int? circuitNumber, CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Sets the heating temperature in Celsius for a zone, keeping it until the next manual change.
         /// </summary>
         /// <param name="homeId">The ID of the home containing the zone.</param>

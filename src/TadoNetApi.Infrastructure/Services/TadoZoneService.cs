@@ -490,6 +490,37 @@ namespace TadoNetApi.Infrastructure.Services
         }
 
         /// <summary>
+        /// Assigns the zone to a specific heating circuit or removes the assignment.
+        /// </summary>
+        /// <param name="homeId">The ID of the home.</param>
+        /// <param name="zoneId">The ID of the zone.</param>
+        /// <param name="circuitNumber">The heating circuit number to assign, or null to remove the assignment.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>The updated zone control details.</returns>
+        public async Task<ZoneControl> SetHeatingCircuitAsync(int homeId, int zoneId, int? circuitNumber, CancellationToken cancellationToken = default)
+        {
+            Guard.PositiveId(homeId, nameof(homeId));
+            Guard.PositiveId(zoneId, nameof(zoneId));
+
+            if (circuitNumber.HasValue && circuitNumber.Value <= 0)
+                throw new ArgumentOutOfRangeException(nameof(circuitNumber), "Circuit number must be a positive integer when provided.");
+
+            var request = circuitNumber.HasValue
+                ? new SetHeatingCircuitRequest { CircuitNumber = circuitNumber.Value }
+                : null;
+
+            var response = await _httpClient.PutAsync<SetHeatingCircuitRequest?, TadoZoneControlResponse>(
+                $"homes/{homeId}/zones/{zoneId}/control/heatingCircuit",
+                request,
+                cancellationToken);
+
+            if (response == null)
+                throw new TadoApiException(HttpStatusCode.NotFound, $"Zone control for zone {zoneId} not found.");
+
+            return response.ToDomain();
+        }
+
+        /// <summary>
         /// Sets the heating temperature in Celsius for a zone, keeping it until the next manual change.
         /// </summary>
         /// <param name="homeId">The ID of the home.</param>

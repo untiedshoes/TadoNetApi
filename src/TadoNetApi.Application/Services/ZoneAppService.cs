@@ -158,6 +158,17 @@ namespace TadoNetApi.Application.Services
             => _zoneService.DeleteZoneOverlayAsync(homeId, zoneId, cancellationToken);
 
         /// <summary>
+        /// Assigns the zone to a specific heating circuit or removes the assignment.
+        /// </summary>
+        /// <param name="homeId">The ID of the home containing the zone.</param>
+        /// <param name="zoneId">The ID of the zone to update.</param>
+        /// <param name="circuitNumber">The heating circuit number to assign, or <see langword="null"/> to remove the assignment.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>The updated zone control details.</returns>
+        public Task<ZoneControl> SetHeatingCircuitAsync(int homeId, int zoneId, int? circuitNumber, CancellationToken cancellationToken = default)
+            => _zoneService.SetHeatingCircuitAsync(homeId, zoneId, circuitNumber, cancellationToken);
+
+        /// <summary>
         /// Sets a manual heating overlay that lasts until the next manual change.
         /// </summary>
         /// <param name="homeId">The ID of the home containing the zone.</param>

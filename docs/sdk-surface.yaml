@@ -378,6 +378,26 @@ services:
             nullable: false
           summary: Deletes the currently active manual overlay for a zone.
 
+        - name: SetHeatingCircuitAsync
+          kind: command
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+            - name: zoneId
+              type: int
+              validation: positive-id
+            - name: circuitNumber
+              type: int?
+              required: false
+              source: caller-provided
+          returns:
+            type: ZoneControl
+            nullable: false
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/ZoneControl.cs
+          summary: Assigns the zone to a specific heating circuit or removes the assignment.
+
         - name: SetEarlyStartAsync
           kind: command
           parameters:

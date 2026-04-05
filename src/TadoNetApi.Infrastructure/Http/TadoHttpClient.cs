@@ -91,13 +91,15 @@ namespace TadoNetApi.Infrastructure.Http
             TRequest body,
             CancellationToken cancellationToken = default)
         {
-            var request = new HttpRequestMessage(HttpMethod.Put, endpoint)
+            var request = new HttpRequestMessage(HttpMethod.Put, endpoint);
+
+            if (body != null)
             {
-                Content = new StringContent(
+                request.Content = new StringContent(
                     JsonSerializer.Serialize(body),
                     Encoding.UTF8,
-                    "application/json")
-            };
+                    "application/json");
+            }
 
             return await SendAsync<TResponse>(request, cancellationToken);
         }

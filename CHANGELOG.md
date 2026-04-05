@@ -6,6 +6,14 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [0.8.7] - 2026-04-05
+
+### Added
+- Added `SetHeatingCircuitAsync` for `PUT /homes/{homeId}/zones/{zoneId}/control/heatingCircuit`, including support for clearing the assignment by sending an empty body.
+
+### Fixed
+- Added focused tests for the `SetHeatingCircuitAsync` command route, payload shape, null-body removal behavior, and circuit-number validation.
+
 ## [0.8.6] - 2026-04-05
 
 ### Added

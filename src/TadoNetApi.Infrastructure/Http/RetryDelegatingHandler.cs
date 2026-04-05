@@ -1,5 +1,4 @@
 using System.Net;
-using System.Net.Http.Headers;
 using Microsoft.Extensions.Logging;
 using TadoNetApi.Infrastructure.Exceptions;
 using TadoNetApi.Infrastructure.Config;
@@ -53,31 +52,46 @@ public class RetryDelegatingHandler : DelegatingHandler
             if (attempt > _config.MaxRetries)
             {
                 _logger.LogError("Tado API rate limit exceeded after {Attempts} attempts.", attempt);
+                var exception = new RequestThrottledException(retryRequest, response);
                 response.Dispose();
-                throw new TadoApiException(response.StatusCode, "Rate limit exceeded.");
+                throw exception;
             }
 
-            // Read Retry-After header (seconds)
-            int waitSeconds = 0;
-            if (response.Headers.TryGetValues("Retry-After", out var values))
-            {
-                var retryAfterValue = values.FirstOrDefault();
-                if (int.TryParse(retryAfterValue, out int parsed))
-                    waitSeconds = parsed;
-            }
+            var waitSeconds = GetRetryDelaySeconds(response, delayMs);
 
-            if (waitSeconds == 0)
-                waitSeconds = delayMs / 1000; // fallback to exponential backoff
+            var throttledException = new RequestThrottledException(retryRequest, response);
 
             _logger.LogWarning(
-                "Tado API rate limited. Attempt {Attempt}/{MaxRetries}. Waiting {Seconds}s before retrying.",
-                attempt, _config.MaxRetries, waitSeconds);
+                "Tado API rate limited. Attempt {Attempt}/{MaxRetries}. Waiting {Seconds}s before retrying. Policy={Policy} Remaining={Remaining} Reset={Reset}s",
+                attempt,
+                _config.MaxRetries,
+                waitSeconds,
+                throttledException.RateLimitPolicyName,
+                throttledException.RemainingRequests,
+                throttledException.ResetTimeSeconds);
 
             response.Dispose();
             await Task.Delay(waitSeconds * 1000, cancellationToken);
 
             delayMs *= 2; // exponential backoff
         }
+    }
+
+    private static int GetRetryDelaySeconds(HttpResponseMessage response, int fallbackDelayMs)
+    {
+        if (response.Headers.RetryAfter?.Delta != null)
+        {
+            return Math.Max(1, (int)Math.Ceiling(response.Headers.RetryAfter.Delta.Value.TotalSeconds));
+        }
+
+        if (response.Headers.RetryAfter?.Date != null)
+        {
+            var secondsUntilRetry = response.Headers.RetryAfter.Date.Value - DateTimeOffset.UtcNow;
+            if (secondsUntilRetry > TimeSpan.Zero)
+                return Math.Max(1, (int)Math.Ceiling(secondsUntilRetry.TotalSeconds));
+        }
+
+        return Math.Max(1, (int)Math.Ceiling(fallbackDelayMs / 1000d));
     }
 
     /// <summary>

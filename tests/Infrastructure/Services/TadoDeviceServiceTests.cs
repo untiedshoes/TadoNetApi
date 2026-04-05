@@ -9,7 +9,9 @@ using System.Threading.Tasks;
 using Moq;
 using TadoNetApi.Domain.Entities;
 using TadoNetApi.Infrastructure.Dtos.Responses;
+using TadoNetApi.Infrastructure.Dtos.Responses.MobileDevice;
 using TadoNetApi.Infrastructure.Exceptions;
+using TadoNetApi.Infrastructure.Http;
 using TadoNetApi.Infrastructure.Services;
 using TadoNetApi.Tests.Mocks;
 using Xunit;
@@ -269,11 +271,11 @@ namespace TadoNetApi.Tests.Infrastructure.Services
         public async Task GetMobileDeviceAsync_ReturnsMappedMobileDevice()
         {
             // Arrange
-            var mobileDevice = new TadoNetApi.Infrastructure.Dtos.Responses.MobileDevice.TadoMobileItemResponse
+            var mobileDevice = new TadoMobileItemResponse
             {
                 Id = 42,
                 Name = "Craig's iPhone",
-                Settings = new TadoNetApi.Infrastructure.Dtos.Responses.MobileDevice.TadoMobileSettingsResponse
+                Settings = new TadoMobileSettingsResponse
                 {
                     GeoTrackingEnabled = true
                 }
@@ -345,7 +347,7 @@ namespace TadoNetApi.Tests.Infrastructure.Services
         public async Task SetZoneTemperatureOffsetCelsiusAsync_SendsExpectedCommand()
         {
             // Arrange
-            var mockHttp = new Mock<TadoNetApi.Infrastructure.Http.ITadoHttpClient>();
+            var mockHttp = new Mock<ITadoHttpClient>();
             mockHttp
                 .Setup(c => c.SendAsync(
                     It.IsAny<string>(),

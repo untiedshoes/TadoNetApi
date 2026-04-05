@@ -316,6 +316,23 @@ dotnet test
 
 ---
 
+## Throttling Behaviour
+
+The SDK automatically retries `429 Too Many Requests` responses using `Retry-After` when the API provides it, and otherwise falls back to the configured backoff settings.
+
+If the retry budget is exhausted, the SDK throws `RequestThrottledException` so callers can distinguish throttling from other API failures. That exception exposes the parsed throttling metadata when the API sends it, including:
+
+- request URI
+- retry-after delay or retry-after date
+- rate-limit policy name
+- quota and window size
+- remaining requests
+- reset time
+
+This is in place so SDK consumers can log, surface, or react to throttling with more context than a generic HTTP failure.
+
+---
+
 ## Notes
 
 - API calls include automatic retry logic and rate limiting awareness

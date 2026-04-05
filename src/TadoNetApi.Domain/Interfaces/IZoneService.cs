@@ -8,70 +8,145 @@ namespace TadoNetApi.Domain.Interfaces
     /// </summary>
     public interface IZoneService
     {
+        /// <summary>
+        /// Retrieves all zones for a home.
+        /// </summary>
+        /// <param name="homeId">The ID of the home whose zones should be retrieved.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>A read-only list of zones.</returns>
         Task<IReadOnlyList<Zone>> GetZonesAsync(int homeId, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Retrieves a single zone definition.
+        /// </summary>
+        /// <param name="homeId">The ID of the home containing the zone.</param>
+        /// <param name="zoneId">The ID of the zone to retrieve.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>The requested zone.</returns>
         Task<Zone> GetZoneAsync(int homeId, int zoneId, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Fetches the current state of a zone.
         /// </summary>
+        /// <param name="homeId">The ID of the home containing the zone.</param>
+        /// <param name="zoneId">The ID of the zone to inspect.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>The current zone state.</returns>
         Task<State> GetZoneStateAsync(int homeId, int zoneId, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Fetches a summary of the zone's current settings and termination conditions.
         /// Returns null if no overlay is active.
-        /// </summary> <param name="homeId">The ID of the home.</param>
-        /// <param name="zoneId">The ID of the zone.</param>    /// <param name="cancellationToken">Cancellation token.</param> 
+        /// </summary>
+        /// <param name="homeId">The ID of the home containing the zone.</param>
+        /// <param name="zoneId">The ID of the zone to inspect.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
         /// <returns>A summary of the zone's current settings and termination conditions, or null if no overlay.</returns>
         Task<ZoneSummary?> GetZoneSummaryAsync(int homeId, int zoneId, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Fetches the capabilities of a zone.
         /// </summary>
+        /// <param name="homeId">The ID of the home containing the zone.</param>
+        /// <param name="zoneId">The ID of the zone to inspect.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>A read-only list of zone capabilities.</returns>
         Task<IReadOnlyList<Capability>> GetZoneCapabilitiesAsync(int homeId, int zoneId, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Fetches the control configuration for a zone, including heating circuit and device duties.
         /// </summary>
+        /// <param name="homeId">The ID of the home containing the zone.</param>
+        /// <param name="zoneId">The ID of the zone to inspect.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>The zone control details.</returns>
         Task<ZoneControl> GetZoneControlAsync(int homeId, int zoneId, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Fetches the default overlay configuration for a zone.
         /// </summary>
+        /// <param name="homeId">The ID of the home containing the zone.</param>
+        /// <param name="zoneId">The ID of the zone to inspect.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>The default overlay configuration.</returns>
         Task<DefaultZoneOverlay> GetDefaultZoneOverlayAsync(int homeId, int zoneId, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Fetches the early start settings for a zone.
         /// </summary>
+        /// <param name="homeId">The ID of the home containing the zone.</param>
+        /// <param name="zoneId">The ID of the zone to inspect.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>The early start configuration.</returns>
         Task<EarlyStart> GetEarlyStartAsync(int homeId, int zoneId, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Fetches the settings used for the zone while the home is in AWAY mode.
         /// </summary>
+        /// <param name="homeId">The ID of the home containing the zone.</param>
+        /// <param name="zoneId">The ID of the zone to inspect.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>The away configuration for the zone.</returns>
         Task<AwayConfiguration> GetAwayConfigurationAsync(int homeId, int zoneId, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Fetches the day report payload for a zone.
         /// </summary>
+        /// <param name="homeId">The ID of the home containing the zone.</param>
+        /// <param name="zoneId">The ID of the zone to inspect.</param>
+        /// <param name="date">An optional report date. When omitted, the current date is used.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>The requested day report.</returns>
         Task<ZoneDayReport> GetZoneDayReportAsync(int homeId, int zoneId, DateOnly? date = null, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Fetches the temperature offset for a zone by using the first associated device serial.
         /// </summary>
+        /// <param name="zone">The zone whose measuring device offset should be resolved.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>The resolved temperature offset.</returns>
         Task<Temperature> GetZoneTemperatureOffsetAsync(Zone zone, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Enables or disables the early start mode for a zone.
         /// </summary>
+        /// <param name="homeId">The ID of the home containing the zone.</param>
+        /// <param name="zoneId">The ID of the zone to update.</param>
+        /// <param name="enabled">True to enable early start; otherwise false.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns><see langword="true"/> when the command succeeds.</returns>
         Task<bool> SetEarlyStartAsync(int homeId, int zoneId, bool enabled, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Creates a new zone and moves the specified devices into it.
+        /// </summary>
+        /// <param name="homeId">The ID of the home in which the zone should be created.</param>
+        /// <param name="zoneType">The zone type, such as HEATING or HOT_WATER.</param>
+        /// <param name="deviceSerialNumbers">The device serial numbers to move into the new zone.</param>
+        /// <param name="force">Optional flag indicating whether the previous zone should be forcibly removed when supported.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        Task CreateZoneAsync(int homeId, string zoneType, IReadOnlyList<string> deviceSerialNumbers, bool? force = null, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Sets the heating temperature in Celsius for a zone, keeping it until the next manual change.
         /// </summary>
+        /// <param name="homeId">The ID of the home containing the zone.</param>
+        /// <param name="zoneId">The ID of the zone to update.</param>
+        /// <param name="temperature">The target temperature in Celsius.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>The resulting zone summary, or <see langword="null"/> when no payload is returned.</returns>
         Task<ZoneSummary?> SetHeatingTemperatureCelsiusAsync(int homeId, int zoneId, double temperature, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Sets the heating temperature in Celsius for a zone for the specified duration.
         /// </summary>
+        /// <param name="homeId">The ID of the home containing the zone.</param>
+        /// <param name="zoneId">The ID of the zone to update.</param>
+        /// <param name="temperature">The target temperature in Celsius.</param>
+        /// <param name="durationMode">How long the overlay should remain active.</param>
+        /// <param name="timer">The timer duration when <paramref name="durationMode"/> is timer-based.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>The resulting zone summary, or <see langword="null"/> when no payload is returned.</returns>
         Task<ZoneSummary?> SetHeatingTemperatureCelsiusAsync(int homeId, int zoneId, double temperature, DurationModes durationMode, TimeSpan? timer = null, CancellationToken cancellationToken = default);
     }
 }

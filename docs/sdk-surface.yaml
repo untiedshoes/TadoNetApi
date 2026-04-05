@@ -345,6 +345,25 @@ services:
             modelFile: src/TadoNetApi.Domain/Entities/Temperature.cs
           summary: Resolves the first associated device from a zone and returns its temperature offset.
 
+        - name: CreateZoneAsync
+          kind: command
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+            - name: zoneType
+              type: string
+            - name: deviceSerialNumbers
+              type: IReadOnlyList<string>
+              collection: true
+            - name: force
+              type: bool?
+              required: false
+          returns:
+            type: void
+            nullable: false
+          summary: Creates a new zone and moves the specified devices into it.
+
         - name: SetEarlyStartAsync
           kind: command
           parameters:

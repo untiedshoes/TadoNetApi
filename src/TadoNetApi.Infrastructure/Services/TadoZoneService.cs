@@ -20,6 +20,10 @@ namespace TadoNetApi.Infrastructure.Services
     {
         private readonly ITadoHttpClient _httpClient;
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="TadoZoneService"/>.
+        /// </summary>
+        /// <param name="httpClient">The HTTP client used to communicate with the Tado API.</param>
         public TadoZoneService(ITadoHttpClient httpClient)
         {
             _httpClient = httpClient;
@@ -30,6 +34,9 @@ namespace TadoNetApi.Infrastructure.Services
         /// <summary>
         /// Returns a list of zones in the specified home.
         /// </summary>
+        /// <param name="homeId">The ID of the home whose zones should be retrieved.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>A read-only list of zones.</returns>
         public async Task<IReadOnlyList<Zone>> GetZonesAsync(int homeId, CancellationToken cancellationToken = default)
         {
             Guard.PositiveId(homeId, nameof(homeId));
@@ -52,6 +59,10 @@ namespace TadoNetApi.Infrastructure.Services
         /// <summary>
         /// Returns detailed information about a specific zone.
         /// </summary>
+        /// <param name="homeId">The ID of the home containing the zone.</param>
+        /// <param name="zoneId">The ID of the zone to retrieve.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>The requested zone.</returns>
         public async Task<Zone> GetZoneAsync(int homeId, int zoneId, CancellationToken cancellationToken = default)
         {
             Guard.PositiveId(homeId, nameof(homeId));
@@ -78,6 +89,10 @@ namespace TadoNetApi.Infrastructure.Services
         /// <summary>
         /// Returns the current state of a zone (current temperature, humidity, etc.)
         /// </summary>
+        /// <param name="homeId">The ID of the home containing the zone.</param>
+        /// <param name="zoneId">The ID of the zone to inspect.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>The current zone state.</returns>
         public async Task<State> GetZoneStateAsync(int homeId, int zoneId, CancellationToken cancellationToken = default)
         {
             Guard.PositiveId(homeId, nameof(homeId));
@@ -104,6 +119,10 @@ namespace TadoNetApi.Infrastructure.Services
         /// <summary>
         /// Returns the summarized state of a zone (target temperature, overlay, etc.)
         /// </summary>
+        /// <param name="homeId">The ID of the home containing the zone.</param>
+        /// <param name="zoneId">The ID of the zone to inspect.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>The current zone summary, or <see langword="null"/> when no overlay is active.</returns>
         public async Task<ZoneSummary?> GetZoneSummaryAsync(int homeId, int zoneId, CancellationToken cancellationToken = default)
         {
             Guard.PositiveId(homeId, nameof(homeId));
@@ -132,6 +151,10 @@ namespace TadoNetApi.Infrastructure.Services
         /// <summary>
         /// Returns the capabilities of a zone.
         /// </summary>
+        /// <param name="homeId">The ID of the home containing the zone.</param>
+        /// <param name="zoneId">The ID of the zone to inspect.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>A read-only list of zone capabilities.</returns>
         public async Task<IReadOnlyList<Capability>> GetZoneCapabilitiesAsync(int homeId, int zoneId, CancellationToken cancellationToken = default)
         {
             Guard.PositiveId(homeId, nameof(homeId));
@@ -190,6 +213,10 @@ namespace TadoNetApi.Infrastructure.Services
         /// <summary>
         /// Returns the zone control details including heating circuit and grouped devices.
         /// </summary>
+        /// <param name="homeId">The ID of the home containing the zone.</param>
+        /// <param name="zoneId">The ID of the zone to inspect.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>The zone control details.</returns>
         public async Task<ZoneControl> GetZoneControlAsync(int homeId, int zoneId, CancellationToken cancellationToken = default)
         {
             Guard.PositiveId(homeId, nameof(homeId));
@@ -216,6 +243,10 @@ namespace TadoNetApi.Infrastructure.Services
         /// <summary>
         /// Returns the default overlay configuration for a zone.
         /// </summary>
+        /// <param name="homeId">The ID of the home containing the zone.</param>
+        /// <param name="zoneId">The ID of the zone to inspect.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>The default overlay configuration.</returns>
         public async Task<DefaultZoneOverlay> GetDefaultZoneOverlayAsync(int homeId, int zoneId, CancellationToken cancellationToken = default)
         {
             Guard.PositiveId(homeId, nameof(homeId));
@@ -242,6 +273,10 @@ namespace TadoNetApi.Infrastructure.Services
         /// <summary>
         /// Returns early start settings for a zone.
         /// </summary>
+        /// <param name="homeId">The ID of the home containing the zone.</param>
+        /// <param name="zoneId">The ID of the zone to inspect.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>The early start configuration.</returns>
         public async Task<EarlyStart> GetEarlyStartAsync(int homeId, int zoneId, CancellationToken cancellationToken = default)
         {
             Guard.PositiveId(homeId, nameof(homeId));
@@ -268,6 +303,10 @@ namespace TadoNetApi.Infrastructure.Services
         /// <summary>
         /// Returns the away-configuration settings for a zone.
         /// </summary>
+        /// <param name="homeId">The ID of the home containing the zone.</param>
+        /// <param name="zoneId">The ID of the zone to inspect.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>The away configuration for the zone.</returns>
         public async Task<AwayConfiguration> GetAwayConfigurationAsync(int homeId, int zoneId, CancellationToken cancellationToken = default)
         {
             Guard.PositiveId(homeId, nameof(homeId));
@@ -295,6 +334,11 @@ namespace TadoNetApi.Infrastructure.Services
         /// <summary>
         /// Returns the day-report payload for a zone.
         /// </summary>
+        /// <param name="homeId">The ID of the home containing the zone.</param>
+        /// <param name="zoneId">The ID of the zone to inspect.</param>
+        /// <param name="date">An optional report date. When omitted, the current date is used.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>The requested day report.</returns>
         public async Task<ZoneDayReport> GetZoneDayReportAsync(int homeId, int zoneId, DateOnly? date = null, CancellationToken cancellationToken = default)
         {
             Guard.PositiveId(homeId, nameof(homeId));
@@ -326,6 +370,9 @@ namespace TadoNetApi.Infrastructure.Services
         /// <summary>
         /// Returns temperature offset for a zone using the first device serial in zone.Devices.
         /// </summary>
+        /// <param name="zone">The zone whose measuring device offset should be resolved.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>The resolved temperature offset.</returns>
         public async Task<Temperature> GetZoneTemperatureOffsetAsync(Zone zone, CancellationToken cancellationToken = default)
         {
             if (zone == null) throw new ArgumentNullException(nameof(zone));
@@ -363,8 +410,8 @@ namespace TadoNetApi.Infrastructure.Services
         /// <param name="homeId">The ID of the home.</param>
         /// <param name="zoneId">The ID of the zone.</param>
         /// <param name="enabled">True to enable early start, false to disable it.</param>
-        /// <param name="cancellationToken">Optional cancellation token.</param>
-        /// <returns>Boolean indicating if the request was successful.</returns>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns><see langword="true"/> when the command succeeds.</returns>
         public async Task<bool> SetEarlyStartAsync(int homeId, int zoneId, bool enabled, CancellationToken cancellationToken = default)
         {
             Guard.PositiveId(homeId, nameof(homeId));
@@ -379,12 +426,56 @@ namespace TadoNetApi.Infrastructure.Services
         }
 
         /// <summary>
+        /// Creates a new zone and moves the specified devices into it.
+        /// </summary>
+        /// <param name="homeId">The ID of the home in which the zone should be created.</param>
+        /// <param name="zoneType">The zone type, such as HEATING or HOT_WATER.</param>
+        /// <param name="deviceSerialNumbers">The device serial numbers to move into the new zone.</param>
+        /// <param name="force">Optional flag indicating whether the previous zone should be forcibly removed when supported.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        public async Task CreateZoneAsync(int homeId, string zoneType, IReadOnlyList<string> deviceSerialNumbers, bool? force = null, CancellationToken cancellationToken = default)
+        {
+            Guard.PositiveId(homeId, nameof(homeId));
+
+            if (string.IsNullOrWhiteSpace(zoneType))
+                throw new ArgumentException("Zone type is required.", nameof(zoneType));
+
+            if (deviceSerialNumbers == null)
+                throw new ArgumentNullException(nameof(deviceSerialNumbers));
+
+            if (deviceSerialNumbers.Count == 0)
+                throw new ArgumentException("At least one device serial number is required.", nameof(deviceSerialNumbers));
+
+            if (deviceSerialNumbers.Any(string.IsNullOrWhiteSpace))
+                throw new ArgumentException("Device serial numbers cannot be null, empty, or whitespace.", nameof(deviceSerialNumbers));
+
+            var request = new CreateZoneRequest
+            {
+                ZoneType = zoneType,
+                Devices = deviceSerialNumbers
+                    .Select(serialNo => new CreateZoneDeviceRequest { SerialNo = serialNo })
+                    .ToArray()
+            };
+
+            var path = $"homes/{homeId}/zones";
+            if (force.HasValue)
+                path += $"?force={force.Value.ToString().ToLowerInvariant()}";
+
+            await _httpClient.SendAsync(
+                path,
+                HttpMethod.Post,
+                cancellationToken,
+                HttpStatusCode.Created,
+                request);
+        }
+
+        /// <summary>
         /// Sets the heating temperature in Celsius for a zone, keeping it until the next manual change.
         /// </summary>
         /// <param name="homeId">The ID of the home.</param>
         /// <param name="zoneId">The ID of the zone.</param>
         /// <param name="temperature">The target temperature in Celsius.</param>
-        /// <param name="cancellationToken">Optional cancellation token.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
         /// <returns>The updated zone summary, or null if the response could not be deserialized.</returns>
         public Task<ZoneSummary?> SetHeatingTemperatureCelsiusAsync(int homeId, int zoneId, double temperature, CancellationToken cancellationToken = default)
             => SetHeatingTemperatureCelsiusAsync(homeId, zoneId, temperature, DurationModes.UntilNextManualChange, null, cancellationToken);
@@ -397,7 +488,7 @@ namespace TadoNetApi.Infrastructure.Services
         /// <param name="temperature">The target temperature in Celsius.</param>
         /// <param name="durationMode">How long the setting should remain active.</param>
         /// <param name="timer">Required when <paramref name="durationMode"/> is <see cref="DurationModes.Timer"/>.</param>
-        /// <param name="cancellationToken">Optional cancellation token.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
         /// <returns>The updated zone summary, or null if the response could not be deserialized.</returns>
         public async Task<ZoneSummary?> SetHeatingTemperatureCelsiusAsync(int homeId, int zoneId, double temperature, DurationModes durationMode, TimeSpan? timer = null, CancellationToken cancellationToken = default)
         {

@@ -6,6 +6,15 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-04-05
+
+### Added
+- Added `CreateZoneAsync` for `POST /homes/{homeId}/zones` with support for the optional `force` query flag.
+
+### Fixed
+- Added focused tests for the `CreateZoneAsync` command route, HTTP method, expected status code, and payload shape.
+- Completed XML parameter and return documentation across the public application, domain, and infrastructure service surfaces for fuller IntelliSense.
+
 ## [0.8.2] - 2026-04-05
 
 ### Added

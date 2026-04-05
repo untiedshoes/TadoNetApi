@@ -16,6 +16,10 @@ public class TadoHomeService : IHomeService
 {
     private readonly ITadoHttpClient _httpClient;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="TadoHomeService"/>.
+    /// </summary>
+    /// <param name="httpClient">The HTTP client used to communicate with the Tado API.</param>
     public TadoHomeService(ITadoHttpClient httpClient)
     {
         _httpClient = httpClient;
@@ -23,7 +27,12 @@ public class TadoHomeService : IHomeService
 
     #region Data Retrieval
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Retrieves a specific home by its unique identifier.
+    /// </summary>
+    /// <param name="homeId">The ID of the home to retrieve.</param>
+    /// <param name="cancellationToken">The cancellation token to observe.</param>
+    /// <returns>The requested home, or <see langword="null"/> when no payload is returned.</returns>
     public async Task<House?> GetHomeAsync(int homeId, CancellationToken cancellationToken = default)
     {
         Guard.PositiveId(homeId, nameof(homeId));
@@ -33,7 +42,12 @@ public class TadoHomeService : IHomeService
         return dto == null ? null : HouseMapper.ToDomain(dto);
     }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Retrieves the state of a home.
+    /// </summary>
+    /// <param name="homeId">The ID of the home to inspect.</param>
+    /// <param name="cancellationToken">The cancellation token to observe.</param>
+    /// <returns>The current home state, or <see langword="null"/> when no payload is returned.</returns>
     public async Task<HomeState?> GetHomeStateAsync(int homeId, CancellationToken cancellationToken = default)
     {
         Guard.PositiveId(homeId, nameof(homeId));
@@ -43,7 +57,12 @@ public class TadoHomeService : IHomeService
         return dto == null ? null : dto.ToDomain();
     }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Retrieves the users associated with a home.
+    /// </summary>
+    /// <param name="homeId">The ID of the home whose users should be retrieved.</param>
+    /// <param name="cancellationToken">The cancellation token to observe.</param>
+    /// <returns>A read-only list of users associated with the home.</returns>
     public async Task<IReadOnlyList<User>> GetUsersAsync(int homeId, CancellationToken cancellationToken = default)
     {
         Guard.PositiveId(homeId, nameof(homeId));
@@ -63,7 +82,12 @@ public class TadoHomeService : IHomeService
         }
     }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Retrieves the air comfort indicators for a home.
+    /// </summary>
+    /// <param name="homeId">The ID of the home to inspect.</param>
+    /// <param name="cancellationToken">The cancellation token to observe.</param>
+    /// <returns>The current air comfort indicators.</returns>
     public async Task<AirComfort> GetAirComfortAsync(int homeId, CancellationToken cancellationToken = default)
     {
         Guard.PositiveId(homeId, nameof(homeId));
@@ -87,7 +111,12 @@ public class TadoHomeService : IHomeService
         }
     }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Retrieves the incident detection settings for a home.
+    /// </summary>
+    /// <param name="homeId">The ID of the home to inspect.</param>
+    /// <param name="cancellationToken">The cancellation token to observe.</param>
+    /// <returns>The incident detection configuration.</returns>
     public async Task<IncidentDetection> GetIncidentDetectionAsync(int homeId, CancellationToken cancellationToken = default)
     {
         Guard.PositiveId(homeId, nameof(homeId));
@@ -111,7 +140,12 @@ public class TadoHomeService : IHomeService
         }
     }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Retrieves the heating circuits configured for a home.
+    /// </summary>
+    /// <param name="homeId">The ID of the home to inspect.</param>
+    /// <param name="cancellationToken">The cancellation token to observe.</param>
+    /// <returns>A read-only list of configured heating circuits.</returns>
     public async Task<IReadOnlyList<HeatingCircuit>> GetHeatingCircuitsAsync(int homeId, CancellationToken cancellationToken = default)
     {
         Guard.PositiveId(homeId, nameof(homeId));
@@ -131,7 +165,12 @@ public class TadoHomeService : IHomeService
         }
     }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Retrieves the heating system configuration for a home.
+    /// </summary>
+    /// <param name="homeId">The ID of the home to inspect.</param>
+    /// <param name="cancellationToken">The cancellation token to observe.</param>
+    /// <returns>The configured heating system.</returns>
     public async Task<HeatingSystem> GetHeatingSystemAsync(int homeId, CancellationToken cancellationToken = default)
     {
         Guard.PositiveId(homeId, nameof(homeId));
@@ -155,7 +194,12 @@ public class TadoHomeService : IHomeService
         }
     }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Retrieves the flow-temperature optimisation settings for a home.
+    /// </summary>
+    /// <param name="homeId">The ID of the home to inspect.</param>
+    /// <param name="cancellationToken">The cancellation token to observe.</param>
+    /// <returns>The flow-temperature optimisation settings.</returns>
     public async Task<FlowTemperatureOptimisation> GetFlowTemperatureOptimisationAsync(int homeId, CancellationToken cancellationToken = default)
     {
         Guard.PositiveId(homeId, nameof(homeId));
@@ -183,7 +227,12 @@ public class TadoHomeService : IHomeService
 
     #region Send Commands
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Sets the presence state of a home.
+    /// </summary>
+    /// <param name="homeId">The ID of the home to update.</param>
+    /// <param name="presence">The presence value to apply, such as HOME or AWAY.</param>
+    /// <param name="cancellationToken">The cancellation token to observe.</param>
     public async Task SetHomePresenceAsync(int homeId, string presence, CancellationToken cancellationToken = default)
     {
         Guard.PositiveId(homeId, nameof(homeId));
@@ -207,7 +256,11 @@ public class TadoHomeService : IHomeService
             request);
     }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Resets the manually set presence state of a home.
+    /// </summary>
+    /// <param name="homeId">The ID of the home to update.</param>
+    /// <param name="cancellationToken">The cancellation token to observe.</param>
     public async Task ResetHomePresenceAsync(int homeId, CancellationToken cancellationToken = default)
     {
         Guard.PositiveId(homeId, nameof(homeId));

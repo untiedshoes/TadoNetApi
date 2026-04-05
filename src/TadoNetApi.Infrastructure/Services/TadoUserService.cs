@@ -13,6 +13,10 @@ public class TadoUserService : IUserService
 {
     private readonly ITadoHttpClient _httpClient;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="TadoUserService"/>.
+    /// </summary>
+    /// <param name="httpClient">The HTTP client used to communicate with the Tado API.</param>
     public TadoUserService(ITadoHttpClient httpClient)
     {
         _httpClient = httpClient;
@@ -20,7 +24,11 @@ public class TadoUserService : IUserService
 
     #region Data Retrieval
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Retrieves information about the current authenticated user.
+    /// </summary>
+    /// <param name="cancellationToken">The cancellation token to observe.</param>
+    /// <returns>The current user, or <see langword="null"/> when no payload is returned.</returns>
     public async Task<User?> GetMeAsync(CancellationToken cancellationToken = default)
     {
         var dto = await _httpClient.GetAsync<TadoUserResponse>("me", cancellationToken);

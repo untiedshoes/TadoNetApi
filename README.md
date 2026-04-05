@@ -176,7 +176,7 @@ If you want a machine-readable map of the SDK surface, including method signatur
 |-------|-------|-------|
 | UserAppService | Retrieve the current authenticated user and home context | `GetMeAsync` |
 | HomeAppService | Read home data, home users, comfort, heating, flow-temperature optimisation, and diagnostic indicators, and manage presence state | `GetHomeAsync`, `GetHomeStateAsync`, `GetUsersAsync`, `GetAirComfortAsync`, `GetIncidentDetectionAsync`, `GetHeatingCircuitsAsync`, `GetHeatingSystemAsync`, `GetFlowTemperatureOptimisationAsync`, `SetHomePresenceAsync`, `ResetHomePresenceAsync` |
-| ZoneAppService | Read zone data, away-configuration settings, day reports, and send zone-level commands | `GetZonesAsync`, `GetZoneAsync`, `GetZoneStateAsync`, `GetZoneSummaryAsync`, `GetZoneCapabilitiesAsync`, `GetZoneControlAsync`, `GetDefaultZoneOverlayAsync`, `GetEarlyStartAsync`, `GetAwayConfigurationAsync`, `GetZoneDayReportAsync`, `GetZoneTemperatureOffsetAsync`, `SetEarlyStartAsync`, `SetHeatingTemperatureCelsiusAsync` |
+| ZoneAppService | Read zone data, away-configuration settings, day reports, and send zone-level commands | `GetZonesAsync`, `GetZoneAsync`, `GetZoneStateAsync`, `GetZoneSummaryAsync`, `GetZoneCapabilitiesAsync`, `GetZoneControlAsync`, `GetDefaultZoneOverlayAsync`, `GetEarlyStartAsync`, `GetAwayConfigurationAsync`, `GetZoneDayReportAsync`, `GetZoneTemperatureOffsetAsync`, `CreateZoneAsync`, `SetEarlyStartAsync`, `SetHeatingTemperatureCelsiusAsync` |
 | DeviceAppService | Read device and mobile-device data and send device-level commands | `GetDevicesAsync`, `GetDeviceListAsync`, `GetDeviceAsync`, `GetZoneTemperatureOffsetAsync`, `GetMobileDevicesAsync`, `GetMobileDeviceAsync`, `GetMobileDeviceSettingsAsync`, `GetZoneMeasuringDeviceAsync`, `SetDeviceChildLockAsync`, `SayHiAsync`, `SetZoneTemperatureOffsetCelsiusAsync` |
 | WeatherAppService | Read weather data for a home | `GetWeatherAsync` |
 
@@ -188,7 +188,7 @@ Infrastructure services are the API-facing implementations behind the domain int
 |-------|-------|-------|-------|
 | TadoUserService | User endpoint integration | `GetMeAsync` | `IUserService` |
 | TadoHomeService | Home retrieval, home users, air comfort, heating, flow-temperature optimisation, incident detection, home state, and presence updates | `GetHomeAsync`, `GetHomeStateAsync`, `GetUsersAsync`, `GetAirComfortAsync`, `GetIncidentDetectionAsync`, `GetHeatingCircuitsAsync`, `GetHeatingSystemAsync`, `GetFlowTemperatureOptimisationAsync`, `SetHomePresenceAsync`, `ResetHomePresenceAsync` | `IHomeService` |
-| TadoZoneService | Zone retrieval, away-configuration reads, day-report reads, plus early-start and overlay-temperature commands | `GetZonesAsync`, `GetZoneAsync`, `GetZoneStateAsync`, `GetZoneSummaryAsync`, `GetZoneCapabilitiesAsync`, `GetZoneControlAsync`, `GetDefaultZoneOverlayAsync`, `GetEarlyStartAsync`, `GetAwayConfigurationAsync`, `GetZoneDayReportAsync`, `GetZoneTemperatureOffsetAsync`, `SetEarlyStartAsync`, `SetHeatingTemperatureCelsiusAsync` | `IZoneService` |
+| TadoZoneService | Zone retrieval, away-configuration reads, day-report reads, plus zone creation, early-start, and overlay-temperature commands | `GetZonesAsync`, `GetZoneAsync`, `GetZoneStateAsync`, `GetZoneSummaryAsync`, `GetZoneCapabilitiesAsync`, `GetZoneControlAsync`, `GetDefaultZoneOverlayAsync`, `GetEarlyStartAsync`, `GetAwayConfigurationAsync`, `GetZoneDayReportAsync`, `GetZoneTemperatureOffsetAsync`, `CreateZoneAsync`, `SetEarlyStartAsync`, `SetHeatingTemperatureCelsiusAsync` | `IZoneService` |
 | TadoDeviceService | Device and mobile-device retrieval plus child-lock, identify, and offset commands | `GetDevicesAsync`, `GetDeviceListAsync`, `GetDeviceAsync`, `GetZoneTemperatureOffsetAsync`, `GetMobileDevicesAsync`, `GetMobileDeviceAsync`, `GetMobileDeviceSettingsAsync`, `GetZoneMeasuringDeviceAsync`, `SetDeviceChildLockAsync`, `SayHiAsync`, `SetZoneTemperatureOffsetCelsiusAsync` | `IDeviceService` |
 | TadoWeatherService | Weather endpoint integration | `GetWeatherAsync` | `IWeatherService` |
 | TadoAuthService | OAuth2 device authorization and token lifecycle | `StartDeviceAuthorisationAsync`, `WaitForDeviceTokenAsync`, `GetAccessTokenAsync` | `ITadoAuthService` |
@@ -363,7 +363,6 @@ The list below reflects the current gap between this library and the community m
 
 ##### Zone Services
 
-- [ ] Implement `CreateZoneAsync` -> `POST /homes/{homeId}/zones`
 - [ ] Implement `SetZoneDetailsAsync` -> `PUT /homes/{homeId}/zones/{zoneId}/details`
 - [ ] Implement `SetOpenWindowDetectionAsync` -> `PUT /homes/{homeId}/zones/{zoneId}/openWindowDetection`
 - [ ] Implement `ActivateOpenWindowAsync` -> `POST /homes/{homeId}/zones/{zoneId}/state/openWindow/activate`

@@ -307,6 +307,20 @@ namespace TadoNetApi.Tests.Application.Services
             Assert.Equal(15, awayConfiguration.Setting?.Temperature?.Celsius);
         }
 
+        [Fact]
+        public async Task CreateZoneAsync_PassesThroughToDomainService()
+        {
+            var (service, mock) = CreateService();
+            IReadOnlyList<string> deviceSerials = ["SU1234567890", "VA1234567890"];
+
+            mock.Setup(s => s.CreateZoneAsync(1, "HEATING", deviceSerials, true, It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
+
+            await service.CreateZoneAsync(1, "HEATING", deviceSerials, true, CancellationToken.None);
+
+            mock.Verify(s => s.CreateZoneAsync(1, "HEATING", deviceSerials, true, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
         /// <summary>
         /// Tests that <see cref="ZoneAppService.GetZoneDayReportAsync"/> returns the day-report payload.
         /// </summary>

@@ -18,6 +18,62 @@ namespace TadoNetApi.Tests.Infrastructure.Services
     /// </summary>
     public class TadoZoneServiceCommandTests
     {
+        [Fact(DisplayName = "CreateZoneAsync sends the spec-aligned zone creation command")]
+        public async Task CreateZoneAsync_SendsSpecAlignedZoneCreationCommand()
+        {
+            string? capturedJson = null;
+            var mockHttp = new Mock<ITadoHttpClient>();
+
+            mockHttp
+                .Setup(c => c.SendAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<HttpMethod>(),
+                    It.IsAny<CancellationToken>(),
+                    It.IsAny<System.Net.HttpStatusCode>(),
+                    It.IsAny<object?>()))
+                .Callback<string, HttpMethod, CancellationToken, System.Net.HttpStatusCode, object?>((_, _, _, _, body) =>
+                {
+                    capturedJson = body == null ? null : JsonSerializer.Serialize(body);
+                })
+                .ReturnsAsync(true);
+
+            var service = new TadoZoneService(mockHttp.Object);
+
+            await service.CreateZoneAsync(1, "HEATING", ["SU1234567890", "VA1234567890"], true, CancellationToken.None);
+
+            Assert.NotNull(capturedJson);
+            Assert.Contains("\"type\":\"IMPLICIT_CONTROL\"", capturedJson);
+            Assert.Contains("\"zoneType\":\"HEATING\"", capturedJson);
+            Assert.Contains("\"serialNo\":\"SU1234567890\"", capturedJson);
+            Assert.Contains("\"serialNo\":\"VA1234567890\"", capturedJson);
+
+            mockHttp.Verify(c => c.SendAsync(
+                    "homes/1/zones?force=true",
+                    HttpMethod.Post,
+                    It.IsAny<CancellationToken>(),
+                    System.Net.HttpStatusCode.Created,
+                    It.IsAny<object?>()),
+                Times.Once);
+        }
+
+        [Fact(DisplayName = "CreateZoneAsync rejects missing device serial numbers")]
+        public async Task CreateZoneAsync_RejectsMissingDeviceSerialNumbers()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            var service = new TadoZoneService(mockHttp.Object);
+
+            var exception = await Assert.ThrowsAsync<ArgumentException>(() =>
+                service.CreateZoneAsync(1, "HEATING", [], null, CancellationToken.None));
+
+            Assert.Equal("deviceSerialNumbers", exception.ParamName);
+            mockHttp.Verify(c => c.SendAsync(
+                It.IsAny<string>(),
+                It.IsAny<HttpMethod>(),
+                It.IsAny<CancellationToken>(),
+                It.IsAny<System.Net.HttpStatusCode>(),
+                It.IsAny<object?>()), Times.Never);
+        }
+
         [Fact(DisplayName = "SetHeatingTemperatureCelsiusAsync falls back to manual when timer is missing")]
         public async Task SetHeatingTemperatureCelsiusAsync_TimerWithoutTimer_FallsBackToManual()
         {

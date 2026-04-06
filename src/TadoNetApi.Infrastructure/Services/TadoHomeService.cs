@@ -272,6 +272,113 @@ public class TadoHomeService : IHomeService
             System.Net.HttpStatusCode.NoContent);
     }
 
+    /// <summary>
+    /// Sets the geo-tracking away radius for a home.
+    /// </summary>
+    /// <param name="homeId">The ID of the home to update.</param>
+    /// <param name="awayRadiusInMeters">The distance in meters at which a device is considered away from home.</param>
+    /// <param name="cancellationToken">The cancellation token to observe.</param>
+    public async Task SetAwayRadiusInMetersAsync(int homeId, double awayRadiusInMeters, CancellationToken cancellationToken = default)
+    {
+        Guard.PositiveId(homeId, nameof(homeId));
+
+        if (awayRadiusInMeters < 0)
+            throw new ArgumentOutOfRangeException(nameof(awayRadiusInMeters), "Away radius must be zero or greater.");
+
+        var request = new SetAwayRadiusInMetersRequest
+        {
+            AwayRadiusInMeters = awayRadiusInMeters
+        };
+
+        await _httpClient.SendAsync(
+            $"homes/{homeId}/awayRadiusInMeters",
+            HttpMethod.Put,
+            cancellationToken,
+            System.Net.HttpStatusCode.NoContent,
+            request);
+    }
+
+    /// <summary>
+    /// Enables or disables incident detection for a home.
+    /// </summary>
+    /// <param name="homeId">The ID of the home to update.</param>
+    /// <param name="enabled">Whether incident detection should be enabled.</param>
+    /// <param name="cancellationToken">The cancellation token to observe.</param>
+    public async Task SetIncidentDetectionAsync(int homeId, bool enabled, CancellationToken cancellationToken = default)
+    {
+        Guard.PositiveId(homeId, nameof(homeId));
+
+        var request = new SetIncidentDetectionRequest
+        {
+            Enabled = enabled
+        };
+
+        await _httpClient.SendAsync(
+            $"homes/{homeId}/incidentDetection",
+            HttpMethod.Put,
+            cancellationToken,
+            System.Net.HttpStatusCode.NoContent,
+            request);
+    }
+
+    /// <summary>
+    /// Updates the writable home details for a home.
+    /// </summary>
+    /// <param name="homeId">The ID of the home to update.</param>
+    /// <param name="homeDetails">The complete writable home details payload.</param>
+    /// <param name="cancellationToken">The cancellation token to observe.</param>
+    public async Task SetHomeDetailsAsync(int homeId, House homeDetails, CancellationToken cancellationToken = default)
+    {
+        Guard.PositiveId(homeId, nameof(homeId));
+
+        if (homeDetails == null)
+            throw new ArgumentNullException(nameof(homeDetails));
+
+        if (string.IsNullOrWhiteSpace(homeDetails.Name))
+            throw new ArgumentException("Home name must be provided.", nameof(homeDetails));
+
+        if (homeDetails.ContactDetails == null)
+            throw new ArgumentException("Home contact details must be provided.", nameof(homeDetails));
+
+        if (homeDetails.Address == null)
+            throw new ArgumentException("Home address must be provided.", nameof(homeDetails));
+
+        if (homeDetails.Geolocation == null)
+            throw new ArgumentException("Home geolocation must be provided.", nameof(homeDetails));
+
+        var request = SetHomeDetailsRequest.FromDomain(homeDetails);
+
+        await _httpClient.SendAsync(
+            $"homes/{homeId}/details",
+            HttpMethod.Put,
+            cancellationToken,
+            System.Net.HttpStatusCode.NoContent,
+            request);
+    }
+
+    /// <summary>
+    /// Updates the maximum flow temperature for a home's boiler optimisation.
+    /// </summary>
+    /// <param name="homeId">The ID of the home to update.</param>
+    /// <param name="maxFlowTemperature">The maximum flow temperature to apply.</param>
+    /// <param name="cancellationToken">The cancellation token to observe.</param>
+    public async Task SetFlowTemperatureOptimisationAsync(int homeId, int maxFlowTemperature, CancellationToken cancellationToken = default)
+    {
+        Guard.PositiveId(homeId, nameof(homeId));
+
+        var request = new SetFlowTemperatureOptimisationRequest
+        {
+            MaxFlowTemperature = maxFlowTemperature
+        };
+
+        await _httpClient.SendAsync(
+            $"homes/{homeId}/flowTemperatureOptimization",
+            HttpMethod.Put,
+            cancellationToken,
+            System.Net.HttpStatusCode.NoContent,
+            request);
+    }
+
     #endregion
 
 }

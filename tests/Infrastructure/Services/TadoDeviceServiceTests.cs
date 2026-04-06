@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Moq;
 using TadoNetApi.Domain.Entities;
 using TadoNetApi.Domain.Entities.MobileDevice;
+using TadoNetApi.Infrastructure.Dtos.Requests;
 using TadoNetApi.Infrastructure.Dtos.Responses;
 using TadoNetApi.Infrastructure.Dtos.Responses.MobileDevice;
 using TadoNetApi.Infrastructure.Exceptions;
@@ -407,6 +408,37 @@ namespace TadoNetApi.Tests.Infrastructure.Services
         }
 
         /// <summary>
+        /// Tests that <see cref="TadoDeviceService.SetZoneTemperatureOffsetFahrenheitAsync"/>
+        /// sends the expected command payload and endpoint.
+        /// </summary>
+        [Fact(DisplayName = "SetZoneTemperatureOffsetFahrenheitAsync sends expected command")]
+        public async Task SetZoneTemperatureOffsetFahrenheitAsync_SendsExpectedCommand()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.SendAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<HttpMethod>(),
+                    It.IsAny<CancellationToken>(),
+                    It.IsAny<HttpStatusCode>(),
+                    It.IsAny<object?>()))
+                .ReturnsAsync(true);
+
+            var service = new TadoDeviceService(mockHttp.Object);
+
+            var success = await service.SetZoneTemperatureOffsetFahrenheitAsync("ABC123", -2.25, CancellationToken.None);
+
+            Assert.True(success);
+            mockHttp.Verify(c => c.SendAsync(
+                    "devices/ABC123/temperatureOffset",
+                    HttpMethod.Put,
+                    It.IsAny<CancellationToken>(),
+                    HttpStatusCode.OK,
+                    It.Is<object?>(b => b != null && JsonSerializer.Serialize(b).Contains("\"fahrenheit\":-2.25"))),
+                Times.Once);
+        }
+
+        /// <summary>
         /// Tests that <see cref="TadoDeviceService.DeleteMobileDeviceAsync"/>
         /// sends the expected command endpoint.
         /// </summary>
@@ -435,6 +467,125 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                     HttpStatusCode.OK,
                     null),
                 Times.Once);
+        }
+
+        /// <summary>
+        /// Tests that <see cref="TadoDeviceService.MoveDeviceToZoneAsync"/>
+        /// sends the expected command payload and endpoint.
+        /// </summary>
+        [Fact(DisplayName = "MoveDeviceToZoneAsync sends the spec-aligned move-device command")]
+        public async Task MoveDeviceToZoneAsync_SendsSpecAlignedMoveDeviceCommand()
+        {
+            string? capturedJson = null;
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.SendAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<HttpMethod>(),
+                    It.IsAny<CancellationToken>(),
+                    It.IsAny<HttpStatusCode>(),
+                    It.IsAny<object?>()))
+                .Callback<string, HttpMethod, CancellationToken, HttpStatusCode, object?>((_, _, _, _, body) =>
+                {
+                    capturedJson = body == null ? null : JsonSerializer.Serialize(body);
+                })
+                .ReturnsAsync(true);
+
+            var service = new TadoDeviceService(mockHttp.Object);
+
+            var moved = await service.MoveDeviceToZoneAsync(1, 2, "SU1234567890", true, CancellationToken.None);
+
+            Assert.True(moved);
+            Assert.NotNull(capturedJson);
+            Assert.Contains("\"serialNo\":\"SU1234567890\"", capturedJson);
+            mockHttp.Verify(c => c.SendAsync(
+                    "homes/1/zones/2/devices?force=true",
+                    HttpMethod.Post,
+                    It.IsAny<CancellationToken>(),
+                    HttpStatusCode.OK,
+                    It.IsAny<object?>()),
+                Times.Once);
+        }
+
+        /// <summary>
+        /// Tests that <see cref="TadoDeviceService.MoveDeviceToZoneAsync"/>
+        /// rejects missing serial numbers.
+        /// </summary>
+        [Fact(DisplayName = "MoveDeviceToZoneAsync rejects missing device serial numbers")]
+        public async Task MoveDeviceToZoneAsync_RejectsMissingDeviceSerialNumbers()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            var service = new TadoDeviceService(mockHttp.Object);
+
+            var exception = await Assert.ThrowsAsync<ArgumentException>(() =>
+                service.MoveDeviceToZoneAsync(1, 2, " ", null, CancellationToken.None));
+
+            Assert.Equal("deviceSerialNo", exception.ParamName);
+            mockHttp.Verify(c => c.SendAsync(
+                It.IsAny<string>(),
+                It.IsAny<HttpMethod>(),
+                It.IsAny<CancellationToken>(),
+                It.IsAny<HttpStatusCode>(),
+                It.IsAny<object?>()), Times.Never);
+        }
+
+        /// <summary>
+        /// Tests that <see cref="TadoDeviceService.SetZoneMeasuringDeviceAsync"/>
+        /// sends the expected payload and endpoint.
+        /// </summary>
+        [Fact(DisplayName = "SetZoneMeasuringDeviceAsync sends the spec-aligned measuring-device command")]
+        public async Task SetZoneMeasuringDeviceAsync_SendsSpecAlignedMeasuringDeviceCommand()
+        {
+            string? capturedJson = null;
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.PutAsync<SetZoneMeasuringDeviceRequest, TadoDeviceResponse>(
+                    It.IsAny<string>(),
+                    It.IsAny<SetZoneMeasuringDeviceRequest>(),
+                    It.IsAny<CancellationToken>()))
+                .Callback<string, SetZoneMeasuringDeviceRequest, CancellationToken>((_, req, _) =>
+                {
+                    capturedJson = JsonSerializer.Serialize(req);
+                })
+                .ReturnsAsync(new TadoDeviceResponse
+                {
+                    DeviceType = "SU02",
+                    SerialNo = "SU1234567890",
+                    ShortSerialNo = "SU1234567890"
+                });
+
+            var service = new TadoDeviceService(mockHttp.Object);
+
+            var device = await service.SetZoneMeasuringDeviceAsync(1, 2, "SU1234567890", CancellationToken.None);
+
+            Assert.NotNull(device);
+            Assert.NotNull(capturedJson);
+            Assert.Contains("\"serialNo\":\"SU1234567890\"", capturedJson);
+            mockHttp.Verify(c => c.PutAsync<SetZoneMeasuringDeviceRequest, TadoDeviceResponse>(
+                    "homes/1/zones/2/measuringDevice",
+                    It.Is<SetZoneMeasuringDeviceRequest>(r => r.SerialNo == "SU1234567890"),
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
+        }
+
+        /// <summary>
+        /// Tests that <see cref="TadoDeviceService.SetZoneMeasuringDeviceAsync"/>
+        /// rejects missing serial numbers.
+        /// </summary>
+        [Fact(DisplayName = "SetZoneMeasuringDeviceAsync rejects missing device serial numbers")]
+        public async Task SetZoneMeasuringDeviceAsync_RejectsMissingDeviceSerialNumbers()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            var service = new TadoDeviceService(mockHttp.Object);
+
+            var exception = await Assert.ThrowsAsync<ArgumentException>(() =>
+                service.SetZoneMeasuringDeviceAsync(1, 2, string.Empty, CancellationToken.None));
+
+            Assert.Equal("deviceSerialNo", exception.ParamName);
+            mockHttp.Verify(c => c.PutAsync<SetZoneMeasuringDeviceRequest, TadoDeviceResponse>(
+                It.IsAny<string>(),
+                It.IsAny<SetZoneMeasuringDeviceRequest>(),
+                It.IsAny<CancellationToken>()), Times.Never);
         }
 
         /// <summary>

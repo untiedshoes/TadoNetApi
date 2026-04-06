@@ -12,7 +12,10 @@ namespace TadoNetApi.Tests.Application.Services
 {
     public class HomeAppServiceTests
     {
-        [Fact]
+        /// <summary>
+        /// Tests that <see cref="HomeAppService.GetHomeAsync"/> returns the home from the domain service.
+        /// </summary>
+        [Fact(DisplayName = "GetHomeAsync returns home")]
         public async Task GetHomeAsync_ReturnsHome()
         {
             // Arrange
@@ -50,7 +53,10 @@ namespace TadoNetApi.Tests.Application.Services
             Assert.True(home?.IncidentDetection?.Enabled);
         }
 
-        [Fact]
+        /// <summary>
+        /// Tests that <see cref="HomeAppService.GetHomeStateAsync"/> returns the home state from the domain service.
+        /// </summary>
+        [Fact(DisplayName = "GetHomeStateAsync returns state")]
         public async Task GetHomeStateAsync_ReturnsState()
         {
             // Arrange
@@ -73,7 +79,10 @@ namespace TadoNetApi.Tests.Application.Services
             Assert.Equal("HOME", state?.Presence);
         }
 
-        [Fact]
+        /// <summary>
+        /// Tests that <see cref="HomeAppService.GetUsersAsync"/> returns the users from the domain service.
+        /// </summary>
+        [Fact(DisplayName = "GetUsersAsync returns users")]
         public async Task GetUsersAsync_ReturnsUsers()
         {
             // Arrange
@@ -98,7 +107,10 @@ namespace TadoNetApi.Tests.Application.Services
             Assert.Equal("Bob Example", users[1].Name);
         }
 
-        [Fact]
+        /// <summary>
+        /// Tests that <see cref="HomeAppService.GetAirComfortAsync"/> returns the air comfort payload from the domain service.
+        /// </summary>
+        [Fact(DisplayName = "GetAirComfortAsync returns air comfort")]
         public async Task GetAirComfortAsync_ReturnsAirComfort()
         {
             // Arrange
@@ -143,7 +155,10 @@ namespace TadoNetApi.Tests.Application.Services
             Assert.Equal(76, airComfort.Comfort[0].Coordinate?.Angular);
         }
 
-        [Fact]
+        /// <summary>
+        /// Tests that <see cref="HomeAppService.GetIncidentDetectionAsync"/> returns the incident detection payload from the domain service.
+        /// </summary>
+        [Fact(DisplayName = "GetIncidentDetectionAsync returns incident detection")]
         public async Task GetIncidentDetectionAsync_ReturnsIncidentDetection()
         {
             // Arrange
@@ -168,7 +183,10 @@ namespace TadoNetApi.Tests.Application.Services
             Assert.True(incidentDetection.Supported);
         }
 
-        [Fact]
+        /// <summary>
+        /// Tests that <see cref="HomeAppService.GetHeatingCircuitsAsync"/> returns the heating circuits from the domain service.
+        /// </summary>
+        [Fact(DisplayName = "GetHeatingCircuitsAsync returns heating circuits")]
         public async Task GetHeatingCircuitsAsync_ReturnsHeatingCircuits()
         {
             var expectedCircuits = new List<HeatingCircuit>
@@ -189,7 +207,10 @@ namespace TadoNetApi.Tests.Application.Services
             Assert.Equal("BR3209250550", circuits[0].DriverSerialNo);
         }
 
-        [Fact]
+        /// <summary>
+        /// Tests that <see cref="HomeAppService.GetHeatingSystemAsync"/> returns the heating system from the domain service.
+        /// </summary>
+        [Fact(DisplayName = "GetHeatingSystemAsync returns heating system")]
         public async Task GetHeatingSystemAsync_ReturnsHeatingSystem()
         {
             var expectedHeatingSystem = new HeatingSystem
@@ -220,7 +241,10 @@ namespace TadoNetApi.Tests.Application.Services
             Assert.False(heatingSystem.UnderfloorHeating?.Present);
         }
 
-        [Fact]
+        /// <summary>
+        /// Tests that <see cref="HomeAppService.GetFlowTemperatureOptimisationAsync"/> returns the flow-temperature optimisation payload from the domain service.
+        /// </summary>
+        [Fact(DisplayName = "GetFlowTemperatureOptimisationAsync returns flow temperature optimisation")]
         public async Task GetFlowTemperatureOptimisationAsync_ReturnsFlowTemperatureOptimisation()
         {
             var expectedFlowTemperatureOptimisation = new FlowTemperatureOptimisation
@@ -257,7 +281,10 @@ namespace TadoNetApi.Tests.Application.Services
             Assert.Equal("BR1234567890", flowTemperatureOptimisation.OpenThermDeviceSerialNumber);
         }
 
-        [Fact]
+        /// <summary>
+        /// Tests that <see cref="HomeAppService.SetHomePresenceAsync"/> delegates to the domain service.
+        /// </summary>
+        [Fact(DisplayName = "SetHomePresenceAsync passes through to domain service")]
         public async Task SetHomePresenceAsync_PassesThroughToDomainService()
         {
             var mockHomeService = new Mock<IHomeService>();
@@ -271,7 +298,10 @@ namespace TadoNetApi.Tests.Application.Services
             mockHomeService.Verify(s => s.SetHomePresenceAsync(1, "HOME", It.IsAny<CancellationToken>()), Times.Once);
         }
 
-        [Fact]
+        /// <summary>
+        /// Tests that <see cref="HomeAppService.ResetHomePresenceAsync"/> delegates to the domain service.
+        /// </summary>
+        [Fact(DisplayName = "ResetHomePresenceAsync passes through to domain service")]
         public async Task ResetHomePresenceAsync_PassesThroughToDomainService()
         {
             var mockHomeService = new Mock<IHomeService>();
@@ -283,6 +313,82 @@ namespace TadoNetApi.Tests.Application.Services
             await service.ResetHomePresenceAsync(1, CancellationToken.None);
 
             mockHomeService.Verify(s => s.ResetHomePresenceAsync(1, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        /// <summary>
+        /// Tests that <see cref="HomeAppService.SetAwayRadiusInMetersAsync"/> delegates to the domain service.
+        /// </summary>
+        [Fact(DisplayName = "SetAwayRadiusInMetersAsync passes through to domain service")]
+        public async Task SetAwayRadiusInMetersAsync_PassesThroughToDomainService()
+        {
+            var mockHomeService = new Mock<IHomeService>();
+            mockHomeService.Setup(s => s.SetAwayRadiusInMetersAsync(1, 400, It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
+
+            var service = new HomeAppService(mockHomeService.Object);
+
+            await service.SetAwayRadiusInMetersAsync(1, 400, CancellationToken.None);
+
+            mockHomeService.Verify(s => s.SetAwayRadiusInMetersAsync(1, 400, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        /// <summary>
+        /// Tests that <see cref="HomeAppService.SetIncidentDetectionAsync"/> delegates to the domain service.
+        /// </summary>
+        [Fact(DisplayName = "SetIncidentDetectionAsync passes through to domain service")]
+        public async Task SetIncidentDetectionAsync_PassesThroughToDomainService()
+        {
+            var mockHomeService = new Mock<IHomeService>();
+            mockHomeService.Setup(s => s.SetIncidentDetectionAsync(1, true, It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
+
+            var service = new HomeAppService(mockHomeService.Object);
+
+            await service.SetIncidentDetectionAsync(1, true, CancellationToken.None);
+
+            mockHomeService.Verify(s => s.SetIncidentDetectionAsync(1, true, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        /// <summary>
+        /// Tests that <see cref="HomeAppService.SetHomeDetailsAsync"/> delegates to the domain service.
+        /// </summary>
+        [Fact(DisplayName = "SetHomeDetailsAsync passes through to domain service")]
+        public async Task SetHomeDetailsAsync_PassesThroughToDomainService()
+        {
+            var homeDetails = new House
+            {
+                Name = "My Home",
+                ContactDetails = new ContactDetails { Name = "Jane Doe", Email = "jane@example.com", Phone = "+441234567890" },
+                Address = new Address { AddressLine1 = "1 Test Street", ZipCode = "SW1A 1AA", City = "London", Country = "GBR" },
+                Geolocation = new Geolocation { Latitude = 51.501, Longitude = -0.141 }
+            };
+
+            var mockHomeService = new Mock<IHomeService>();
+            mockHomeService.Setup(s => s.SetHomeDetailsAsync(1, homeDetails, It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
+
+            var service = new HomeAppService(mockHomeService.Object);
+
+            await service.SetHomeDetailsAsync(1, homeDetails, CancellationToken.None);
+
+            mockHomeService.Verify(s => s.SetHomeDetailsAsync(1, homeDetails, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        /// <summary>
+        /// Tests that <see cref="HomeAppService.SetFlowTemperatureOptimisationAsync"/> delegates to the domain service.
+        /// </summary>
+        [Fact(DisplayName = "SetFlowTemperatureOptimisationAsync passes through to domain service")]
+        public async Task SetFlowTemperatureOptimisationAsync_PassesThroughToDomainService()
+        {
+            var mockHomeService = new Mock<IHomeService>();
+            mockHomeService.Setup(s => s.SetFlowTemperatureOptimisationAsync(1, 55, It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
+
+            var service = new HomeAppService(mockHomeService.Object);
+
+            await service.SetFlowTemperatureOptimisationAsync(1, 55, CancellationToken.None);
+
+            mockHomeService.Verify(s => s.SetFlowTemperatureOptimisationAsync(1, 55, It.IsAny<CancellationToken>()), Times.Once);
         }
     }
 }

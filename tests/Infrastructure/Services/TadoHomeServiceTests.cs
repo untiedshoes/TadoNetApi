@@ -7,6 +7,7 @@ using System;
 using System.Text.Json;
 using Moq;
 using TadoNetApi.Domain.Entities;
+using TadoNetApi.Infrastructure.Dtos.Requests;
 using TadoNetApi.Infrastructure.Dtos.Responses;
 using TadoNetApi.Infrastructure.Http;
 using TadoNetApi.Infrastructure.Services;
@@ -316,6 +317,191 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                     It.IsAny<CancellationToken>(),
                     HttpStatusCode.NoContent,
                     null),
+                Times.Once);
+        }
+
+        [Fact(DisplayName = "SetAwayRadiusInMetersAsync sends the spec-aligned away-radius command")]
+        public async Task SetAwayRadiusInMetersAsync_SendsSpecAlignedAwayRadiusCommand()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.SendAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<HttpMethod>(),
+                    It.IsAny<CancellationToken>(),
+                    It.IsAny<HttpStatusCode>(),
+                    It.IsAny<object?>()))
+                .ReturnsAsync(true);
+
+            var service = new TadoHomeService(mockHttp.Object);
+
+            await service.SetAwayRadiusInMetersAsync(homeId: 1, awayRadiusInMeters: 400, CancellationToken.None);
+
+            mockHttp.Verify(c => c.SendAsync(
+                    "homes/1/awayRadiusInMeters",
+                    HttpMethod.Put,
+                    It.IsAny<CancellationToken>(),
+                    HttpStatusCode.NoContent,
+                    It.Is<SetAwayRadiusInMetersRequest>(body => body.AwayRadiusInMeters == 400)),
+                Times.Once);
+        }
+
+        [Fact(DisplayName = "SetAwayRadiusInMetersAsync rejects negative distances")]
+        public async Task SetAwayRadiusInMetersAsync_RejectsNegativeDistances()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            var service = new TadoHomeService(mockHttp.Object);
+
+            var exception = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
+                service.SetAwayRadiusInMetersAsync(homeId: 1, awayRadiusInMeters: -1, CancellationToken.None));
+
+            Assert.Equal("awayRadiusInMeters", exception.ParamName);
+            mockHttp.Verify(c => c.SendAsync(
+                It.IsAny<string>(),
+                It.IsAny<HttpMethod>(),
+                It.IsAny<CancellationToken>(),
+                It.IsAny<HttpStatusCode>(),
+                It.IsAny<object?>()), Times.Never);
+        }
+
+        [Fact(DisplayName = "SetIncidentDetectionAsync sends the spec-aligned incident-detection command")]
+        public async Task SetIncidentDetectionAsync_SendsSpecAlignedIncidentDetectionCommand()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.SendAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<HttpMethod>(),
+                    It.IsAny<CancellationToken>(),
+                    It.IsAny<HttpStatusCode>(),
+                    It.IsAny<object?>()))
+                .ReturnsAsync(true);
+
+            var service = new TadoHomeService(mockHttp.Object);
+
+            await service.SetIncidentDetectionAsync(homeId: 1, enabled: true, CancellationToken.None);
+
+            mockHttp.Verify(c => c.SendAsync(
+                    "homes/1/incidentDetection",
+                    HttpMethod.Put,
+                    It.IsAny<CancellationToken>(),
+                    HttpStatusCode.NoContent,
+                    It.Is<SetIncidentDetectionRequest>(body => body.Enabled && JsonSerializer.Serialize(body).Contains("\"enabled\":true"))),
+                Times.Once);
+        }
+
+        [Fact(DisplayName = "SetHomeDetailsAsync sends the spec-aligned home-details command")]
+        public async Task SetHomeDetailsAsync_SendsSpecAlignedHomeDetailsCommand()
+        {
+            string? capturedJson = null;
+            var homeDetails = new House
+            {
+                Name = "My Home",
+                ContactDetails = new ContactDetails
+                {
+                    Name = "Jane Doe",
+                    Email = "jane@example.com",
+                    Phone = "+441234567890"
+                },
+                Address = new Address
+                {
+                    AddressLine1 = "1 Test Street",
+                    AddressLine2 = null,
+                    ZipCode = "SW1A 1AA",
+                    City = "London",
+                    State = null,
+                    Country = "GBR"
+                },
+                Geolocation = new Geolocation
+                {
+                    Latitude = 51.501,
+                    Longitude = -0.141
+                }
+            };
+
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.SendAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<HttpMethod>(),
+                    It.IsAny<CancellationToken>(),
+                    It.IsAny<HttpStatusCode>(),
+                    It.IsAny<object?>()))
+                .Callback<string, HttpMethod, CancellationToken, HttpStatusCode, object?>((_, _, _, _, body) =>
+                {
+                    capturedJson = JsonSerializer.Serialize(body);
+                })
+                .ReturnsAsync(true);
+
+            var service = new TadoHomeService(mockHttp.Object);
+
+            await service.SetHomeDetailsAsync(homeId: 1, homeDetails, CancellationToken.None);
+
+            Assert.NotNull(capturedJson);
+            Assert.Contains("\"name\":\"My Home\"", capturedJson);
+            Assert.Contains("\"contactDetails\":{", capturedJson);
+            Assert.Contains("\"address\":{", capturedJson);
+            Assert.Contains("\"geolocation\":{", capturedJson);
+            Assert.Contains("\"addressLine1\":\"1 Test Street\"", capturedJson);
+            Assert.Contains("\"zipCode\":\"SW1A 1AA\"", capturedJson);
+            Assert.Contains("\"latitude\":51.501", capturedJson);
+            mockHttp.Verify(c => c.SendAsync(
+                    "homes/1/details",
+                    HttpMethod.Put,
+                    It.IsAny<CancellationToken>(),
+                    HttpStatusCode.NoContent,
+                    It.IsAny<SetHomeDetailsRequest>()),
+                Times.Once);
+        }
+
+        [Fact(DisplayName = "SetHomeDetailsAsync rejects missing home names")]
+        public async Task SetHomeDetailsAsync_RejectsMissingHomeNames()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            var service = new TadoHomeService(mockHttp.Object);
+            var homeDetails = new House
+            {
+                Name = string.Empty,
+                ContactDetails = new ContactDetails(),
+                Address = new Address(),
+                Geolocation = new Geolocation()
+            };
+
+            var exception = await Assert.ThrowsAsync<ArgumentException>(() =>
+                service.SetHomeDetailsAsync(homeId: 1, homeDetails, CancellationToken.None));
+
+            Assert.Equal("homeDetails", exception.ParamName);
+            mockHttp.Verify(c => c.SendAsync(
+                It.IsAny<string>(),
+                It.IsAny<HttpMethod>(),
+                It.IsAny<CancellationToken>(),
+                It.IsAny<HttpStatusCode>(),
+                It.IsAny<object?>()), Times.Never);
+        }
+
+        [Fact(DisplayName = "SetFlowTemperatureOptimisationAsync sends the spec-aligned flow-temperature command")]
+        public async Task SetFlowTemperatureOptimisationAsync_SendsSpecAlignedFlowTemperatureCommand()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.SendAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<HttpMethod>(),
+                    It.IsAny<CancellationToken>(),
+                    It.IsAny<HttpStatusCode>(),
+                    It.IsAny<object?>()))
+                .ReturnsAsync(true);
+
+            var service = new TadoHomeService(mockHttp.Object);
+
+            await service.SetFlowTemperatureOptimisationAsync(homeId: 1, maxFlowTemperature: 55, CancellationToken.None);
+
+            mockHttp.Verify(c => c.SendAsync(
+                    "homes/1/flowTemperatureOptimization",
+                    HttpMethod.Put,
+                    It.IsAny<CancellationToken>(),
+                    HttpStatusCode.NoContent,
+                    It.Is<SetFlowTemperatureOptimisationRequest>(body => body.MaxFlowTemperature == 55 && JsonSerializer.Serialize(body).Contains("\"maxFlowTemperature\":55"))),
                 Times.Once);
         }
     }

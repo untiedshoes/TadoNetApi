@@ -108,4 +108,40 @@ public class HomeAppService
     /// <param name="cancellationToken">The cancellation token to observe.</param>
     public Task ResetHomePresenceAsync(int homeId, CancellationToken cancellationToken) =>
         _homeService.ResetHomePresenceAsync(homeId, cancellationToken);
+
+    /// <summary>
+    /// Sets the geo-tracking away radius for a home.
+    /// </summary>
+    /// <param name="homeId">The ID of the home to update.</param>
+    /// <param name="awayRadiusInMeters">The distance in meters at which a device is considered away from home.</param>
+    /// <param name="cancellationToken">The cancellation token to observe.</param>
+    public Task SetAwayRadiusInMetersAsync(int homeId, double awayRadiusInMeters, CancellationToken cancellationToken) =>
+        _homeService.SetAwayRadiusInMetersAsync(homeId, awayRadiusInMeters, cancellationToken);
+
+    /// <summary>
+    /// Enables or disables incident detection for a home.
+    /// </summary>
+    /// <param name="homeId">The ID of the home to update.</param>
+    /// <param name="enabled">Whether incident detection should be enabled.</param>
+    /// <param name="cancellationToken">The cancellation token to observe.</param>
+    public Task SetIncidentDetectionAsync(int homeId, bool enabled, CancellationToken cancellationToken) =>
+        _homeService.SetIncidentDetectionAsync(homeId, enabled, cancellationToken);
+
+    /// <summary>
+    /// Updates the writable home details for a home.
+    /// </summary>
+    /// <param name="homeId">The ID of the home to update.</param>
+    /// <param name="homeDetails">The complete writable home details payload.</param>
+    /// <param name="cancellationToken">The cancellation token to observe.</param>
+    public Task SetHomeDetailsAsync(int homeId, House homeDetails, CancellationToken cancellationToken) =>
+        _homeService.SetHomeDetailsAsync(homeId, homeDetails, cancellationToken);
+
+    /// <summary>
+    /// Updates the maximum flow temperature for a home's boiler optimisation.
+    /// </summary>
+    /// <param name="homeId">The ID of the home to update.</param>
+    /// <param name="maxFlowTemperature">The maximum flow temperature to apply.</param>
+    /// <param name="cancellationToken">The cancellation token to observe.</param>
+    public Task SetFlowTemperatureOptimisationAsync(int homeId, int maxFlowTemperature, CancellationToken cancellationToken) =>
+        _homeService.SetFlowTemperatureOptimisationAsync(homeId, maxFlowTemperature, cancellationToken);
 }

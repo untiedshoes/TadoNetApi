@@ -11,7 +11,67 @@ namespace TadoNetApi.Tests.Application.Services
 {
     public class DeviceAppServiceTests
     {
-        [Fact]
+        /// <summary>
+        /// Tests that <see cref="DeviceAppService.GetDeviceListAsync"/> delegates to the domain service.
+        /// </summary>
+        [Fact(DisplayName = "GetDeviceListAsync passes through to domain service")]
+        public async Task GetDeviceListAsync_PassesThroughToDomainService()
+        {
+            var expectedEntries = new[]
+            {
+                new DeviceListEntry
+                {
+                    Type = "SU02",
+                    Device = new Device
+                    {
+                        SerialNo = "SU3339800320",
+                        DeviceType = "SU02"
+                    },
+                    ZoneId = 3,
+                    ZoneDuties = ["UI"]
+                }
+            };
+
+            var mockDeviceService = new Mock<IDeviceService>();
+            mockDeviceService.Setup(s => s.GetDeviceListAsync(1, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedEntries);
+
+            var service = new DeviceAppService(mockDeviceService.Object);
+
+            var entries = await service.GetDeviceListAsync(1, CancellationToken.None);
+
+            var entry = Assert.Single(entries);
+            Assert.Equal("SU02", entry.Type);
+            Assert.Equal("SU3339800320", entry.Device?.SerialNo);
+            Assert.Equal(3, entry.ZoneId);
+            mockDeviceService.Verify(s => s.GetDeviceListAsync(1, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        /// <summary>
+        /// Tests that <see cref="DeviceAppService.GetDeviceListAsync"/> preserves domain-service exceptions.
+        /// </summary>
+        [Fact(DisplayName = "GetDeviceListAsync preserves domain service exceptions")]
+        public async Task GetDeviceListAsync_PreservesDomainServiceExceptions()
+        {
+            var expectedException = new InvalidOperationException("device list unavailable");
+
+            var mockDeviceService = new Mock<IDeviceService>();
+            mockDeviceService.Setup(s => s.GetDeviceListAsync(1, It.IsAny<CancellationToken>()))
+                .ThrowsAsync(expectedException);
+
+            var service = new DeviceAppService(mockDeviceService.Object);
+
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                service.GetDeviceListAsync(1, CancellationToken.None));
+
+            Assert.Same(expectedException, exception);
+            mockDeviceService.Verify(s => s.GetDeviceListAsync(1, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        /// <summary>
+        /// Tests that <see cref="DeviceAppService.GetDeviceAsync(string, CancellationToken)"/> delegates to the domain service.
+        /// </summary>
+        [Fact(DisplayName = "GetDeviceAsync string overload passes through to domain service")]
         public async Task GetDeviceAsync_StringOverload_PassesThroughToDomainService()
         {
             var expectedDevice = new Device
@@ -33,7 +93,10 @@ namespace TadoNetApi.Tests.Application.Services
             mockDeviceService.Verify(s => s.GetDeviceAsync("SU1234567890", It.IsAny<CancellationToken>()), Times.Once);
         }
 
-        [Fact]
+        /// <summary>
+        /// Tests that <see cref="DeviceAppService.GetMobileDeviceAsync"/> returns the mobile device from the domain service.
+        /// </summary>
+        [Fact(DisplayName = "GetMobileDeviceAsync returns mapped mobile device")]
         public async Task GetMobileDeviceAsync_ReturnsMappedMobileDevice()
         {
             // Arrange
@@ -59,7 +122,10 @@ namespace TadoNetApi.Tests.Application.Services
             Assert.Equal("Craig's iPhone", device.Name);
         }
 
-        [Fact]
+        /// <summary>
+        /// Tests that <see cref="DeviceAppService.GetZoneMeasuringDeviceAsync"/> returns the measuring device from the domain service.
+        /// </summary>
+        [Fact(DisplayName = "GetZoneMeasuringDeviceAsync returns mapped device")]
         public async Task GetZoneMeasuringDeviceAsync_ReturnsMappedDevice()
         {
             // Arrange
@@ -85,7 +151,53 @@ namespace TadoNetApi.Tests.Application.Services
             Assert.Equal("SU02", device.DeviceType);
         }
 
-        [Fact]
+        /// <summary>
+        /// Tests that <see cref="DeviceAppService.MoveDeviceToZoneAsync"/> delegates to the domain service.
+        /// </summary>
+        [Fact(DisplayName = "MoveDeviceToZoneAsync passes through to domain service")]
+        public async Task MoveDeviceToZoneAsync_PassesThroughToDomainService()
+        {
+            var mockDeviceService = new Mock<IDeviceService>();
+            mockDeviceService.Setup(s => s.MoveDeviceToZoneAsync(1, 2, "SU1234567890", true, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(true);
+
+            var service = new DeviceAppService(mockDeviceService.Object);
+
+            var moved = await service.MoveDeviceToZoneAsync(1, 2, "SU1234567890", true, CancellationToken.None);
+
+            Assert.True(moved);
+            mockDeviceService.Verify(s => s.MoveDeviceToZoneAsync(1, 2, "SU1234567890", true, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        /// <summary>
+        /// Tests that <see cref="DeviceAppService.SetZoneMeasuringDeviceAsync"/> delegates to the domain service.
+        /// </summary>
+        [Fact(DisplayName = "SetZoneMeasuringDeviceAsync passes through to domain service")]
+        public async Task SetZoneMeasuringDeviceAsync_PassesThroughToDomainService()
+        {
+            var expectedDevice = new Device
+            {
+                SerialNo = "SU1234567890",
+                DeviceType = "SU02"
+            };
+
+            var mockDeviceService = new Mock<IDeviceService>();
+            mockDeviceService.Setup(s => s.SetZoneMeasuringDeviceAsync(1, 2, "SU1234567890", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedDevice);
+
+            var service = new DeviceAppService(mockDeviceService.Object);
+
+            var device = await service.SetZoneMeasuringDeviceAsync(1, 2, "SU1234567890", CancellationToken.None);
+
+            Assert.NotNull(device);
+            Assert.Equal("SU1234567890", device.SerialNo);
+            mockDeviceService.Verify(s => s.SetZoneMeasuringDeviceAsync(1, 2, "SU1234567890", It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        /// <summary>
+        /// Tests that <see cref="DeviceAppService.DeleteMobileDeviceAsync"/> delegates to the domain service.
+        /// </summary>
+        [Fact(DisplayName = "DeleteMobileDeviceAsync passes through to domain service")]
         public async Task DeleteMobileDeviceAsync_PassesThroughToDomainService()
         {
             var mockDeviceService = new Mock<IDeviceService>();
@@ -100,7 +212,28 @@ namespace TadoNetApi.Tests.Application.Services
             mockDeviceService.Verify(s => s.DeleteMobileDeviceAsync(1, 42, It.IsAny<CancellationToken>()), Times.Once);
         }
 
-        [Fact]
+        /// <summary>
+        /// Tests that <see cref="DeviceAppService.SetZoneTemperatureOffsetFahrenheitAsync"/> delegates to the domain service.
+        /// </summary>
+        [Fact(DisplayName = "SetZoneTemperatureOffsetFahrenheitAsync passes through to domain service")]
+        public async Task SetZoneTemperatureOffsetFahrenheitAsync_PassesThroughToDomainService()
+        {
+            var mockDeviceService = new Mock<IDeviceService>();
+            mockDeviceService.Setup(s => s.SetZoneTemperatureOffsetFahrenheitAsync("ABC123", -2.25, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(true);
+
+            var service = new DeviceAppService(mockDeviceService.Object);
+
+            var updated = await service.SetZoneTemperatureOffsetFahrenheitAsync("ABC123", -2.25, CancellationToken.None);
+
+            Assert.True(updated);
+            mockDeviceService.Verify(s => s.SetZoneTemperatureOffsetFahrenheitAsync("ABC123", -2.25, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        /// <summary>
+        /// Tests that <see cref="DeviceAppService.SetMobileDeviceSettingsAsync"/> delegates to the domain service.
+        /// </summary>
+        [Fact(DisplayName = "SetMobileDeviceSettingsAsync passes through to domain service")]
         public async Task SetMobileDeviceSettingsAsync_PassesThroughToDomainService()
         {
             var settings = new Settings { GeoTrackingEnabled = true };
@@ -116,7 +249,10 @@ namespace TadoNetApi.Tests.Application.Services
             mockDeviceService.Verify(s => s.SetMobileDeviceSettingsAsync(1, 42, settings, It.IsAny<CancellationToken>()), Times.Once);
         }
 
-        [Fact]
+        /// <summary>
+        /// Tests that <see cref="DeviceAppService.GetDeviceAsync(int, int, CancellationToken)"/> delegates to the domain service.
+        /// </summary>
+        [Fact(DisplayName = "GetDeviceAsync legacy overload passes through to domain service")]
         public async Task GetDeviceAsync_LegacyOverload_PassesThroughToDomainService()
         {
             var expectedDevice = new Device

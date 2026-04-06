@@ -85,4 +85,36 @@ public interface IHomeService
     /// <param name="homeId">The ID of the home.</param>
     /// <param name="cancellationToken">The cancellation token to observe.</param>
     Task ResetHomePresenceAsync(int homeId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Sets the geo-tracking away radius for a home.
+    /// </summary>
+    /// <param name="homeId">The ID of the home to update.</param>
+    /// <param name="awayRadiusInMeters">The distance in meters at which a device is considered away from home.</param>
+    /// <param name="cancellationToken">The cancellation token to observe.</param>
+    Task SetAwayRadiusInMetersAsync(int homeId, double awayRadiusInMeters, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Enables or disables incident detection for a home.
+    /// </summary>
+    /// <param name="homeId">The ID of the home to update.</param>
+    /// <param name="enabled">Whether incident detection should be enabled.</param>
+    /// <param name="cancellationToken">The cancellation token to observe.</param>
+    Task SetIncidentDetectionAsync(int homeId, bool enabled, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Updates the writable home details for a home.
+    /// </summary>
+    /// <param name="homeId">The ID of the home to update.</param>
+    /// <param name="homeDetails">The complete writable home details payload.</param>
+    /// <param name="cancellationToken">The cancellation token to observe.</param>
+    Task SetHomeDetailsAsync(int homeId, House homeDetails, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Updates the maximum flow temperature for a home's boiler optimisation.
+    /// </summary>
+    /// <param name="homeId">The ID of the home to update.</param>
+    /// <param name="maxFlowTemperature">The maximum flow temperature to apply.</param>
+    /// <param name="cancellationToken">The cancellation token to observe.</param>
+    Task SetFlowTemperatureOptimisationAsync(int homeId, int maxFlowTemperature, CancellationToken cancellationToken = default);
 }

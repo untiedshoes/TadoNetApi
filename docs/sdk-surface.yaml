@@ -154,6 +154,61 @@ services:
             nullable: false
           summary: Updates the home presence mode.
 
+        - name: SetAwayRadiusInMetersAsync
+          kind: command
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+            - name: awayRadiusInMeters
+              type: double
+              validation: non-negative
+          returns:
+            type: void
+            nullable: false
+          summary: Sets the geo-tracking away radius for a home.
+
+        - name: SetIncidentDetectionAsync
+          kind: command
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+            - name: enabled
+              type: bool
+          returns:
+            type: void
+            nullable: false
+          summary: Enables or disables incident detection for a home.
+
+        - name: SetHomeDetailsAsync
+          kind: command
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+            - name: homeDetails
+              type: House
+              source: caller-provided
+              modelFile: src/TadoNetApi.Domain/Entities/House.cs
+          returns:
+            type: void
+            nullable: false
+          summary: Updates the writable home details payload for a home.
+
+        - name: SetFlowTemperatureOptimisationAsync
+          kind: command
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+            - name: maxFlowTemperature
+              type: int
+          returns:
+            type: void
+            nullable: false
+          summary: Updates the maximum flow temperature for a home's boiler optimisation.
+
         - name: ResetHomePresenceAsync
           kind: command
           parameters:
@@ -646,6 +701,45 @@ services:
             modelFile: src/TadoNetApi.Domain/Entities/Device.cs
           summary: Returns the measuring device assigned to a zone.
 
+        - name: MoveDeviceToZoneAsync
+          kind: command
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+            - name: zoneId
+              type: int
+              validation: positive-id
+            - name: deviceSerialNo
+              type: string
+              validation: non-empty
+            - name: force
+              type: bool?
+              required: false
+          returns:
+            type: bool
+            nullable: false
+          summary: Moves a device into an existing zone.
+
+        - name: SetZoneMeasuringDeviceAsync
+          kind: command
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+            - name: zoneId
+              type: int
+              validation: positive-id
+            - name: deviceSerialNo
+              type: string
+              validation: non-empty
+          returns:
+            type: Device
+            nullable: false
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/Device.cs
+          summary: Sets which device should measure temperature and humidity for a zone.
+
         - name: GetMobileDeviceAsync
           kind: read
           parameters:
@@ -756,6 +850,18 @@ services:
             type: bool
             nullable: false
           summary: Updates a device temperature offset in Celsius.
+
+        - name: SetZoneTemperatureOffsetFahrenheitAsync
+          kind: command
+          parameters:
+            - name: deviceId
+              type: string
+            - name: temperature
+              type: double
+          returns:
+            type: bool
+            nullable: false
+          summary: Updates a device temperature offset in Fahrenheit.
 
     - name: WeatherAppService
       interface: IWeatherService

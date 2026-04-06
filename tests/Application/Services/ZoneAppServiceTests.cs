@@ -33,7 +33,7 @@ namespace TadoNetApi.Tests.Application.Services
         /// <summary>
         /// Tests that <see cref="ZoneAppService.GetZonesAsync"/> returns correctly mapped zones.
         /// </summary>
-        [Fact]
+        [Fact(DisplayName = "GetZonesAsync returns mapped zones")]
         public async Task GetZonesAsync_ReturnsMappedZones()
         {
             // Arrange
@@ -59,7 +59,7 @@ namespace TadoNetApi.Tests.Application.Services
         /// <summary>
         /// Tests that <see cref="ZoneAppService.GetZoneAsync"/> returns a correctly mapped zone.
         /// </summary>
-        [Fact]
+        [Fact(DisplayName = "GetZoneAsync returns mapped zone")]
         public async Task GetZoneAsync_ReturnsMappedZone()
         {
             // Arrange
@@ -86,7 +86,7 @@ namespace TadoNetApi.Tests.Application.Services
         /// <summary>
         /// Tests that <see cref="ZoneAppService.GetZoneStateAsync"/> returns a correctly mapped state.
         /// </summary>
-        [Fact]
+        [Fact(DisplayName = "GetZoneStateAsync returns mapped state")]
         public async Task GetZoneStateAsync_ReturnsMappedState()
         {
             // Arrange
@@ -119,7 +119,7 @@ namespace TadoNetApi.Tests.Application.Services
         /// <summary>
         /// Tests that <see cref="ZoneAppService.GetZoneSummaryAsync"/> returns a correctly mapped zone summary.
         /// </summary>
-        [Fact]
+        [Fact(DisplayName = "GetZoneSummaryAsync returns mapped summary")]
         public async Task GetZoneSummaryAsync_ReturnsMappedSummary()
         {
             // Arrange
@@ -155,7 +155,7 @@ namespace TadoNetApi.Tests.Application.Services
         /// <summary>
         /// Tests that <see cref="ZoneAppService.GetZoneCapabilitiesAsync"/> returns correctly mapped capabilities.
         /// </summary>
-        [Fact]
+        [Fact(DisplayName = "GetZoneCapabilitiesAsync returns mapped capabilities")]
         public async Task GetZoneCapabilitiesAsync_ReturnsMappedCapabilities()
         {
             // Arrange
@@ -188,7 +188,10 @@ namespace TadoNetApi.Tests.Application.Services
             Assert.Equal(1, capabilities[0].Temperatures?.Celsius?.Step);
         }
 
-        [Fact]
+        /// <summary>
+        /// Tests that <see cref="ZoneAppService.DeleteZoneOverlayAsync"/> delegates to the domain service.
+        /// </summary>
+        [Fact(DisplayName = "DeleteZoneOverlayAsync passes through to domain service")]
         public async Task DeleteZoneOverlayAsync_PassesThroughToDomainService()
         {
             var (service, mock) = CreateService();
@@ -201,7 +204,10 @@ namespace TadoNetApi.Tests.Application.Services
             mock.Verify(s => s.DeleteZoneOverlayAsync(1, 2, It.IsAny<CancellationToken>()), Times.Once);
         }
 
-        [Fact]
+        /// <summary>
+        /// Tests that <see cref="ZoneAppService.SetHeatingCircuitAsync"/> delegates to the domain service.
+        /// </summary>
+        [Fact(DisplayName = "SetHeatingCircuitAsync passes through to domain service")]
         public async Task SetHeatingCircuitAsync_PassesThroughToDomainService()
         {
             var expected = new ZoneControl { HeatingCircuit = 3 };
@@ -215,7 +221,10 @@ namespace TadoNetApi.Tests.Application.Services
             mock.Verify(s => s.SetHeatingCircuitAsync(1, 2, 3, It.IsAny<CancellationToken>()), Times.Once);
         }
 
-        [Fact]
+        /// <summary>
+        /// Tests that <see cref="ZoneAppService.SetHeatingTemperatureFahrenheitAsync"/> delegates to the domain service.
+        /// </summary>
+        [Fact(DisplayName = "SetHeatingTemperatureFahrenheitAsync passes through to domain service")]
         public async Task SetHeatingTemperatureFahrenheitAsync_PassesThroughToDomainService()
         {
             var expected = new ZoneSummary();
@@ -229,7 +238,10 @@ namespace TadoNetApi.Tests.Application.Services
             mock.Verify(s => s.SetHeatingTemperatureFahrenheitAsync(1, 2, 72.5, It.IsAny<CancellationToken>()), Times.Once);
         }
 
-        [Fact]
+        /// <summary>
+        /// Tests that <see cref="ZoneAppService.SetHotWaterTemperatureCelsiusAsync"/> delegates to the domain service.
+        /// </summary>
+        [Fact(DisplayName = "SetHotWaterTemperatureCelsiusAsync passes through to domain service")]
         public async Task SetHotWaterTemperatureCelsiusAsync_PassesThroughToDomainService()
         {
             var expected = new ZoneSummary();
@@ -243,7 +255,10 @@ namespace TadoNetApi.Tests.Application.Services
             mock.Verify(s => s.SetHotWaterTemperatureCelsiusAsync(1, 2, 55.0, It.IsAny<CancellationToken>()), Times.Once);
         }
 
-        [Fact]
+        /// <summary>
+        /// Tests that <see cref="ZoneAppService.SetHotWaterTemperatureFahrenheitAsync"/> delegates to the domain service.
+        /// </summary>
+        [Fact(DisplayName = "SetHotWaterTemperatureFahrenheitAsync passes through to domain service")]
         public async Task SetHotWaterTemperatureFahrenheitAsync_PassesThroughToDomainService()
         {
             var expected = new ZoneSummary();
@@ -257,7 +272,10 @@ namespace TadoNetApi.Tests.Application.Services
             mock.Verify(s => s.SetHotWaterTemperatureFahrenheitAsync(1, 2, 131.0, It.IsAny<CancellationToken>()), Times.Once);
         }
 
-        [Fact]
+        /// <summary>
+        /// Tests that <see cref="ZoneAppService.SwitchHeatingOffAsync"/> delegates to the domain service.
+        /// </summary>
+        [Fact(DisplayName = "SwitchHeatingOffAsync passes through to domain service")]
         public async Task SwitchHeatingOffAsync_PassesThroughToDomainService()
         {
             var expected = new ZoneSummary();
@@ -271,7 +289,10 @@ namespace TadoNetApi.Tests.Application.Services
             mock.Verify(s => s.SwitchHeatingOffAsync(1, 2, It.IsAny<CancellationToken>()), Times.Once);
         }
 
-        [Fact]
+        /// <summary>
+        /// Tests that <see cref="ZoneAppService.SwitchHotWaterOffAsync"/> delegates to the domain service.
+        /// </summary>
+        [Fact(DisplayName = "SwitchHotWaterOffAsync passes through to domain service")]
         public async Task SwitchHotWaterOffAsync_PassesThroughToDomainService()
         {
             var expected = new ZoneSummary();
@@ -288,7 +309,7 @@ namespace TadoNetApi.Tests.Application.Services
         /// <summary>
         /// Tests that <see cref="ZoneAppService.GetZoneControlAsync"/> returns correctly mapped zone control details.
         /// </summary>
-        [Fact]
+        [Fact(DisplayName = "GetZoneControlAsync returns mapped zone control")]
         public async Task GetZoneControlAsync_ReturnsMappedZoneControl()
         {
             // Arrange
@@ -322,7 +343,7 @@ namespace TadoNetApi.Tests.Application.Services
         /// <summary>
         /// Tests that <see cref="ZoneAppService.GetDefaultZoneOverlayAsync"/> returns correctly mapped default overlay details.
         /// </summary>
-        [Fact]
+        [Fact(DisplayName = "GetDefaultZoneOverlayAsync returns mapped default overlay")]
         public async Task GetDefaultZoneOverlayAsync_ReturnsMappedDefaultOverlay()
         {
             // Arrange
@@ -351,7 +372,7 @@ namespace TadoNetApi.Tests.Application.Services
         /// <summary>
         /// Tests that <see cref="ZoneAppService.GetEarlyStartAsync"/> returns early start settings.
         /// </summary>
-        [Fact]
+        [Fact(DisplayName = "GetEarlyStartAsync returns early start")]
         public async Task GetEarlyStartAsync_ReturnsEarlyStart()
         {
             // Arrange
@@ -372,7 +393,7 @@ namespace TadoNetApi.Tests.Application.Services
         /// <summary>
         /// Tests that <see cref="ZoneAppService.GetAwayConfigurationAsync"/> returns away-configuration settings.
         /// </summary>
-        [Fact]
+        [Fact(DisplayName = "GetAwayConfigurationAsync returns away configuration")]
         public async Task GetAwayConfigurationAsync_ReturnsAwayConfiguration()
         {
             // Arrange
@@ -404,7 +425,10 @@ namespace TadoNetApi.Tests.Application.Services
             Assert.Equal(15, awayConfiguration.Setting?.Temperature?.Celsius);
         }
 
-        [Fact]
+        /// <summary>
+        /// Tests that <see cref="ZoneAppService.CreateZoneAsync"/> delegates to the domain service.
+        /// </summary>
+        [Fact(DisplayName = "CreateZoneAsync passes through to domain service")]
         public async Task CreateZoneAsync_PassesThroughToDomainService()
         {
             var (service, mock) = CreateService();
@@ -421,7 +445,7 @@ namespace TadoNetApi.Tests.Application.Services
         /// <summary>
         /// Tests that <see cref="ZoneAppService.GetZoneDayReportAsync"/> returns the day-report payload.
         /// </summary>
-        [Fact]
+        [Fact(DisplayName = "GetZoneDayReportAsync returns zone day report")]
         public async Task GetZoneDayReportAsync_ReturnsZoneDayReport()
         {
             var expectedDayReport = new ZoneDayReport
@@ -466,7 +490,7 @@ namespace TadoNetApi.Tests.Application.Services
         /// <summary>
         /// Tests that <see cref="ZoneAppService.GetZoneTemperatureOffsetAsync"/> returns the zone temperature offset.
         /// </summary>
-        [Fact]
+        [Fact(DisplayName = "GetZoneTemperatureOffsetAsync returns temperature offset")]
         public async Task GetZoneTemperatureOffsetAsync_ReturnsTemperatureOffset()
         {
             // Arrange

@@ -68,6 +68,27 @@ public interface IDeviceService
     Task<Device> GetZoneMeasuringDeviceAsync(int homeId, int zoneId, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Moves a device into an existing zone.
+    /// </summary>
+    /// <param name="homeId">The ID of the home containing the zone.</param>
+    /// <param name="zoneId">The ID of the destination zone.</param>
+    /// <param name="deviceSerialNo">The serial number of the device to move.</param>
+    /// <param name="force">Optional flag indicating whether the previous zone should be forcibly removed when supported.</param>
+    /// <param name="cancellationToken">The cancellation token to observe.</param>
+    /// <returns><see langword="true"/> when the command succeeds.</returns>
+    Task<bool> MoveDeviceToZoneAsync(int homeId, int zoneId, string deviceSerialNo, bool? force = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Sets which device should measure temperature and humidity for a zone.
+    /// </summary>
+    /// <param name="homeId">The ID of the home containing the zone.</param>
+    /// <param name="zoneId">The ID of the zone to update.</param>
+    /// <param name="deviceSerialNo">The serial number of the device that should become the measuring device.</param>
+    /// <param name="cancellationToken">The cancellation token to observe.</param>
+    /// <returns>The measuring device assigned to the zone after the update.</returns>
+    Task<Device> SetZoneMeasuringDeviceAsync(int homeId, int zoneId, string deviceSerialNo, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Retrieves a specific mobile device for the specified home.
     /// </summary>
     /// <param name="homeId">The ID of the home containing the mobile device.</param>
@@ -138,4 +159,13 @@ public interface IDeviceService
     /// <param name="cancellationToken">The cancellation token to observe.</param>
     /// <returns><see langword="true"/> when the command succeeds.</returns>
     Task<bool> SetZoneTemperatureOffsetCelsiusAsync(string deviceId, double temperature, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Sets the temperature offset in Fahrenheit for a Tado device.
+    /// </summary>
+    /// <param name="deviceId">The Tado device identifier.</param>
+    /// <param name="temperature">The temperature offset in Fahrenheit.</param>
+    /// <param name="cancellationToken">The cancellation token to observe.</param>
+    /// <returns><see langword="true"/> when the command succeeds.</returns>
+    Task<bool> SetZoneTemperatureOffsetFahrenheitAsync(string deviceId, double temperature, CancellationToken cancellationToken = default);
 }

@@ -6,6 +6,26 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [0.8.8] - 2026-04-06
+
+### Added
+- Added `SetAwayRadiusInMetersAsync` for `PUT /homes/{homeId}/awayRadiusInMeters`.
+- Added `SetIncidentDetectionAsync` for `PUT /homes/{homeId}/incidentDetection`.
+- Added `SetHomeDetailsAsync` for `PUT /homes/{homeId}/details` using the complete writable home-details payload.
+- Added `SetFlowTemperatureOptimisationAsync` for `PUT /homes/{homeId}/flowTemperatureOptimization`.
+- Added `MoveDeviceToZoneAsync` for `POST /homes/{homeId}/zones/{zoneId}/devices` with support for the optional `force` query flag.
+- Added `SetZoneMeasuringDeviceAsync` for `PUT /homes/{homeId}/zones/{zoneId}/measuringDevice`.
+- Added `SetZoneTemperatureOffsetFahrenheitAsync` for `PUT /devices/{deviceId}/temperatureOffset` using the spec-supported `fahrenheit` payload.
+
+### Fixed
+- Added focused tests for the `SetAwayRadiusInMetersAsync` command route, `204` status expectation, payload shape, and negative-distance validation.
+- Added focused tests for the `SetIncidentDetectionAsync` command route and serialized `enabled` payload shape.
+- Added focused tests for the `SetHomeDetailsAsync` command route, serialized payload shape, and required-name validation.
+- Added focused tests for the `SetFlowTemperatureOptimisationAsync` command route and serialized `maxFlowTemperature` payload shape.
+- Added focused tests for the `MoveDeviceToZoneAsync` command route, HTTP method, expected status code, payload shape, and serial validation.
+- Added focused tests for the `SetZoneMeasuringDeviceAsync` command route, typed response handling, payload shape, and serial validation.
+- Added focused tests for the `SetZoneTemperatureOffsetFahrenheitAsync` command route and serialized `fahrenheit` payload shape.
+
 ## [0.8.7] - 2026-04-05
 
 ### Added

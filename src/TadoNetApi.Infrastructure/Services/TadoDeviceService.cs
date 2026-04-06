@@ -215,6 +215,73 @@ namespace TadoNetApi.Infrastructure.Services
         }
 
         /// <summary>
+        /// Moves a device into an existing zone.
+        /// </summary>
+        /// <param name="homeId">The ID of the home.</param>
+        /// <param name="zoneId">The ID of the destination zone.</param>
+        /// <param name="deviceSerialNo">The serial number of the device to move.</param>
+        /// <param name="force">Optional flag indicating whether the previous zone should be forcibly removed when supported.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns><see langword="true"/> when the command succeeds.</returns>
+        public async Task<bool> MoveDeviceToZoneAsync(int homeId, int zoneId, string deviceSerialNo, bool? force = null, CancellationToken cancellationToken = default)
+        {
+            Guard.PositiveId(homeId, nameof(homeId));
+            Guard.PositiveId(zoneId, nameof(zoneId));
+
+            if (string.IsNullOrWhiteSpace(deviceSerialNo))
+                throw new ArgumentException("Device serial number must be provided.", nameof(deviceSerialNo));
+
+            var request = new MoveDeviceToZoneRequest
+            {
+                SerialNo = deviceSerialNo
+            };
+
+            var path = $"homes/{homeId}/zones/{zoneId}/devices";
+            if (force.HasValue)
+                path += $"?force={force.Value.ToString().ToLowerInvariant()}";
+
+            return await _httpClient.SendAsync(
+                path,
+                HttpMethod.Post,
+                cancellationToken,
+                System.Net.HttpStatusCode.OK,
+                request);
+        }
+
+        /// <summary>
+        /// Sets which device should measure temperature and humidity for a zone.
+        /// </summary>
+        /// <param name="homeId">The ID of the home.</param>
+        /// <param name="zoneId">The ID of the zone to update.</param>
+        /// <param name="deviceSerialNo">The serial number of the device that should become the measuring device.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>The measuring device assigned to the zone after the update.</returns>
+        public async Task<Device> SetZoneMeasuringDeviceAsync(int homeId, int zoneId, string deviceSerialNo, CancellationToken cancellationToken = default)
+        {
+            Guard.PositiveId(homeId, nameof(homeId));
+            Guard.PositiveId(zoneId, nameof(zoneId));
+
+            if (string.IsNullOrWhiteSpace(deviceSerialNo))
+                throw new ArgumentException("Device serial number must be provided.", nameof(deviceSerialNo));
+
+            var request = new SetZoneMeasuringDeviceRequest
+            {
+                SerialNo = deviceSerialNo
+            };
+
+            var response = await _httpClient.PutAsync<SetZoneMeasuringDeviceRequest, TadoDeviceResponse>(
+                $"homes/{homeId}/zones/{zoneId}/measuringDevice",
+                request,
+                cancellationToken);
+
+            if (response == null)
+                throw new TadoApiException(System.Net.HttpStatusCode.NotFound,
+                    $"Measuring device for zone {zoneId} not found.");
+
+            return response.ToDomain();
+        }
+
+        /// <summary>
         /// Retrieves a specific mobile device for the specified home.
         /// </summary>
         /// <param name="homeId">The ID of the home.</param>
@@ -401,6 +468,26 @@ namespace TadoNetApi.Infrastructure.Services
                 cancellationToken,
                 System.Net.HttpStatusCode.OK,
                 new { celsius = temperature });
+        }
+
+        /// <summary>
+        /// Sets the temperature offset in Fahrenheit for a Tado device.
+        /// </summary>
+        /// <param name="deviceId">The ID of the Tado device to set the offset for.</param>
+        /// <param name="temperature">The temperature offset in Fahrenheit.</param>
+        /// <param name="cancellationToken">Optional cancellation token.</param>
+        /// <returns>Boolean indicating if the request was successful.</returns>
+        public async Task<bool> SetZoneTemperatureOffsetFahrenheitAsync(string deviceId, double temperature, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(deviceId))
+                throw new ArgumentException("Device ID must be provided.", nameof(deviceId));
+
+            return await _httpClient.SendAsync(
+                $"devices/{deviceId}/temperatureOffset",
+                HttpMethod.Put,
+                cancellationToken,
+                System.Net.HttpStatusCode.OK,
+                new { fahrenheit = temperature });
         }
 
         #endregion

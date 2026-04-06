@@ -6,8 +6,6 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
-## [0.8.8] - 2026-04-06
-
 ### Added
 - Added `SetAwayRadiusInMetersAsync` for `PUT /homes/{homeId}/awayRadiusInMeters`.
 - Added `SetIncidentDetectionAsync` for `PUT /homes/{homeId}/incidentDetection`.

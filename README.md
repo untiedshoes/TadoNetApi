@@ -379,10 +379,7 @@ The list below reflects the current gap between this library and the community m
 
 ##### Testing / Documentation
 
-- [ ] Add unit tests for `GetDeviceListAsync` application-service passthrough and error-path coverage
 - [ ] Add unit tests for remaining command payload variants (Fahrenheit, hot water, off/wrapper flows)
-- [ ] Add integration tests for `GetDeviceListAsync` and at least one zone overlay command
-- [ ] Keep README service reference and TODO list synchronized with implemented spec coverage
 
 ---
 

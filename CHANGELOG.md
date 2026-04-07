@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog, and this project follows Semantic Versioning.
 
-## [Unreleased]
+## [0.8.8] - 2026-04-07
 
 ### Added
 - Added `SetAwayRadiusInMetersAsync` for `PUT /homes/{homeId}/awayRadiusInMeters`.
@@ -40,7 +40,7 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 - Added focused tests for the `SetZoneTemperatureOffsetFahrenheitAsync` command route and serialized `fahrenheit` payload shape.
 
 ### Changed
-- Bumped the unreleased package and assembly version metadata to `0.8.8` without creating a release section.
+- Bumped the package and assembly version metadata to `0.8.8`.
 
 ## [0.8.7] - 2026-04-05
 

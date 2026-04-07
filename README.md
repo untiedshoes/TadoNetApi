@@ -97,7 +97,7 @@ The playground is intentionally simple. It is there to exercise the real authent
 - Clean Architecture across Domain, Application, Infrastructure, and Playground layers
 - `Microsoft.Extensions.Http` for DI-friendly HTTP client composition
 - OAuth2 device authorization against the Tado platform
-- `Newtonsoft.Json` for API serialization, DTO binding, and custom enum converters
+- `System.Text.Json` for API serialization, DTO binding, and custom enum converters
 - `Microsoft.Extensions.Logging.Console` for playground/runtime logging
 - Async/await with cancellation-token support across service boundaries
 - xUnit + Moq + Coverlet for unit testing and coverage collection

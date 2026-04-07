@@ -27,7 +27,7 @@ namespace TadoNetApi.Domain.Entities {
         /// <summary>
         /// The list of devices included in the installation
         /// </summary>
-        public Device[] Devices { get; set; }
+        public Device[] Devices { get; set; } = Array.Empty<Device>();
     }
 }
     

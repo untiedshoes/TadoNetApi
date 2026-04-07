@@ -134,7 +134,7 @@ namespace TadoNetApi.Infrastructure.Services
                     $"homes/{homeId}/zones/{zoneId}/overlay",
                     cancellationToken);
 
-                return ZoneSummaryMapper.ToDomain(response);
+                return response == null ? null : ZoneSummaryMapper.ToDomain(response);
             }
             catch (TadoApiException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
             {

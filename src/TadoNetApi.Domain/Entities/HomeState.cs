@@ -5,6 +5,6 @@ namespace TadoNetApi.Domain.Entities
     /// </summary>
     public class HomeState
     {
-        public string Presence { get; set; }
+        public string Presence { get; set; } = string.Empty;
     }
 }

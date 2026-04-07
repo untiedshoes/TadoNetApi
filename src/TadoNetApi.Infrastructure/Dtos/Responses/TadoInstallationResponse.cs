@@ -34,6 +34,6 @@ namespace TadoNetApi.Infrastructure.Dtos.Responses
         /// <summary>
         /// The list of devices included in the installation
         /// </summary>
-        public TadoDeviceResponse[] Devices { get; set; }
+        public TadoDeviceResponse[] Devices { get; set; } = Array.Empty<TadoDeviceResponse>();
     }
 }

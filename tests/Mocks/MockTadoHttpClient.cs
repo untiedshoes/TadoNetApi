@@ -33,7 +33,7 @@ namespace TadoNetApi.Tests.Mocks
                         throw transientException;
 
                     ct.ThrowIfCancellationRequested();
-                    return await Task.FromResult(returnValue);
+                    return await Task.FromResult<T?>(returnValue);
                 });
 
             return mock;
@@ -59,7 +59,7 @@ namespace TadoNetApi.Tests.Mocks
                         throw transientException;
 
                     ct.ThrowIfCancellationRequested();
-                    return await Task.FromResult(returnValue);
+                    return await Task.FromResult<TResponse?>(returnValue);
                 });
 
             return mock;
@@ -84,7 +84,7 @@ namespace TadoNetApi.Tests.Mocks
                     if (callCount <= failCount)
                         throw new HttpRequestException("Simulated transient failure");
 
-                    return Task.FromResult(returnValue);
+                    return Task.FromResult<T?>(returnValue);
                 });
 
             // PostAsync<TRequest, TResponse>
@@ -95,7 +95,7 @@ namespace TadoNetApi.Tests.Mocks
                     if (callCount <= failCount)
                         throw new HttpRequestException("Simulated transient failure");
 
-                    return Task.FromResult(returnValue);
+                    return Task.FromResult<T?>(returnValue);
                 });
 
             return mock;

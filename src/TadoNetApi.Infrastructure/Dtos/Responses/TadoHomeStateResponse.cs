@@ -8,6 +8,6 @@ namespace TadoNetApi.Infrastructure.Dtos.Responses
     public class TadoHomeStateResponse
     {
         [JsonPropertyName("presence")]
-        public string Presence { get; set; }
+        public string Presence { get; set; } = string.Empty;
     }
 }

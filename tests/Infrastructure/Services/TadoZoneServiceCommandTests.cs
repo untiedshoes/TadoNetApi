@@ -236,6 +236,173 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                 Times.Once);
         }
 
+        [Fact(DisplayName = "ResetOpenWindowAsync sends the spec-aligned open window reset command")]
+        public async Task ResetOpenWindowAsync_SendsSpecAlignedOpenWindowResetCommand()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+
+            mockHttp
+                .Setup(c => c.SendAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<HttpMethod>(),
+                    It.IsAny<CancellationToken>(),
+                    It.IsAny<HttpStatusCode>(),
+                    It.IsAny<object?>()))
+                .ReturnsAsync(true);
+
+            var service = new TadoZoneService(mockHttp.Object);
+
+            await service.ResetOpenWindowAsync(1, 2, CancellationToken.None);
+
+            mockHttp.Verify(c => c.SendAsync(
+                    "homes/1/zones/2/state/openWindow",
+                    HttpMethod.Delete,
+                    It.IsAny<CancellationToken>(),
+                    HttpStatusCode.NoContent,
+                    null),
+                Times.Once);
+        }
+
+        [Fact(DisplayName = "SetZoneDetailsAsync sends the spec-aligned zone details command")]
+        public async Task SetZoneDetailsAsync_SendsSpecAlignedZoneDetailsCommand()
+        {
+            SetZoneDetailsRequest? capturedRequest = null;
+            var mockHttp = new Mock<ITadoHttpClient>();
+
+            mockHttp
+                .Setup(c => c.PutAsync<SetZoneDetailsRequest, TadoZoneResponse>(
+                    It.IsAny<string>(),
+                    It.IsAny<SetZoneDetailsRequest>(),
+                    It.IsAny<CancellationToken>()))
+                .Callback<string, SetZoneDetailsRequest, CancellationToken>((_, req, _) =>
+                {
+                    capturedRequest = req;
+                })
+                .ReturnsAsync(new TadoZoneResponse
+                {
+                    Id = 2,
+                    Name = "Bedroom",
+                    CurrentType = "HEATING"
+                });
+
+            var service = new TadoZoneService(mockHttp.Object);
+            var result = await service.SetZoneDetailsAsync(1, 2, new Zone { Name = "Bedroom" }, CancellationToken.None);
+
+            Assert.NotNull(capturedRequest);
+            Assert.Equal("Bedroom", capturedRequest!.Name);
+            Assert.Equal("Bedroom", result.Name);
+
+            mockHttp.Verify(c => c.PutAsync<SetZoneDetailsRequest, TadoZoneResponse>(
+                "homes/1/zones/2/details",
+                It.Is<SetZoneDetailsRequest>(r => r.Name == "Bedroom"),
+                It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact(DisplayName = "SetZoneDetailsAsync requires a zone name")]
+        public async Task SetZoneDetailsAsync_RequiresZoneName()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            var service = new TadoZoneService(mockHttp.Object);
+
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                service.SetZoneDetailsAsync(1, 2, new Zone { Name = "   " }, CancellationToken.None));
+
+            mockHttp.Verify(c => c.PutAsync<SetZoneDetailsRequest, TadoZoneResponse>(
+                It.IsAny<string>(),
+                It.IsAny<SetZoneDetailsRequest>(),
+                It.IsAny<CancellationToken>()), Times.Never);
+        }
+
+        [Fact(DisplayName = "SetDefaultZoneOverlayAsync sends the spec-aligned default overlay command")]
+        public async Task SetDefaultZoneOverlayAsync_SendsSpecAlignedDefaultOverlayCommand()
+        {
+            string? capturedJson = null;
+            var mockHttp = new Mock<ITadoHttpClient>();
+
+            mockHttp
+                .Setup(c => c.PutAsync<SetDefaultZoneOverlayRequest, TadoDefaultZoneOverlayResponse>(
+                    It.IsAny<string>(),
+                    It.IsAny<SetDefaultZoneOverlayRequest>(),
+                    It.IsAny<CancellationToken>()))
+                .Callback<string, SetDefaultZoneOverlayRequest, CancellationToken>((_, req, _) =>
+                {
+                    capturedJson = JsonSerializer.Serialize(req);
+                })
+                .ReturnsAsync(new TadoDefaultZoneOverlayResponse
+                {
+                    TerminationCondition = new TadoTerminationResponse
+                    {
+                        CurrentType = DurationModes.Timer,
+                        DurationInSeconds = 900
+                    }
+                });
+
+            var service = new TadoZoneService(mockHttp.Object);
+            var result = await service.SetDefaultZoneOverlayAsync(
+                1,
+                2,
+                new DefaultZoneOverlay
+                {
+                    TerminationCondition = new Termination
+                    {
+                        Type = DurationModes.Timer.ToString(),
+                        DurationInSeconds = 900
+                    }
+                },
+                CancellationToken.None);
+
+            Assert.NotNull(capturedJson);
+            Assert.Contains("\"terminationCondition\":{", capturedJson);
+            Assert.Contains("\"type\":\"TIMER\"", capturedJson);
+            Assert.Contains("\"durationInSeconds\":900", capturedJson);
+            Assert.Equal(DurationModes.Timer.ToString(), result.TerminationCondition?.Type);
+            Assert.Equal(900, result.TerminationCondition?.DurationInSeconds);
+
+            mockHttp.Verify(c => c.PutAsync<SetDefaultZoneOverlayRequest, TadoDefaultZoneOverlayResponse>(
+                "homes/1/zones/2/defaultOverlay",
+                It.IsAny<SetDefaultZoneOverlayRequest>(),
+                It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact(DisplayName = "SetDefaultZoneOverlayAsync requires termination details")]
+        public async Task SetDefaultZoneOverlayAsync_RequiresTerminationDetails()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            var service = new TadoZoneService(mockHttp.Object);
+
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                service.SetDefaultZoneOverlayAsync(1, 2, new DefaultZoneOverlay(), CancellationToken.None));
+
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                service.SetDefaultZoneOverlayAsync(
+                    1,
+                    2,
+                    new DefaultZoneOverlay
+                    {
+                        TerminationCondition = new Termination()
+                    },
+                    CancellationToken.None));
+
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                service.SetDefaultZoneOverlayAsync(
+                    1,
+                    2,
+                    new DefaultZoneOverlay
+                    {
+                        TerminationCondition = new Termination
+                        {
+                            Type = DurationModes.Timer.ToString(),
+                            DurationInSeconds = 0
+                        }
+                    },
+                    CancellationToken.None));
+
+            mockHttp.Verify(c => c.PutAsync<SetDefaultZoneOverlayRequest, TadoDefaultZoneOverlayResponse>(
+                It.IsAny<string>(),
+                It.IsAny<SetDefaultZoneOverlayRequest>(),
+                It.IsAny<CancellationToken>()), Times.Never);
+        }
+
         [Fact(DisplayName = "CreateZoneAsync sends the spec-aligned zone creation command")]
         public async Task CreateZoneAsync_SendsSpecAlignedZoneCreationCommand()
         {

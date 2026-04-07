@@ -477,6 +477,96 @@ namespace TadoNetApi.Infrastructure.Services
                     null);
             }
 
+            /// <summary>
+            /// Resets the open window state for a zone.
+            /// </summary>
+            /// <param name="homeId">The ID of the home.</param>
+            /// <param name="zoneId">The ID of the zone.</param>
+            /// <param name="cancellationToken">The cancellation token to observe.</param>
+            public async Task ResetOpenWindowAsync(int homeId, int zoneId, CancellationToken cancellationToken = default)
+            {
+                Guard.PositiveId(homeId, nameof(homeId));
+                Guard.PositiveId(zoneId, nameof(zoneId));
+
+                await _httpClient.SendAsync(
+                    $"homes/{homeId}/zones/{zoneId}/state/openWindow",
+                    HttpMethod.Delete,
+                    cancellationToken,
+                    HttpStatusCode.NoContent,
+                    null);
+            }
+
+            /// <summary>
+            /// Updates the writable details of a zone.
+            /// </summary>
+            /// <param name="homeId">The ID of the home.</param>
+            /// <param name="zoneId">The ID of the zone.</param>
+            /// <param name="zoneDetails">The writable zone details payload.</param>
+            /// <param name="cancellationToken">The cancellation token to observe.</param>
+            /// <returns>The updated zone definition.</returns>
+            public async Task<Zone> SetZoneDetailsAsync(int homeId, int zoneId, Zone zoneDetails, CancellationToken cancellationToken = default)
+            {
+                Guard.PositiveId(homeId, nameof(homeId));
+                Guard.PositiveId(zoneId, nameof(zoneId));
+
+                ArgumentNullException.ThrowIfNull(zoneDetails);
+
+                if (string.IsNullOrWhiteSpace(zoneDetails.Name))
+                    throw new ArgumentException("Zone name is required.", nameof(zoneDetails));
+
+                var request = SetZoneDetailsRequest.FromDomain(zoneDetails);
+
+                var response = await _httpClient.PutAsync<SetZoneDetailsRequest, TadoZoneResponse>(
+                    $"homes/{homeId}/zones/{zoneId}/details",
+                    request,
+                    cancellationToken);
+
+                if (response == null)
+                    throw new TadoApiException(HttpStatusCode.NotFound, $"Zone {zoneId} not found.");
+
+                return response.ToDomain();
+            }
+
+            /// <summary>
+            /// Updates the default overlay configuration for a zone.
+            /// </summary>
+            /// <param name="homeId">The ID of the home.</param>
+            /// <param name="zoneId">The ID of the zone.</param>
+            /// <param name="defaultOverlay">The default overlay configuration to apply.</param>
+            /// <param name="cancellationToken">The cancellation token to observe.</param>
+            /// <returns>The updated default overlay configuration.</returns>
+            public async Task<DefaultZoneOverlay> SetDefaultZoneOverlayAsync(int homeId, int zoneId, DefaultZoneOverlay defaultOverlay, CancellationToken cancellationToken = default)
+            {
+                Guard.PositiveId(homeId, nameof(homeId));
+                Guard.PositiveId(zoneId, nameof(zoneId));
+
+                ArgumentNullException.ThrowIfNull(defaultOverlay);
+
+                if (defaultOverlay.TerminationCondition == null)
+                    throw new ArgumentException("Default overlay termination condition must be provided.", nameof(defaultOverlay));
+
+                if (string.IsNullOrWhiteSpace(defaultOverlay.TerminationCondition.Type))
+                    throw new ArgumentException("Default overlay termination type must be provided.", nameof(defaultOverlay));
+
+                if (string.Equals(defaultOverlay.TerminationCondition.Type, DurationModes.Timer.ToString(), StringComparison.OrdinalIgnoreCase)
+                    && (!defaultOverlay.TerminationCondition.DurationInSeconds.HasValue || defaultOverlay.TerminationCondition.DurationInSeconds.Value <= 0))
+                {
+                    throw new ArgumentException("Default overlay timer duration must be greater than zero when the termination type is TIMER.", nameof(defaultOverlay));
+                }
+
+                var request = SetDefaultZoneOverlayRequest.FromDomain(defaultOverlay);
+
+                var response = await _httpClient.PutAsync<SetDefaultZoneOverlayRequest, TadoDefaultZoneOverlayResponse>(
+                    $"homes/{homeId}/zones/{zoneId}/defaultOverlay",
+                    request,
+                    cancellationToken);
+
+                if (response == null)
+                    throw new TadoApiException(HttpStatusCode.NotFound, $"Default overlay for zone {zoneId} not found.");
+
+                return response.ToDomain();
+            }
+
         /// <summary>
         /// Creates a new zone and moves the specified devices into it.
         /// </summary>

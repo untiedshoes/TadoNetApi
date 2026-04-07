@@ -451,6 +451,60 @@ services:
             nullable: false
           summary: Activates the open-window state for a zone using the spec-defined manual trigger endpoint.
 
+        - name: ResetOpenWindowAsync
+          kind: command
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+            - name: zoneId
+              type: int
+              validation: positive-id
+          returns:
+            type: void
+            nullable: false
+          summary: Resets the open-window state for a zone using the spec-defined delete endpoint.
+
+        - name: SetZoneDetailsAsync
+          kind: command
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+            - name: zoneId
+              type: int
+              validation: positive-id
+            - name: zoneDetails
+              type: Zone
+              source: caller-provided
+              modelFile: src/TadoNetApi.Domain/Entities/Zone.cs
+          returns:
+            type: Zone
+            nullable: false
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/Zone.cs
+          summary: Updates the writable zone details payload and returns the updated zone definition.
+
+        - name: SetDefaultZoneOverlayAsync
+          kind: command
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+            - name: zoneId
+              type: int
+              validation: positive-id
+            - name: defaultOverlay
+              type: DefaultZoneOverlay
+              source: caller-provided
+              modelFile: src/TadoNetApi.Domain/Entities/DefaultZoneOverlay.cs
+          returns:
+            type: DefaultZoneOverlay
+            nullable: false
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/DefaultZoneOverlay.cs
+          summary: Updates the default overlay termination configuration used for device-created overlays in a zone.
+
         - name: DeleteZoneOverlayAsync
           kind: command
           parameters:

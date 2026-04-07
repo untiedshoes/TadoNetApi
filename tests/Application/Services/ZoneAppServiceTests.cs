@@ -258,6 +258,73 @@ namespace TadoNetApi.Tests.Application.Services
         }
 
         /// <summary>
+        /// Tests that <see cref="ZoneAppService.ResetOpenWindowAsync"/> delegates to the domain service.
+        /// </summary>
+        [Fact(DisplayName = "ResetOpenWindowAsync passes through to domain service")]
+        public async Task ResetOpenWindowAsync_PassesThroughToDomainService()
+        {
+            var (service, mock) = CreateService();
+            mock.Setup(s => s.ResetOpenWindowAsync(1, 2, It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
+
+            await service.ResetOpenWindowAsync(1, 2, CancellationToken.None);
+
+            mock.Verify(s => s.ResetOpenWindowAsync(1, 2, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        /// <summary>
+        /// Tests that <see cref="ZoneAppService.SetZoneDetailsAsync"/> delegates to the domain service.
+        /// </summary>
+        [Fact(DisplayName = "SetZoneDetailsAsync passes through to domain service")]
+        public async Task SetZoneDetailsAsync_PassesThroughToDomainService()
+        {
+            var zoneDetails = new Zone { Name = "Bedroom" };
+            var expected = new Zone { Id = 2, Name = "Bedroom" };
+            var (service, mock) = CreateService();
+            mock.Setup(s => s.SetZoneDetailsAsync(1, 2, zoneDetails, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expected);
+
+            var result = await service.SetZoneDetailsAsync(1, 2, zoneDetails, CancellationToken.None);
+
+            Assert.Same(expected, result);
+            mock.Verify(s => s.SetZoneDetailsAsync(1, 2, zoneDetails, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        /// <summary>
+        /// Tests that <see cref="ZoneAppService.SetDefaultZoneOverlayAsync"/> delegates to the domain service.
+        /// </summary>
+        [Fact(DisplayName = "SetDefaultZoneOverlayAsync passes through to domain service")]
+        public async Task SetDefaultZoneOverlayAsync_PassesThroughToDomainService()
+        {
+            var defaultOverlay = new DefaultZoneOverlay
+            {
+                TerminationCondition = new Termination
+                {
+                    Type = DurationModes.Timer.ToString(),
+                    DurationInSeconds = 900
+                }
+            };
+
+            var expected = new DefaultZoneOverlay
+            {
+                TerminationCondition = new Termination
+                {
+                    Type = DurationModes.Timer.ToString(),
+                    DurationInSeconds = 900
+                }
+            };
+
+            var (service, mock) = CreateService();
+            mock.Setup(s => s.SetDefaultZoneOverlayAsync(1, 2, defaultOverlay, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expected);
+
+            var result = await service.SetDefaultZoneOverlayAsync(1, 2, defaultOverlay, CancellationToken.None);
+
+            Assert.Same(expected, result);
+            mock.Verify(s => s.SetDefaultZoneOverlayAsync(1, 2, defaultOverlay, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        /// <summary>
         /// Tests that <see cref="ZoneAppService.SetHeatingTemperatureFahrenheitAsync"/> delegates to the domain service.
         /// </summary>
         [Fact(DisplayName = "SetHeatingTemperatureFahrenheitAsync passes through to domain service")]

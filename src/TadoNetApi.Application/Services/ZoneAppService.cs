@@ -156,6 +156,37 @@ namespace TadoNetApi.Application.Services
             => _zoneService.ActivateOpenWindowAsync(homeId, zoneId, cancellationToken);
 
         /// <summary>
+        /// Resets the open window state for a zone.
+        /// </summary>
+        /// <param name="homeId">The ID of the home containing the zone.</param>
+        /// <param name="zoneId">The ID of the zone to update.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        public Task ResetOpenWindowAsync(int homeId, int zoneId, CancellationToken cancellationToken = default)
+            => _zoneService.ResetOpenWindowAsync(homeId, zoneId, cancellationToken);
+
+        /// <summary>
+        /// Updates the writable details of a zone.
+        /// </summary>
+        /// <param name="homeId">The ID of the home containing the zone.</param>
+        /// <param name="zoneId">The ID of the zone to update.</param>
+        /// <param name="zoneDetails">The writable zone details payload.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>The updated zone definition.</returns>
+        public Task<Zone> SetZoneDetailsAsync(int homeId, int zoneId, Zone zoneDetails, CancellationToken cancellationToken = default)
+            => _zoneService.SetZoneDetailsAsync(homeId, zoneId, zoneDetails, cancellationToken);
+
+        /// <summary>
+        /// Updates the default overlay configuration for a zone.
+        /// </summary>
+        /// <param name="homeId">The ID of the home containing the zone.</param>
+        /// <param name="zoneId">The ID of the zone to update.</param>
+        /// <param name="defaultOverlay">The default overlay configuration to apply.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>The updated default overlay configuration.</returns>
+        public Task<DefaultZoneOverlay> SetDefaultZoneOverlayAsync(int homeId, int zoneId, DefaultZoneOverlay defaultOverlay, CancellationToken cancellationToken = default)
+            => _zoneService.SetDefaultZoneOverlayAsync(homeId, zoneId, defaultOverlay, cancellationToken);
+
+        /// <summary>
         /// Creates a new zone and moves the specified devices into it.
         /// </summary>
         /// <param name="homeId">The ID of the home in which the zone should be created.</param>

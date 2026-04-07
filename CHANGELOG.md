@@ -15,6 +15,9 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 - Added `SetZoneMeasuringDeviceAsync` for `PUT /homes/{homeId}/zones/{zoneId}/measuringDevice`.
 - Added `SetOpenWindowDetectionAsync` for `PUT /homes/{homeId}/zones/{zoneId}/openWindowDetection`, including the spec-required `roomId`, `enabled`, and `timeoutInSeconds` payload.
 - Added `ActivateOpenWindowAsync` for `POST /homes/{homeId}/zones/{zoneId}/state/openWindow/activate`.
+- Added `ResetOpenWindowAsync` for `DELETE /homes/{homeId}/zones/{zoneId}/state/openWindow`.
+- Added `SetZoneDetailsAsync` for `PUT /homes/{homeId}/zones/{zoneId}/details` using the writable zone-details payload.
+- Added `SetDefaultZoneOverlayAsync` for `PUT /homes/{homeId}/zones/{zoneId}/defaultOverlay` using the writable default-overlay payload.
 - Added `SetZoneTemperatureOffsetFahrenheitAsync` for `PUT /devices/{deviceId}/temperatureOffset` using the spec-supported `fahrenheit` payload.
 
 ### Fixed
@@ -26,6 +29,9 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 - Added focused tests for the `SetZoneMeasuringDeviceAsync` command route, typed response handling, payload shape, and serial validation.
 - Added focused tests for the `SetOpenWindowDetectionAsync` command route, serialized payload shape, and required-setting validation.
 - Added focused tests for the `ActivateOpenWindowAsync` command route and `204` status expectation.
+- Added focused tests for the `ResetOpenWindowAsync` command route and `204` status expectation.
+- Added focused tests for the `SetZoneDetailsAsync` command route, mapped response handling, and required-name validation.
+- Added focused tests for the `SetDefaultZoneOverlayAsync` command route, mapped response handling, and termination validation.
 - Added focused tests for the `SetZoneTemperatureOffsetFahrenheitAsync` command route and serialized `fahrenheit` payload shape.
 
 ## [0.8.7] - 2026-04-05

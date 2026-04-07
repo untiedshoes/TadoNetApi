@@ -18,6 +18,9 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 - Added `ResetOpenWindowAsync` for `DELETE /homes/{homeId}/zones/{zoneId}/state/openWindow`.
 - Added `SetZoneDetailsAsync` for `PUT /homes/{homeId}/zones/{zoneId}/details` using the writable zone-details payload.
 - Added `SetDefaultZoneOverlayAsync` for `PUT /homes/{homeId}/zones/{zoneId}/defaultOverlay` using the writable default-overlay payload.
+- Added `SetZoneOverlaysAsync` for `POST /homes/{homeId}/overlay` using the spec-defined bulk overlay payload.
+- Added `DeleteZoneOverlaysAsync` for `DELETE /homes/{homeId}/overlay` using repeated `rooms` query parameters.
+- Added `SetAwayConfigurationAsync` for `PUT /homes/{homeId}/zones/{zoneId}/schedule/awayConfiguration` using the writable away-configuration payload.
 - Added `SetZoneTemperatureOffsetFahrenheitAsync` for `PUT /devices/{deviceId}/temperatureOffset` using the spec-supported `fahrenheit` payload.
 
 ### Fixed
@@ -32,7 +35,12 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 - Added focused tests for the `ResetOpenWindowAsync` command route and `204` status expectation.
 - Added focused tests for the `SetZoneDetailsAsync` command route, mapped response handling, and required-name validation.
 - Added focused tests for the `SetDefaultZoneOverlayAsync` command route, mapped response handling, and termination validation.
+- Added focused tests for the bulk overlay command routes, serialized payload shape, and zone-id validation.
+- Added focused tests for the `SetAwayConfigurationAsync` command route, serialized payload shape, and required-setting validation.
 - Added focused tests for the `SetZoneTemperatureOffsetFahrenheitAsync` command route and serialized `fahrenheit` payload shape.
+
+### Changed
+- Bumped the unreleased package and assembly version metadata to `0.8.8` without creating a release section.
 
 ## [0.8.7] - 2026-04-05
 

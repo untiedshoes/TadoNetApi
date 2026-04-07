@@ -403,6 +403,234 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                 It.IsAny<CancellationToken>()), Times.Never);
         }
 
+        [Fact(DisplayName = "SetZoneOverlaysAsync sends the spec-aligned bulk overlay command")]
+        public async Task SetZoneOverlaysAsync_SendsSpecAlignedBulkOverlayCommand()
+        {
+            string? capturedJson = null;
+            var mockHttp = new Mock<ITadoHttpClient>();
+
+            mockHttp
+                .Setup(c => c.SendAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<HttpMethod>(),
+                    It.IsAny<CancellationToken>(),
+                    It.IsAny<HttpStatusCode>(),
+                    It.IsAny<object?>()))
+                .Callback<string, HttpMethod, CancellationToken, HttpStatusCode, object?>((_, _, _, _, body) =>
+                {
+                    capturedJson = body == null ? null : JsonSerializer.Serialize(body);
+                })
+                .ReturnsAsync(true);
+
+            var service = new TadoZoneService(mockHttp.Object);
+            var zoneOverlays = new Dictionary<int, Overlay>
+            {
+                [2] = new()
+                {
+                    Setting = new Setting
+                    {
+                        DeviceType = DeviceTypes.Heating,
+                        Power = PowerStates.On,
+                        Temperature = new Temperature { Celsius = 19.5 }
+                    },
+                    Termination = new Termination
+                    {
+                        Type = DurationModes.UntilNextTimedEvent.ToString()
+                    }
+                }
+            };
+
+            await service.SetZoneOverlaysAsync(1, zoneOverlays, CancellationToken.None);
+
+            Assert.NotNull(capturedJson);
+            Assert.Contains("\"overlays\":[", capturedJson);
+            Assert.Contains("\"room\":2", capturedJson);
+            Assert.Contains("\"type\":\"HEATING\"", capturedJson);
+            Assert.Contains("\"power\":\"ON\"", capturedJson);
+            Assert.Contains("\"celsius\":19.5", capturedJson);
+            Assert.Contains("\"typeSkillBasedApp\":\"TADO_MODE\"", capturedJson);
+
+            mockHttp.Verify(c => c.SendAsync(
+                    "homes/1/overlay",
+                    HttpMethod.Post,
+                    It.IsAny<CancellationToken>(),
+                    HttpStatusCode.NoContent,
+                    It.IsAny<object?>()),
+                Times.Once);
+        }
+
+        [Fact(DisplayName = "SetZoneOverlaysAsync requires at least one valid overlay")]
+        public async Task SetZoneOverlaysAsync_RequiresAtLeastOneValidOverlay()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            var service = new TadoZoneService(mockHttp.Object);
+
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                service.SetZoneOverlaysAsync(1, new Dictionary<int, Overlay>(), CancellationToken.None));
+
+            await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
+                service.SetZoneOverlaysAsync(
+                    1,
+                    new Dictionary<int, Overlay>
+                    {
+                        [0] = new Overlay()
+                    },
+                    CancellationToken.None));
+
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                service.SetZoneOverlaysAsync(
+                    1,
+                    new Dictionary<int, Overlay>
+                    {
+                        [2] = new Overlay()
+                    },
+                    CancellationToken.None));
+
+            mockHttp.Verify(c => c.SendAsync(
+                It.IsAny<string>(),
+                It.IsAny<HttpMethod>(),
+                It.IsAny<CancellationToken>(),
+                It.IsAny<HttpStatusCode>(),
+                It.IsAny<object?>()), Times.Never);
+        }
+
+        [Fact(DisplayName = "DeleteZoneOverlaysAsync sends the spec-aligned bulk overlay delete command")]
+        public async Task DeleteZoneOverlaysAsync_SendsSpecAlignedBulkOverlayDeleteCommand()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+
+            mockHttp
+                .Setup(c => c.SendAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<HttpMethod>(),
+                    It.IsAny<CancellationToken>(),
+                    It.IsAny<HttpStatusCode>(),
+                    It.IsAny<object?>()))
+                .ReturnsAsync(true);
+
+            var service = new TadoZoneService(mockHttp.Object);
+
+            await service.DeleteZoneOverlaysAsync(1, new[] { 2, 3 }, CancellationToken.None);
+
+            mockHttp.Verify(c => c.SendAsync(
+                    "homes/1/overlay?rooms=2&rooms=3",
+                    HttpMethod.Delete,
+                    It.IsAny<CancellationToken>(),
+                    HttpStatusCode.NoContent,
+                    null),
+                Times.Once);
+        }
+
+        [Fact(DisplayName = "DeleteZoneOverlaysAsync requires at least one positive zone ID")]
+        public async Task DeleteZoneOverlaysAsync_RequiresAtLeastOnePositiveZoneId()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            var service = new TadoZoneService(mockHttp.Object);
+
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                service.DeleteZoneOverlaysAsync(1, Array.Empty<int>(), CancellationToken.None));
+
+            await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
+                service.DeleteZoneOverlaysAsync(1, new[] { 2, 0 }, CancellationToken.None));
+
+            mockHttp.Verify(c => c.SendAsync(
+                It.IsAny<string>(),
+                It.IsAny<HttpMethod>(),
+                It.IsAny<CancellationToken>(),
+                It.IsAny<HttpStatusCode>(),
+                It.IsAny<object?>()), Times.Never);
+        }
+
+        [Fact(DisplayName = "SetAwayConfigurationAsync sends the spec-aligned away configuration command")]
+        public async Task SetAwayConfigurationAsync_SendsSpecAlignedAwayConfigurationCommand()
+        {
+            string? capturedJson = null;
+            var mockHttp = new Mock<ITadoHttpClient>();
+
+            mockHttp
+                .Setup(c => c.SendAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<HttpMethod>(),
+                    It.IsAny<CancellationToken>(),
+                    It.IsAny<HttpStatusCode>(),
+                    It.IsAny<object?>()))
+                .Callback<string, HttpMethod, CancellationToken, HttpStatusCode, object?>((_, _, _, _, body) =>
+                {
+                    capturedJson = body == null ? null : JsonSerializer.Serialize(body);
+                })
+                .ReturnsAsync(true);
+
+            var service = new TadoZoneService(mockHttp.Object);
+            var awayConfiguration = new AwayConfiguration
+            {
+                Type = "HEATING",
+                AutoAdjust = false,
+                ComfortLevel = "BALANCE",
+                Setting = new Setting
+                {
+                    DeviceType = DeviceTypes.Heating,
+                    Power = PowerStates.On,
+                    Temperature = new Temperature { Celsius = 15 }
+                }
+            };
+
+            await service.SetAwayConfigurationAsync(1, 2, awayConfiguration, CancellationToken.None);
+
+            Assert.NotNull(capturedJson);
+            Assert.Contains("\"type\":\"HEATING\"", capturedJson);
+            Assert.Contains("\"autoAdjust\":false", capturedJson);
+            Assert.Contains("\"comfortLevel\":\"BALANCE\"", capturedJson);
+            Assert.Contains("\"setting\":{", capturedJson);
+            Assert.Contains("\"power\":\"ON\"", capturedJson);
+            Assert.Contains("\"celsius\":15", capturedJson);
+
+            mockHttp.Verify(c => c.SendAsync(
+                    "homes/1/zones/2/schedule/awayConfiguration",
+                    HttpMethod.Put,
+                    It.IsAny<CancellationToken>(),
+                    HttpStatusCode.NoContent,
+                    It.IsAny<object?>()),
+                Times.Once);
+        }
+
+        [Fact(DisplayName = "SetAwayConfigurationAsync requires type and setting details")]
+        public async Task SetAwayConfigurationAsync_RequiresTypeAndSettingDetails()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            var service = new TadoZoneService(mockHttp.Object);
+
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                service.SetAwayConfigurationAsync(1, 2, new AwayConfiguration(), CancellationToken.None));
+
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                service.SetAwayConfigurationAsync(
+                    1,
+                    2,
+                    new AwayConfiguration
+                    {
+                        Type = "HEATING"
+                    },
+                    CancellationToken.None));
+
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                service.SetAwayConfigurationAsync(
+                    1,
+                    2,
+                    new AwayConfiguration
+                    {
+                        Type = "HEATING",
+                        Setting = new Setting()
+                    },
+                    CancellationToken.None));
+
+            mockHttp.Verify(c => c.SendAsync(
+                It.IsAny<string>(),
+                It.IsAny<HttpMethod>(),
+                It.IsAny<CancellationToken>(),
+                It.IsAny<HttpStatusCode>(),
+                It.IsAny<object?>()), Times.Never);
+        }
+
         [Fact(DisplayName = "CreateZoneAsync sends the spec-aligned zone creation command")]
         public async Task CreateZoneAsync_SendsSpecAlignedZoneCreationCommand()
         {

@@ -163,6 +163,31 @@ namespace TadoNetApi.Domain.Interfaces
         Task<DefaultZoneOverlay> SetDefaultZoneOverlayAsync(int homeId, int zoneId, DefaultZoneOverlay defaultOverlay, CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Applies manual overlays to multiple zones in a single home-level command.
+        /// </summary>
+        /// <param name="homeId">The ID of the home containing the zones.</param>
+        /// <param name="zoneOverlays">The set of zone IDs and overlay payloads to apply.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        Task SetZoneOverlaysAsync(int homeId, IReadOnlyDictionary<int, Overlay> zoneOverlays, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Deletes the currently active manual overlays for multiple zones in a single home-level command.
+        /// </summary>
+        /// <param name="homeId">The ID of the home containing the zones.</param>
+        /// <param name="zoneIds">The IDs of the zones whose overlays should be deleted.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        Task DeleteZoneOverlaysAsync(int homeId, IReadOnlyList<int> zoneIds, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Updates the settings used for a zone while the home is in AWAY mode.
+        /// </summary>
+        /// <param name="homeId">The ID of the home containing the zone.</param>
+        /// <param name="zoneId">The ID of the zone to update.</param>
+        /// <param name="awayConfiguration">The away configuration to apply.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        Task SetAwayConfigurationAsync(int homeId, int zoneId, AwayConfiguration awayConfiguration, CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Creates a new zone and moves the specified devices into it.
         /// </summary>
         /// <param name="homeId">The ID of the home in which the zone should be created.</param>

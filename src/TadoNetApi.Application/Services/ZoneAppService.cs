@@ -187,6 +187,34 @@ namespace TadoNetApi.Application.Services
             => _zoneService.SetDefaultZoneOverlayAsync(homeId, zoneId, defaultOverlay, cancellationToken);
 
         /// <summary>
+        /// Applies manual overlays to multiple zones in a single home-level command.
+        /// </summary>
+        /// <param name="homeId">The ID of the home containing the zones.</param>
+        /// <param name="zoneOverlays">The set of zone IDs and overlay payloads to apply.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        public Task SetZoneOverlaysAsync(int homeId, IReadOnlyDictionary<int, Overlay> zoneOverlays, CancellationToken cancellationToken = default)
+            => _zoneService.SetZoneOverlaysAsync(homeId, zoneOverlays, cancellationToken);
+
+        /// <summary>
+        /// Deletes the currently active manual overlays for multiple zones in a single home-level command.
+        /// </summary>
+        /// <param name="homeId">The ID of the home containing the zones.</param>
+        /// <param name="zoneIds">The IDs of the zones whose overlays should be deleted.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        public Task DeleteZoneOverlaysAsync(int homeId, IReadOnlyList<int> zoneIds, CancellationToken cancellationToken = default)
+            => _zoneService.DeleteZoneOverlaysAsync(homeId, zoneIds, cancellationToken);
+
+        /// <summary>
+        /// Updates the settings used for a zone while the home is in AWAY mode.
+        /// </summary>
+        /// <param name="homeId">The ID of the home containing the zone.</param>
+        /// <param name="zoneId">The ID of the zone to update.</param>
+        /// <param name="awayConfiguration">The away configuration to apply.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        public Task SetAwayConfigurationAsync(int homeId, int zoneId, AwayConfiguration awayConfiguration, CancellationToken cancellationToken = default)
+            => _zoneService.SetAwayConfigurationAsync(homeId, zoneId, awayConfiguration, cancellationToken);
+
+        /// <summary>
         /// Creates a new zone and moves the specified devices into it.
         /// </summary>
         /// <param name="homeId">The ID of the home in which the zone should be created.</param>

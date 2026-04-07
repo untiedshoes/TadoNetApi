@@ -325,6 +325,82 @@ namespace TadoNetApi.Tests.Application.Services
         }
 
         /// <summary>
+        /// Tests that <see cref="ZoneAppService.SetZoneOverlaysAsync"/> delegates to the domain service.
+        /// </summary>
+        [Fact(DisplayName = "SetZoneOverlaysAsync passes through to domain service")]
+        public async Task SetZoneOverlaysAsync_PassesThroughToDomainService()
+        {
+            var zoneOverlays = new Dictionary<int, Overlay>
+            {
+                [2] = new()
+                {
+                    Setting = new Setting
+                    {
+                        DeviceType = DeviceTypes.Heating,
+                        Power = PowerStates.On,
+                        Temperature = new Temperature { Celsius = 19.5 }
+                    },
+                    Termination = new Termination
+                    {
+                        Type = DurationModes.UntilNextTimedEvent.ToString()
+                    }
+                }
+            };
+
+            var (service, mock) = CreateService();
+            mock.Setup(s => s.SetZoneOverlaysAsync(1, zoneOverlays, It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
+
+            await service.SetZoneOverlaysAsync(1, zoneOverlays, CancellationToken.None);
+
+            mock.Verify(s => s.SetZoneOverlaysAsync(1, zoneOverlays, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        /// <summary>
+        /// Tests that <see cref="ZoneAppService.DeleteZoneOverlaysAsync"/> delegates to the domain service.
+        /// </summary>
+        [Fact(DisplayName = "DeleteZoneOverlaysAsync passes through to domain service")]
+        public async Task DeleteZoneOverlaysAsync_PassesThroughToDomainService()
+        {
+            IReadOnlyList<int> zoneIds = new[] { 2, 3 };
+            var (service, mock) = CreateService();
+            mock.Setup(s => s.DeleteZoneOverlaysAsync(1, zoneIds, It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
+
+            await service.DeleteZoneOverlaysAsync(1, zoneIds, CancellationToken.None);
+
+            mock.Verify(s => s.DeleteZoneOverlaysAsync(1, zoneIds, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        /// <summary>
+        /// Tests that <see cref="ZoneAppService.SetAwayConfigurationAsync"/> delegates to the domain service.
+        /// </summary>
+        [Fact(DisplayName = "SetAwayConfigurationAsync passes through to domain service")]
+        public async Task SetAwayConfigurationAsync_PassesThroughToDomainService()
+        {
+            var awayConfiguration = new AwayConfiguration
+            {
+                Type = "HEATING",
+                AutoAdjust = false,
+                ComfortLevel = "BALANCE",
+                Setting = new Setting
+                {
+                    DeviceType = DeviceTypes.Heating,
+                    Power = PowerStates.On,
+                    Temperature = new Temperature { Celsius = 15 }
+                }
+            };
+
+            var (service, mock) = CreateService();
+            mock.Setup(s => s.SetAwayConfigurationAsync(1, 2, awayConfiguration, It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
+
+            await service.SetAwayConfigurationAsync(1, 2, awayConfiguration, CancellationToken.None);
+
+            mock.Verify(s => s.SetAwayConfigurationAsync(1, 2, awayConfiguration, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        /// <summary>
         /// Tests that <see cref="ZoneAppService.SetHeatingTemperatureFahrenheitAsync"/> delegates to the domain service.
         /// </summary>
         [Fact(DisplayName = "SetHeatingTemperatureFahrenheitAsync passes through to domain service")]

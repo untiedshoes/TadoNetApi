@@ -505,6 +505,54 @@ services:
             modelFile: src/TadoNetApi.Domain/Entities/DefaultZoneOverlay.cs
           summary: Updates the default overlay termination configuration used for device-created overlays in a zone.
 
+        - name: SetZoneOverlaysAsync
+          kind: command
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+            - name: zoneOverlays
+              type: IReadOnlyDictionary<int, Overlay>
+              source: caller-provided
+              collection: true
+              modelFile: src/TadoNetApi.Domain/Entities/Overlay.cs
+          returns:
+            type: void
+            nullable: false
+          summary: Applies manual overlays to multiple zones in a single home-level command.
+
+        - name: DeleteZoneOverlaysAsync
+          kind: command
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+            - name: zoneIds
+              type: IReadOnlyList<int>
+              collection: true
+          returns:
+            type: void
+            nullable: false
+          summary: Deletes the currently active manual overlays for multiple zones in a single home-level command.
+
+        - name: SetAwayConfigurationAsync
+          kind: command
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+            - name: zoneId
+              type: int
+              validation: positive-id
+            - name: awayConfiguration
+              type: AwayConfiguration
+              source: caller-provided
+              modelFile: src/TadoNetApi.Domain/Entities/AwayConfiguration.cs
+          returns:
+            type: void
+            nullable: false
+          summary: Updates the settings used for a zone while the home is in AWAY mode.
+
         - name: DeleteZoneOverlayAsync
           kind: command
           parameters:

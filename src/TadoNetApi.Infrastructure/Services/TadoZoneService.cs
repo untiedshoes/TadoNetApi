@@ -567,6 +567,105 @@ namespace TadoNetApi.Infrastructure.Services
                 return response.ToDomain();
             }
 
+            /// <summary>
+            /// Applies manual overlays to multiple zones in a single home-level command.
+            /// </summary>
+            /// <param name="homeId">The ID of the home.</param>
+            /// <param name="zoneOverlays">The zone IDs and overlay payloads to apply.</param>
+            /// <param name="cancellationToken">The cancellation token to observe.</param>
+            public async Task SetZoneOverlaysAsync(int homeId, IReadOnlyDictionary<int, Overlay> zoneOverlays, CancellationToken cancellationToken = default)
+            {
+                Guard.PositiveId(homeId, nameof(homeId));
+
+                if (zoneOverlays == null)
+                    throw new ArgumentNullException(nameof(zoneOverlays));
+
+                if (zoneOverlays.Count == 0)
+                    throw new ArgumentException("At least one zone overlay is required.", nameof(zoneOverlays));
+
+                if (zoneOverlays.Keys.Any(zoneId => zoneId <= 0))
+                    throw new ArgumentOutOfRangeException(nameof(zoneOverlays), "Zone IDs must all be positive integers.");
+
+                foreach (var zoneOverlay in zoneOverlays.Values)
+                {
+                    ValidateOverlay(zoneOverlay, nameof(zoneOverlays));
+                }
+
+                var request = SetZoneOverlaysRequest.FromDomain(zoneOverlays);
+
+                await _httpClient.SendAsync(
+                    $"homes/{homeId}/overlay",
+                    HttpMethod.Post,
+                    cancellationToken,
+                    HttpStatusCode.NoContent,
+                    request);
+            }
+
+            /// <summary>
+            /// Deletes the currently active manual overlays for multiple zones in a single home-level command.
+            /// </summary>
+            /// <param name="homeId">The ID of the home.</param>
+            /// <param name="zoneIds">The IDs of the zones whose overlays should be deleted.</param>
+            /// <param name="cancellationToken">The cancellation token to observe.</param>
+            public async Task DeleteZoneOverlaysAsync(int homeId, IReadOnlyList<int> zoneIds, CancellationToken cancellationToken = default)
+            {
+                Guard.PositiveId(homeId, nameof(homeId));
+
+                if (zoneIds == null)
+                    throw new ArgumentNullException(nameof(zoneIds));
+
+                if (zoneIds.Count == 0)
+                    throw new ArgumentException("At least one zone ID is required.", nameof(zoneIds));
+
+                if (zoneIds.Any(zoneId => zoneId <= 0))
+                    throw new ArgumentOutOfRangeException(nameof(zoneIds), "Zone IDs must all be positive integers.");
+
+                var query = string.Join("&", zoneIds.Select(zoneId => $"rooms={zoneId.ToString(CultureInfo.InvariantCulture)}"));
+
+                await _httpClient.SendAsync(
+                    $"homes/{homeId}/overlay?{query}",
+                    HttpMethod.Delete,
+                    cancellationToken,
+                    HttpStatusCode.NoContent,
+                    null);
+            }
+
+            /// <summary>
+            /// Updates the settings used for a zone while the home is in AWAY mode.
+            /// </summary>
+            /// <param name="homeId">The ID of the home.</param>
+            /// <param name="zoneId">The ID of the zone.</param>
+            /// <param name="awayConfiguration">The away configuration to apply.</param>
+            /// <param name="cancellationToken">The cancellation token to observe.</param>
+            public async Task SetAwayConfigurationAsync(int homeId, int zoneId, AwayConfiguration awayConfiguration, CancellationToken cancellationToken = default)
+            {
+                Guard.PositiveId(homeId, nameof(homeId));
+                Guard.PositiveId(zoneId, nameof(zoneId));
+
+                ArgumentNullException.ThrowIfNull(awayConfiguration);
+
+                if (string.IsNullOrWhiteSpace(awayConfiguration.Type))
+                    throw new ArgumentException("Away configuration type must be provided.", nameof(awayConfiguration));
+
+                if (awayConfiguration.Setting == null)
+                    throw new ArgumentException("Away configuration setting must be provided.", nameof(awayConfiguration));
+
+                if (awayConfiguration.Setting.DeviceType == null)
+                    throw new ArgumentException("Away configuration setting type must be provided.", nameof(awayConfiguration));
+
+                if (awayConfiguration.Setting.Power == null)
+                    throw new ArgumentException("Away configuration power state must be provided.", nameof(awayConfiguration));
+
+                var request = SetAwayConfigurationRequest.FromDomain(awayConfiguration);
+
+                await _httpClient.SendAsync(
+                    $"homes/{homeId}/zones/{zoneId}/schedule/awayConfiguration",
+                    HttpMethod.Put,
+                    cancellationToken,
+                    HttpStatusCode.NoContent,
+                    request);
+            }
+
         /// <summary>
         /// Creates a new zone and moves the specified devices into it.
         /// </summary>
@@ -768,6 +867,36 @@ namespace TadoNetApi.Infrastructure.Services
 
             return await SetTemperatureAsync(homeId, zoneId, temperature, null, DeviceTypes.Heating, durationMode, timer, cancellationToken);
         }
+
+        private static void ValidateOverlay(Overlay overlay, string paramName)
+        {
+            ArgumentNullException.ThrowIfNull(overlay);
+
+            if (overlay.Setting == null)
+                throw new ArgumentException("Zone overlay setting must be provided.", paramName);
+
+            if (overlay.Setting.DeviceType == null)
+                throw new ArgumentException("Zone overlay setting type must be provided.", paramName);
+
+            if (overlay.Setting.Power == null)
+                throw new ArgumentException("Zone overlay power state must be provided.", paramName);
+
+            if (overlay.Termination == null)
+                throw new ArgumentException("Zone overlay termination must be provided.", paramName);
+
+            if (string.IsNullOrWhiteSpace(overlay.Termination.Type))
+                throw new ArgumentException("Zone overlay termination type must be provided.", paramName);
+
+            if (IsTimerTermination(overlay.Termination.Type)
+                && (!overlay.Termination.DurationInSeconds.HasValue || overlay.Termination.DurationInSeconds.Value <= 0))
+            {
+                throw new ArgumentException("Zone overlay timer duration must be greater than zero when the termination type is TIMER.", paramName);
+            }
+        }
+
+        private static bool IsTimerTermination(string? type)
+            => string.Equals(type, nameof(DurationModes.Timer), StringComparison.OrdinalIgnoreCase)
+                || string.Equals(type, "TIMER", StringComparison.OrdinalIgnoreCase);
 
         private async Task<ZoneSummary?> SetTemperatureAsync(int homeId, int zoneId, double? temperatureCelsius, double? temperatureFahrenheit, DeviceTypes deviceType, DurationModes durationMode, TimeSpan? timer, CancellationToken cancellationToken)
         {

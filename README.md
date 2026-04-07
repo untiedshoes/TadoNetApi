@@ -376,6 +376,28 @@ The list below reflects the current gap between this library and the community m
 
 ---
 
+## Important Warning
+
+Tado has not officially released a public API for general third-party developer use.
+
+This library is built around a community-documented API surface derived from observing traffic used by Tado's own web application and related clients. That means Tado can change or remove endpoints, payloads, authentication behavior, or feature support at any time without notice.
+
+Before using any Tado API in your own software, make sure you understand the operational risk: this library, the underlying unofficial API behavior, and your own integration can break without advance warning.
+
+## Tado X Support
+
+This library currently focuses on the community-documented `https://my.tado.com/api/v2` surface and does not aim to support Tado X homes end-to-end today.
+
+As documented by kritsel, Tado X homes still use parts of `my.tado.com/api/v2` for some features, but the core room and device management flows are handled through a different API surface hosted at `https://hops.tado.com`, which is outside the scope of the current community spec.
+
+That limitation is mainly practical: without access to a Tado X-enabled home, it is difficult me to verify behavior, maintain mappings confidently, or keep support accurate as the platform evolves.
+
+If you have a Tado X-enabled home and want to help move this repo forward, contributions are welcome. In particular, verified endpoint behavior, payload samples, tests, and documentation updates would all be useful.
+
+For background on the current limitation, see the upstream note here: [tado X support rationale](https://github.com/kritsel/tado-openapispec-v2/wiki/tado-X).
+
+---
+
 ## References
 
 - [Tado API v2 Spec (community)](https://github.com/kritsel/tado-openapispec-v2)

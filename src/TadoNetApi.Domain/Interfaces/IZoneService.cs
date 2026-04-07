@@ -118,6 +118,23 @@ namespace TadoNetApi.Domain.Interfaces
         Task<bool> SetEarlyStartAsync(int homeId, int zoneId, bool enabled, CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Updates the open window detection settings for a zone.
+        /// </summary>
+        /// <param name="homeId">The ID of the home containing the zone.</param>
+        /// <param name="zoneId">The ID of the zone to update.</param>
+        /// <param name="settings">The open window detection settings to apply.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        Task SetOpenWindowDetectionAsync(int homeId, int zoneId, OpenWindowDetection settings, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Activates the open window state for a zone.
+        /// </summary>
+        /// <param name="homeId">The ID of the home containing the zone.</param>
+        /// <param name="zoneId">The ID of the zone to update.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        Task ActivateOpenWindowAsync(int homeId, int zoneId, CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Creates a new zone and moves the specified devices into it.
         /// </summary>
         /// <param name="homeId">The ID of the home in which the zone should be created.</param>

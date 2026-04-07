@@ -13,6 +13,8 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 - Added `SetFlowTemperatureOptimisationAsync` for `PUT /homes/{homeId}/flowTemperatureOptimization`.
 - Added `MoveDeviceToZoneAsync` for `POST /homes/{homeId}/zones/{zoneId}/devices` with support for the optional `force` query flag.
 - Added `SetZoneMeasuringDeviceAsync` for `PUT /homes/{homeId}/zones/{zoneId}/measuringDevice`.
+- Added `SetOpenWindowDetectionAsync` for `PUT /homes/{homeId}/zones/{zoneId}/openWindowDetection`, including the spec-required `roomId`, `enabled`, and `timeoutInSeconds` payload.
+- Added `ActivateOpenWindowAsync` for `POST /homes/{homeId}/zones/{zoneId}/state/openWindow/activate`.
 - Added `SetZoneTemperatureOffsetFahrenheitAsync` for `PUT /devices/{deviceId}/temperatureOffset` using the spec-supported `fahrenheit` payload.
 
 ### Fixed
@@ -22,6 +24,8 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 - Added focused tests for the `SetFlowTemperatureOptimisationAsync` command route and serialized `maxFlowTemperature` payload shape.
 - Added focused tests for the `MoveDeviceToZoneAsync` command route, HTTP method, expected status code, payload shape, and serial validation.
 - Added focused tests for the `SetZoneMeasuringDeviceAsync` command route, typed response handling, payload shape, and serial validation.
+- Added focused tests for the `SetOpenWindowDetectionAsync` command route, serialized payload shape, and required-setting validation.
+- Added focused tests for the `ActivateOpenWindowAsync` command route and `204` status expectation.
 - Added focused tests for the `SetZoneTemperatureOffsetFahrenheitAsync` command route and serialized `fahrenheit` payload shape.
 
 ## [0.8.7] - 2026-04-05

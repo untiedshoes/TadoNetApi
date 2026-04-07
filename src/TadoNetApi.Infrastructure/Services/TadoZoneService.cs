@@ -426,6 +426,58 @@ namespace TadoNetApi.Infrastructure.Services
         }
 
         /// <summary>
+        /// Updates the open window detection settings for a zone.
+        /// </summary>
+        /// <param name="homeId">The ID of the home.</param>
+        /// <param name="zoneId">The ID of the zone.</param>
+        /// <param name="settings">The open window detection settings to apply.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        public async Task SetOpenWindowDetectionAsync(int homeId, int zoneId, OpenWindowDetection settings, CancellationToken cancellationToken = default)
+        {
+            Guard.PositiveId(homeId, nameof(homeId));
+            Guard.PositiveId(zoneId, nameof(zoneId));
+
+            ArgumentNullException.ThrowIfNull(settings);
+
+            if (settings.Enabled is null)
+                throw new ArgumentException("Open window detection enabled state must be provided.", nameof(settings));
+
+            if (settings.TimeoutInSeconds is null)
+                throw new ArgumentException("Open window detection timeout must be provided.", nameof(settings));
+
+            if (settings.TimeoutInSeconds < 0)
+                throw new ArgumentOutOfRangeException(nameof(settings), "Open window detection timeout must be zero or greater.");
+
+            var request = SetOpenWindowDetectionRequest.FromDomain(zoneId, settings);
+
+            await _httpClient.SendAsync(
+                $"homes/{homeId}/zones/{zoneId}/openWindowDetection",
+                HttpMethod.Put,
+                cancellationToken,
+                HttpStatusCode.NoContent,
+                request);
+        }
+
+            /// <summary>
+            /// Activates the open window state for a zone.
+            /// </summary>
+            /// <param name="homeId">The ID of the home.</param>
+            /// <param name="zoneId">The ID of the zone.</param>
+            /// <param name="cancellationToken">The cancellation token to observe.</param>
+            public async Task ActivateOpenWindowAsync(int homeId, int zoneId, CancellationToken cancellationToken = default)
+            {
+                Guard.PositiveId(homeId, nameof(homeId));
+                Guard.PositiveId(zoneId, nameof(zoneId));
+
+                await _httpClient.SendAsync(
+                    $"homes/{homeId}/zones/{zoneId}/state/openWindow/activate",
+                    HttpMethod.Post,
+                    cancellationToken,
+                    HttpStatusCode.NoContent,
+                    null);
+            }
+
+        /// <summary>
         /// Creates a new zone and moves the specified devices into it.
         /// </summary>
         /// <param name="homeId">The ID of the home in which the zone should be created.</param>

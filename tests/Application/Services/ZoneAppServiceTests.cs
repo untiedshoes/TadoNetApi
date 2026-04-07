@@ -222,6 +222,42 @@ namespace TadoNetApi.Tests.Application.Services
         }
 
         /// <summary>
+        /// Tests that <see cref="ZoneAppService.SetOpenWindowDetectionAsync"/> delegates to the domain service.
+        /// </summary>
+        [Fact(DisplayName = "SetOpenWindowDetectionAsync passes through to domain service")]
+        public async Task SetOpenWindowDetectionAsync_PassesThroughToDomainService()
+        {
+            var settings = new OpenWindowDetection
+            {
+                Enabled = true,
+                TimeoutInSeconds = 900
+            };
+
+            var (service, mock) = CreateService();
+            mock.Setup(s => s.SetOpenWindowDetectionAsync(1, 2, settings, It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
+
+            await service.SetOpenWindowDetectionAsync(1, 2, settings, CancellationToken.None);
+
+            mock.Verify(s => s.SetOpenWindowDetectionAsync(1, 2, settings, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        /// <summary>
+        /// Tests that <see cref="ZoneAppService.ActivateOpenWindowAsync"/> delegates to the domain service.
+        /// </summary>
+        [Fact(DisplayName = "ActivateOpenWindowAsync passes through to domain service")]
+        public async Task ActivateOpenWindowAsync_PassesThroughToDomainService()
+        {
+            var (service, mock) = CreateService();
+            mock.Setup(s => s.ActivateOpenWindowAsync(1, 2, It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
+
+            await service.ActivateOpenWindowAsync(1, 2, CancellationToken.None);
+
+            mock.Verify(s => s.ActivateOpenWindowAsync(1, 2, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        /// <summary>
         /// Tests that <see cref="ZoneAppService.SetHeatingTemperatureFahrenheitAsync"/> delegates to the domain service.
         /// </summary>
         [Fact(DisplayName = "SetHeatingTemperatureFahrenheitAsync passes through to domain service")]

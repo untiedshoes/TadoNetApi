@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Text.Json;
 using System.Net;
 using Moq;
+using TadoNetApi.Domain.Entities;
 using TadoNetApi.Domain.Enums;
 using TadoNetApi.Infrastructure.Dtos.Requests;
 using TadoNetApi.Infrastructure.Dtos.Responses;
@@ -127,6 +128,112 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                 It.IsAny<string>(),
                 It.IsAny<SetHeatingCircuitRequest?>(),
                 It.IsAny<CancellationToken>()), Times.Never);
+        }
+
+        [Fact(DisplayName = "SetOpenWindowDetectionAsync sends the spec-aligned open window detection command")]
+        public async Task SetOpenWindowDetectionAsync_SendsSpecAlignedOpenWindowDetectionCommand()
+        {
+            string? capturedJson = null;
+            var mockHttp = new Mock<ITadoHttpClient>();
+
+            mockHttp
+                .Setup(c => c.SendAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<HttpMethod>(),
+                    It.IsAny<CancellationToken>(),
+                    It.IsAny<HttpStatusCode>(),
+                    It.IsAny<object?>()))
+                .Callback<string, HttpMethod, CancellationToken, HttpStatusCode, object?>((_, _, _, _, body) =>
+                {
+                    capturedJson = body == null ? null : JsonSerializer.Serialize(body);
+                })
+                .ReturnsAsync(true);
+
+            var service = new TadoZoneService(mockHttp.Object);
+            var settings = new OpenWindowDetection
+            {
+                Enabled = true,
+                TimeoutInSeconds = 900
+            };
+
+            await service.SetOpenWindowDetectionAsync(1, 2, settings, CancellationToken.None);
+
+            Assert.NotNull(capturedJson);
+            Assert.Contains("\"roomId\":2", capturedJson);
+            Assert.Contains("\"enabled\":true", capturedJson);
+            Assert.Contains("\"timeoutInSeconds\":900", capturedJson);
+
+            mockHttp.Verify(c => c.SendAsync(
+                    "homes/1/zones/2/openWindowDetection",
+                    HttpMethod.Put,
+                    It.IsAny<CancellationToken>(),
+                    HttpStatusCode.NoContent,
+                    It.IsAny<object?>()),
+                Times.Once);
+        }
+
+        [Fact(DisplayName = "SetOpenWindowDetectionAsync requires enabled state and timeout")]
+        public async Task SetOpenWindowDetectionAsync_RequiresEnabledStateAndTimeout()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            var service = new TadoZoneService(mockHttp.Object);
+
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                service.SetOpenWindowDetectionAsync(1, 2, new OpenWindowDetection { TimeoutInSeconds = 900 }, CancellationToken.None));
+
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                service.SetOpenWindowDetectionAsync(1, 2, new OpenWindowDetection { Enabled = true }, CancellationToken.None));
+
+            mockHttp.Verify(c => c.SendAsync(
+                It.IsAny<string>(),
+                It.IsAny<HttpMethod>(),
+                It.IsAny<CancellationToken>(),
+                It.IsAny<HttpStatusCode>(),
+                It.IsAny<object?>()), Times.Never);
+        }
+
+        [Fact(DisplayName = "SetOpenWindowDetectionAsync rejects negative timeout")]
+        public async Task SetOpenWindowDetectionAsync_RejectsNegativeTimeout()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            var service = new TadoZoneService(mockHttp.Object);
+
+            await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
+                service.SetOpenWindowDetectionAsync(1, 2, new OpenWindowDetection { Enabled = true, TimeoutInSeconds = -1 }, CancellationToken.None));
+
+            mockHttp.Verify(c => c.SendAsync(
+                It.IsAny<string>(),
+                It.IsAny<HttpMethod>(),
+                It.IsAny<CancellationToken>(),
+                It.IsAny<HttpStatusCode>(),
+                It.IsAny<object?>()), Times.Never);
+        }
+
+        [Fact(DisplayName = "ActivateOpenWindowAsync sends the spec-aligned open window activation command")]
+        public async Task ActivateOpenWindowAsync_SendsSpecAlignedOpenWindowActivationCommand()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+
+            mockHttp
+                .Setup(c => c.SendAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<HttpMethod>(),
+                    It.IsAny<CancellationToken>(),
+                    It.IsAny<HttpStatusCode>(),
+                    It.IsAny<object?>()))
+                .ReturnsAsync(true);
+
+            var service = new TadoZoneService(mockHttp.Object);
+
+            await service.ActivateOpenWindowAsync(1, 2, CancellationToken.None);
+
+            mockHttp.Verify(c => c.SendAsync(
+                    "homes/1/zones/2/state/openWindow/activate",
+                    HttpMethod.Post,
+                    It.IsAny<CancellationToken>(),
+                    HttpStatusCode.NoContent,
+                    null),
+                Times.Once);
         }
 
         [Fact(DisplayName = "CreateZoneAsync sends the spec-aligned zone creation command")]

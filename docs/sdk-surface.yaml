@@ -419,6 +419,38 @@ services:
             nullable: false
           summary: Creates a new zone and moves the specified devices into it.
 
+        - name: SetOpenWindowDetectionAsync
+          kind: command
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+            - name: zoneId
+              type: int
+              validation: positive-id
+            - name: settings
+              type: OpenWindowDetection
+              source: caller-provided
+              modelFile: src/TadoNetApi.Domain/Entities/OpenWindowDetection.cs
+          returns:
+            type: void
+            nullable: false
+          summary: Updates the enabled state and timeout used for open window detection in a zone.
+
+        - name: ActivateOpenWindowAsync
+          kind: command
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+            - name: zoneId
+              type: int
+              validation: positive-id
+          returns:
+            type: void
+            nullable: false
+          summary: Activates the open-window state for a zone using the spec-defined manual trigger endpoint.
+
         - name: DeleteZoneOverlayAsync
           kind: command
           parameters:

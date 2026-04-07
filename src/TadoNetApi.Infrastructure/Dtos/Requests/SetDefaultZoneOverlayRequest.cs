@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using TadoNetApi.Domain.Entities;
+using TadoNetApi.Domain.Enums;
 
 namespace TadoNetApi.Infrastructure.Dtos.Requests;
 
@@ -34,9 +35,9 @@ public sealed class SetDefaultZoneOverlayRequest
     private static string ToApiTerminationType(string? type)
         => type switch
         {
-            nameof(Domain.Enums.DurationModes.UntilNextManualChange) => "MANUAL",
-            nameof(Domain.Enums.DurationModes.UntilNextTimedEvent) => "TADO_MODE",
-            nameof(Domain.Enums.DurationModes.Timer) => "TIMER",
+            nameof(DurationModes.UntilNextManualChange) => "MANUAL",
+            nameof(DurationModes.UntilNextTimedEvent) => "TADO_MODE",
+            nameof(DurationModes.Timer) => "TIMER",
             _ => type?.ToUpperInvariant() ?? string.Empty
         };
 }

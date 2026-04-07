@@ -25,11 +25,20 @@ public sealed class SetDefaultZoneOverlayRequest
         {
             TerminationCondition = new SetDefaultZoneOverlayTerminationRequest
             {
-                Type = defaultOverlay.TerminationCondition?.Type ?? string.Empty,
+                Type = ToApiTerminationType(defaultOverlay.TerminationCondition?.Type),
                 DurationInSeconds = defaultOverlay.TerminationCondition?.DurationInSeconds
             }
         };
     }
+
+    private static string ToApiTerminationType(string? type)
+        => type switch
+        {
+            nameof(Domain.Enums.DurationModes.UntilNextManualChange) => "MANUAL",
+            nameof(Domain.Enums.DurationModes.UntilNextTimedEvent) => "TADO_MODE",
+            nameof(Domain.Enums.DurationModes.Timer) => "TIMER",
+            _ => type?.ToUpperInvariant() ?? string.Empty
+        };
 }
 
 /// <summary>

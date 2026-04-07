@@ -90,6 +90,55 @@ namespace TadoNetApi.Domain.Interfaces
         Task<AwayConfiguration> GetAwayConfigurationAsync(int homeId, int zoneId, CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Fetches the active timetable type for a zone.
+        /// </summary>
+        /// <param name="homeId">The ID of the home containing the zone.</param>
+        /// <param name="zoneId">The ID of the zone to inspect.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>The active timetable type.</returns>
+        Task<TimetableType> GetActiveTimetableTypeAsync(int homeId, int zoneId, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Fetches the timetable types supported by a zone.
+        /// </summary>
+        /// <param name="homeId">The ID of the home containing the zone.</param>
+        /// <param name="zoneId">The ID of the zone to inspect.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>The available timetable types.</returns>
+        Task<IReadOnlyList<TimetableType>> GetZoneTimetablesAsync(int homeId, int zoneId, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Fetches a specific timetable type definition for a zone.
+        /// </summary>
+        /// <param name="homeId">The ID of the home containing the zone.</param>
+        /// <param name="zoneId">The ID of the zone to inspect.</param>
+        /// <param name="timetableTypeId">The timetable type ID to retrieve.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>The requested timetable type.</returns>
+        Task<TimetableType> GetZoneTimetableAsync(int homeId, int zoneId, int timetableTypeId, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Fetches all timetable blocks for a specific timetable type.
+        /// </summary>
+        /// <param name="homeId">The ID of the home containing the zone.</param>
+        /// <param name="zoneId">The ID of the zone to inspect.</param>
+        /// <param name="timetableTypeId">The timetable type ID to inspect.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>The timetable blocks for the specified timetable type.</returns>
+        Task<IReadOnlyList<TimetableBlock>> GetZoneTimetableBlocksAsync(int homeId, int zoneId, int timetableTypeId, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Fetches the timetable blocks for a specific day type in a timetable.
+        /// </summary>
+        /// <param name="homeId">The ID of the home containing the zone.</param>
+        /// <param name="zoneId">The ID of the zone to inspect.</param>
+        /// <param name="timetableTypeId">The timetable type ID to inspect.</param>
+        /// <param name="dayType">The day type to retrieve.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>The timetable blocks for the specified day type.</returns>
+        Task<IReadOnlyList<TimetableBlock>> GetTimetableBlocksByDayTypeAsync(int homeId, int zoneId, int timetableTypeId, string dayType, CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Fetches the day report payload for a zone.
         /// </summary>
         /// <param name="homeId">The ID of the home containing the zone.</param>
@@ -186,6 +235,28 @@ namespace TadoNetApi.Domain.Interfaces
         /// <param name="awayConfiguration">The away configuration to apply.</param>
         /// <param name="cancellationToken">The cancellation token to observe.</param>
         Task SetAwayConfigurationAsync(int homeId, int zoneId, AwayConfiguration awayConfiguration, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Updates the active timetable type for a zone.
+        /// </summary>
+        /// <param name="homeId">The ID of the home containing the zone.</param>
+        /// <param name="zoneId">The ID of the zone to update.</param>
+        /// <param name="timetableType">The timetable type to activate.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>The active timetable type returned by the API.</returns>
+        Task<TimetableType> SetActiveTimetableTypeAsync(int homeId, int zoneId, TimetableType timetableType, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Updates the timetable blocks for a specific day type.
+        /// </summary>
+        /// <param name="homeId">The ID of the home containing the zone.</param>
+        /// <param name="zoneId">The ID of the zone to update.</param>
+        /// <param name="timetableTypeId">The timetable type ID to update.</param>
+        /// <param name="dayType">The day type to update.</param>
+        /// <param name="blocks">The timetable blocks to apply.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>The persisted timetable blocks returned by the API.</returns>
+        Task<IReadOnlyList<TimetableBlock>> SetTimetableBlocksForDayTypeAsync(int homeId, int zoneId, int timetableTypeId, string dayType, IReadOnlyList<TimetableBlock> blocks, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Creates a new zone and moves the specified devices into it.

@@ -89,7 +89,9 @@ public sealed class SetZoneOverlayRequest
                     {
                         Celsius = overlay.Setting.Temperature.Celsius,
                         Fahrenheit = overlay.Setting.Temperature.Fahrenheit
-                    }
+                    },
+                Mode = overlay.Setting?.Mode,
+                IsBoost = overlay.Setting?.IsBoost
             },
             Termination = new SetZoneTemperatureTerminationRequest
             {

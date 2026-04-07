@@ -5,6 +5,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using TadoNetApi.Domain.Entities;
+using TadoNetApi.Domain.Enums;
 using TadoNetApi.Infrastructure.Config;
 using TadoNetApi.Infrastructure.Extensions;
 using TadoNetApi.Infrastructure.Auth;
@@ -43,6 +45,8 @@ class Program
             {
                 builder.AddFilter("System.Net.Http.HttpClient", LogLevel.Warning);
                 builder.AddFilter("System.Net.Http.HttpClient.ITadoHttpClient", LogLevel.Warning);
+                builder.AddFilter("TadoNetApi.Infrastructure.Http.TadoHttpClient", LogLevel.Warning);
+                builder.AddFilter("TadoNetApi.Infrastructure.Auth.TadoAuthService", LogLevel.Warning);
             }
         });
         services.AddTadoInfrastructure(config);
@@ -78,7 +82,7 @@ class Program
 
             // 2️⃣ User & Home
             var user = await userService.GetMeAsync(cancellationToken);
-            if (user.Homes == null || !user.Homes.Any())
+            if (user?.Homes == null || !user.Homes.Any())
             {
                 Console.WriteLine("❌ No homes found for user.");
                 return;
@@ -141,9 +145,12 @@ class Program
             Console.WriteLine(zones.Count == 0
                 ? "⚠️ No zones found."
                 : $"📊 {zones.Count} Zones found:");
-            foreach (var zone in zones)
+
+            if (zones.Count > 0)
             {
-                Console.WriteLine($"   - Zone: {zone.Name} (ID: {zone.Id}, Type: {zone.CurrentType})");
+                Console.WriteLine($"    {string.Join(", ", zones.Select(zone => zone.Name ?? $"Zone {zone.Id}"))}");
+                Console.WriteLine();
+                Console.WriteLine("🧩 Zone Details:");
             }
 
             try
@@ -177,7 +184,8 @@ class Program
                 var state = await zoneService.GetZoneStateAsync((int)homeId, (int)zone.Id!, cancellationToken);
                 var summary = await zoneService.GetZoneSummaryAsync((int)homeId, (int)zone.Id!, cancellationToken);
 
-                Console.WriteLine($"   - Zone: {zone.Name} (ID: {zone.Id}, Type: {zone.CurrentType})");
+                Console.WriteLine();
+                Console.WriteLine($"   • {zone.Name} (ID: {zone.Id}, Type: {zone.CurrentType})");
 
                 try
                 {
@@ -241,6 +249,15 @@ class Program
                 // ⏱ Overlay
                 if (summary?.Termination?.Type != null)
                     Console.WriteLine($"       ⏱ Overlay: {summary.Termination.Type}, Duration: {summary.Termination.DurationInSeconds}s");
+
+                try
+                {
+                    await WriteZoneTimetableAsync(zoneService, (int)homeId, (int)zone.Id!, cancellationToken);
+                }
+                catch (TadoApiException ex)
+                {
+                    Console.WriteLine($"       ⚠️ Timetable Error ({ex.StatusCode}): {ex.Message}");
+                }
 
                 // 🔧 Capabilities
                 try
@@ -316,7 +333,8 @@ class Program
                             ? $"{device.DeviceTypeName} ({device.DeviceType})"
                             : device.DeviceType ?? device.SerialNo ?? "Unknown Device";
 
-                        if (zoneByDeviceShortSerial.TryGetValue(sayHiDeviceId, out var matchedZoneByShortSerial))
+                        if (!string.IsNullOrWhiteSpace(sayHiDeviceId)
+                            && zoneByDeviceShortSerial.TryGetValue(sayHiDeviceId, out var matchedZoneByShortSerial))
                         {
                             sayHiZoneName = matchedZoneByShortSerial;
                         }
@@ -419,5 +437,159 @@ class Program
             Console.WriteLine("⚠️ An error occurred:");
             Console.WriteLine(apiEx.Message);
         }
+    }
+
+    private static async Task WriteZoneTimetableAsync(
+        ZoneAppService zoneService,
+        int homeId,
+        int zoneId,
+        CancellationToken cancellationToken)
+    {
+        var activeTimetable = await zoneService.GetActiveTimetableTypeAsync(homeId, zoneId, cancellationToken);
+
+        if (!activeTimetable.Id.HasValue)
+        {
+            Console.WriteLine("       🗓 Schedule Days: unavailable");
+            return;
+        }
+
+        var blocks = await zoneService.GetZoneTimetableBlocksAsync(homeId, zoneId, activeTimetable.Id.Value, cancellationToken);
+        var groupedBlocks = blocks
+            .GroupBy(block => NormalizeDayType(block.DayType))
+            .OrderBy(group => GetDaySortOrder(group.Key, activeTimetable.Type))
+            .ToList();
+
+        var scheduleDays = groupedBlocks.Count > 0
+            ? string.Join(", ", groupedBlocks.Select(group => ToDisplayDayLabel(group.Key, activeTimetable.Type)))
+            : GetDefaultScheduleDays(activeTimetable.Type);
+
+        Console.WriteLine($"       🗓 Schedule Days: {scheduleDays}");
+
+        if (groupedBlocks.Count == 0)
+        {
+            Console.WriteLine("       📋 Schedule: no timetable blocks returned.");
+            return;
+        }
+
+        Console.WriteLine("       📋 Schedule Table:");
+        Console.WriteLine($"         {PadCell("Day", 12)} {PadCell("Start", 6)} {PadCell("End", 6)} {PadCell("Power", 5)} {PadCell("Target", 8)} Setting");
+
+        for (var groupIndex = 0; groupIndex < groupedBlocks.Count; groupIndex++)
+        {
+            var group = groupedBlocks[groupIndex];
+
+            if (groupIndex > 0)
+                Console.WriteLine();
+
+            foreach (var block in group.OrderBy(block => block.Start, StringComparer.Ordinal))
+            {
+                Console.WriteLine(
+                    $"         {PadCell(ToDisplayDayLabel(group.Key, activeTimetable.Type), 12)} {PadCell(block.Start, 6)} {PadCell(block.End, 6)} {PadCell(block.Setting?.Power?.ToString(), 5)} {PadCell(FormatTarget(block.Setting), 8)} {FormatSettingSummary(block)}");
+            }
+        }
+    }
+
+    private static string PadCell(string? value, int width)
+        => (value ?? "-").PadRight(width);
+
+    private static string FormatTarget(Setting? setting)
+    {
+        if (setting?.Power == PowerStates.Off)
+            return "Off";
+
+        if (setting?.Temperature?.Celsius.HasValue == true)
+            return $"{setting.Temperature.Celsius:0.0}C";
+
+        if (!string.IsNullOrWhiteSpace(setting?.Mode))
+            return setting.Mode!;
+
+        return "-";
+    }
+
+    private static string FormatSettingSummary(TimetableBlock block)
+    {
+        var parts = new List<string>();
+
+        if (!string.IsNullOrWhiteSpace(block.Setting?.Mode))
+            parts.Add($"Mode={block.Setting.Mode}");
+
+        if (block.Setting?.IsBoost.HasValue == true)
+            parts.Add($"Boost={(block.Setting.IsBoost.Value ? "On" : "Off")}");
+
+        if (block.GeolocationOverride.HasValue)
+            parts.Add($"Geo={(block.GeolocationOverride.Value ? "Override" : "Follow")}");
+
+        return parts.Count == 0 ? "-" : string.Join(", ", parts);
+    }
+
+    private static string NormalizeDayType(string? dayType)
+        => string.IsNullOrWhiteSpace(dayType) ? "UNKNOWN" : dayType.Trim().ToUpperInvariant();
+
+    private static int GetDaySortOrder(string dayType, string? timetableType)
+    {
+        var normalizedType = (timetableType ?? string.Empty).Trim().ToUpperInvariant();
+
+        if (normalizedType == "ONE_DAY")
+        {
+            return dayType switch
+            {
+                "MONDAY_TO_SUNDAY" => 0,
+                "DAILY" => 0,
+                _ => 1
+            };
+        }
+
+        if (normalizedType == "THREE_DAY")
+        {
+            return dayType switch
+            {
+                "MONDAY_TO_FRIDAY" => 0,
+                "SATURDAY" => 1,
+                "SUNDAY" => 2,
+                _ => 3
+            };
+        }
+
+        return dayType switch
+        {
+            "MONDAY" => 0,
+            "TUESDAY" => 1,
+            "WEDNESDAY" => 2,
+            "THURSDAY" => 3,
+            "FRIDAY" => 4,
+            "SATURDAY" => 5,
+            "SUNDAY" => 6,
+            _ => 7
+        };
+    }
+
+    private static string ToDisplayDayLabel(string dayType, string? timetableType)
+    {
+        return dayType switch
+        {
+            "MONDAY_TO_SUNDAY" => "Mon-Sun",
+            "DAILY" => "Mon-Sun",
+            "MONDAY_TO_FRIDAY" => "Mon-Fri",
+            "MONDAY" => "Mon",
+            "TUESDAY" => "Tue",
+            "WEDNESDAY" => "Wed",
+            "THURSDAY" => "Thu",
+            "FRIDAY" => "Fri",
+            "SATURDAY" => "Sat",
+            "SUNDAY" => "Sun",
+            _ when string.Equals(timetableType, "ONE_DAY", StringComparison.OrdinalIgnoreCase) => "Mon-Sun",
+            _ => dayType
+        };
+    }
+
+    private static string GetDefaultScheduleDays(string? timetableType)
+    {
+        return (timetableType ?? string.Empty).Trim().ToUpperInvariant() switch
+        {
+            "ONE_DAY" => "Mon-Sun",
+            "THREE_DAY" => "Mon-Fri, Sat, Sun",
+            "SEVEN_DAY" => "Mon, Tue, Wed, Thu, Fri, Sat, Sun",
+            _ => "unavailable"
+        };
     }
 }

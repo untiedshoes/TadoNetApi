@@ -29,6 +29,14 @@ public class SetZoneTemperatureSettingRequest
     [JsonPropertyName("temperature")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public SetZoneTemperatureValueRequest? Temperature { get; set; }
+
+    [JsonPropertyName("mode")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Mode { get; set; }
+
+    [JsonPropertyName("isBoost")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool? IsBoost { get; set; }
 }
 
 public class SetZoneTemperatureValueRequest

@@ -40,7 +40,14 @@ namespace TadoNetApi.Infrastructure.Mappers
         /// <param name="dto">The API DTO to map.</param>
         /// <returns>A mapped <see cref="Setting"/>.</returns>
         public static Setting ToDomain(this TadoSettingResponse dto)
-            => new() { DeviceType = dto.DeviceType, Power = dto.Power, Temperature = dto.Temperature?.ToDomain() };
+            => new()
+            {
+                DeviceType = dto.DeviceType,
+                Power = dto.Power,
+                Temperature = dto.Temperature?.ToDomain(),
+                Mode = dto.Mode,
+                IsBoost = dto.IsBoost
+            };
 
         /// <summary>
         /// Maps a <see cref="TadoTemperatureResponse"/> to a <see cref="Temperature"/> domain entity.

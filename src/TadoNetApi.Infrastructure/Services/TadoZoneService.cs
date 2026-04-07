@@ -332,6 +332,159 @@ namespace TadoNetApi.Infrastructure.Services
         }
 
         /// <summary>
+        /// Returns the active timetable type for a zone.
+        /// </summary>
+        /// <param name="homeId">The ID of the home containing the zone.</param>
+        /// <param name="zoneId">The ID of the zone to inspect.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>The active timetable type.</returns>
+        public async Task<TimetableType> GetActiveTimetableTypeAsync(int homeId, int zoneId, CancellationToken cancellationToken = default)
+        {
+            Guard.PositiveId(homeId, nameof(homeId));
+            Guard.PositiveId(zoneId, nameof(zoneId));
+
+            try
+            {
+                var response = await _httpClient.GetAsync<TadoTimetableTypeResponse>(
+                    $"homes/{homeId}/zones/{zoneId}/schedule/activeTimetable",
+                    cancellationToken);
+
+                if (response == null)
+                    throw new TadoApiException(HttpStatusCode.NotFound,
+                        $"Active timetable type for zone {zoneId} not found.");
+
+                return response.ToDomain();
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new TadoApiException(HttpStatusCode.ServiceUnavailable,
+                    $"Failed to retrieve active timetable type: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Returns the timetable types supported by a zone.
+        /// </summary>
+        /// <param name="homeId">The ID of the home containing the zone.</param>
+        /// <param name="zoneId">The ID of the zone to inspect.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>The available timetable types.</returns>
+        public async Task<IReadOnlyList<TimetableType>> GetZoneTimetablesAsync(int homeId, int zoneId, CancellationToken cancellationToken = default)
+        {
+            Guard.PositiveId(homeId, nameof(homeId));
+            Guard.PositiveId(zoneId, nameof(zoneId));
+
+            try
+            {
+                var response = await _httpClient.GetAsync<List<TadoTimetableTypeResponse>>(
+                    $"homes/{homeId}/zones/{zoneId}/schedule/timetables",
+                    cancellationToken) ?? new List<TadoTimetableTypeResponse>();
+
+                return response.Select(timetable => timetable.ToDomain()).ToList();
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new TadoApiException(HttpStatusCode.ServiceUnavailable,
+                    $"Failed to retrieve zone timetables: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Returns a specific timetable type definition for a zone.
+        /// </summary>
+        /// <param name="homeId">The ID of the home containing the zone.</param>
+        /// <param name="zoneId">The ID of the zone to inspect.</param>
+        /// <param name="timetableTypeId">The timetable type ID to retrieve.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>The requested timetable type.</returns>
+        public async Task<TimetableType> GetZoneTimetableAsync(int homeId, int zoneId, int timetableTypeId, CancellationToken cancellationToken = default)
+        {
+            Guard.PositiveId(homeId, nameof(homeId));
+            Guard.PositiveId(zoneId, nameof(zoneId));
+            Guard.PositiveId(timetableTypeId, nameof(timetableTypeId));
+
+            try
+            {
+                var response = await _httpClient.GetAsync<TadoTimetableTypeResponse>(
+                    $"homes/{homeId}/zones/{zoneId}/schedule/timetables/{timetableTypeId}",
+                    cancellationToken);
+
+                if (response == null)
+                    throw new TadoApiException(HttpStatusCode.NotFound,
+                        $"Timetable type {timetableTypeId} for zone {zoneId} not found.");
+
+                return response.ToDomain();
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new TadoApiException(HttpStatusCode.ServiceUnavailable,
+                    $"Failed to retrieve zone timetable: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Returns all timetable blocks for a specific timetable type.
+        /// </summary>
+        /// <param name="homeId">The ID of the home containing the zone.</param>
+        /// <param name="zoneId">The ID of the zone to inspect.</param>
+        /// <param name="timetableTypeId">The timetable type ID to inspect.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>The timetable blocks for the specified timetable type.</returns>
+        public async Task<IReadOnlyList<TimetableBlock>> GetZoneTimetableBlocksAsync(int homeId, int zoneId, int timetableTypeId, CancellationToken cancellationToken = default)
+        {
+            Guard.PositiveId(homeId, nameof(homeId));
+            Guard.PositiveId(zoneId, nameof(zoneId));
+            Guard.PositiveId(timetableTypeId, nameof(timetableTypeId));
+
+            try
+            {
+                var response = await _httpClient.GetAsync<List<TadoTimetableBlockResponse>>(
+                    $"homes/{homeId}/zones/{zoneId}/schedule/timetables/{timetableTypeId}/blocks",
+                    cancellationToken) ?? new List<TadoTimetableBlockResponse>();
+
+                return response.Select(block => block.ToDomain()).ToList();
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new TadoApiException(HttpStatusCode.ServiceUnavailable,
+                    $"Failed to retrieve timetable blocks: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Returns timetable blocks for a specific day type.
+        /// </summary>
+        /// <param name="homeId">The ID of the home containing the zone.</param>
+        /// <param name="zoneId">The ID of the zone to inspect.</param>
+        /// <param name="timetableTypeId">The timetable type ID to inspect.</param>
+        /// <param name="dayType">The day type to retrieve.</param>
+        /// <param name="cancellationToken">The cancellation token to observe.</param>
+        /// <returns>The timetable blocks for the specified day type.</returns>
+        public async Task<IReadOnlyList<TimetableBlock>> GetTimetableBlocksByDayTypeAsync(int homeId, int zoneId, int timetableTypeId, string dayType, CancellationToken cancellationToken = default)
+        {
+            Guard.PositiveId(homeId, nameof(homeId));
+            Guard.PositiveId(zoneId, nameof(zoneId));
+            Guard.PositiveId(timetableTypeId, nameof(timetableTypeId));
+
+            if (string.IsNullOrWhiteSpace(dayType))
+                throw new ArgumentException("Day type must be provided.", nameof(dayType));
+
+            try
+            {
+                var response = await _httpClient.GetAsync<List<TadoTimetableBlockResponse>>(
+                    $"homes/{homeId}/zones/{zoneId}/schedule/timetables/{timetableTypeId}/blocks/{Uri.EscapeDataString(dayType)}",
+                    cancellationToken) ?? new List<TadoTimetableBlockResponse>();
+
+                return response.Select(block => block.ToDomain()).ToList();
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new TadoApiException(HttpStatusCode.ServiceUnavailable,
+                    $"Failed to retrieve timetable blocks for day type: {ex.Message}");
+            }
+        }
+
+        /// <summary>
         /// Returns the day-report payload for a zone.
         /// </summary>
         /// <param name="homeId">The ID of the home containing the zone.</param>
@@ -666,6 +819,79 @@ namespace TadoNetApi.Infrastructure.Services
                     request);
             }
 
+            /// <summary>
+            /// Updates the active timetable type for a zone.
+            /// </summary>
+            /// <param name="homeId">The ID of the home.</param>
+            /// <param name="zoneId">The ID of the zone.</param>
+            /// <param name="timetableType">The timetable type to activate.</param>
+            /// <param name="cancellationToken">The cancellation token to observe.</param>
+            /// <returns>The active timetable type returned by the API.</returns>
+            public async Task<TimetableType> SetActiveTimetableTypeAsync(int homeId, int zoneId, TimetableType timetableType, CancellationToken cancellationToken = default)
+            {
+                Guard.PositiveId(homeId, nameof(homeId));
+                Guard.PositiveId(zoneId, nameof(zoneId));
+
+                ArgumentNullException.ThrowIfNull(timetableType);
+
+                if (!timetableType.Id.HasValue || timetableType.Id.Value <= 0)
+                    throw new ArgumentException("Timetable type ID must be provided and greater than zero.", nameof(timetableType));
+
+                var request = SetActiveTimetableTypeRequest.FromDomain(timetableType);
+
+                var response = await _httpClient.PutAsync<SetActiveTimetableTypeRequest, TadoTimetableTypeResponse>(
+                    $"homes/{homeId}/zones/{zoneId}/schedule/activeTimetable",
+                    request,
+                    cancellationToken);
+
+                if (response == null)
+                    throw new TadoApiException(HttpStatusCode.NotFound,
+                        $"Active timetable type for zone {zoneId} not found.");
+
+                return response.ToDomain();
+            }
+
+            /// <summary>
+            /// Updates timetable blocks for a specific day type.
+            /// </summary>
+            /// <param name="homeId">The ID of the home.</param>
+            /// <param name="zoneId">The ID of the zone.</param>
+            /// <param name="timetableTypeId">The timetable type ID to update.</param>
+            /// <param name="dayType">The day type to update.</param>
+            /// <param name="blocks">The timetable blocks to apply.</param>
+            /// <param name="cancellationToken">The cancellation token to observe.</param>
+            /// <returns>The persisted timetable blocks returned by the API.</returns>
+            public async Task<IReadOnlyList<TimetableBlock>> SetTimetableBlocksForDayTypeAsync(int homeId, int zoneId, int timetableTypeId, string dayType, IReadOnlyList<TimetableBlock> blocks, CancellationToken cancellationToken = default)
+            {
+                Guard.PositiveId(homeId, nameof(homeId));
+                Guard.PositiveId(zoneId, nameof(zoneId));
+                Guard.PositiveId(timetableTypeId, nameof(timetableTypeId));
+
+                if (string.IsNullOrWhiteSpace(dayType))
+                    throw new ArgumentException("Day type must be provided.", nameof(dayType));
+
+                if (blocks == null)
+                    throw new ArgumentNullException(nameof(blocks));
+
+                foreach (var block in blocks)
+                {
+                    ValidateTimetableBlock(block, nameof(blocks));
+                }
+
+                var request = blocks.Select(SetTimetableBlockRequest.FromDomain).ToList();
+
+                var response = await _httpClient.PutAsync<List<SetTimetableBlockRequest>, List<TadoTimetableBlockResponse>>(
+                    $"homes/{homeId}/zones/{zoneId}/schedule/timetables/{timetableTypeId}/blocks/{Uri.EscapeDataString(dayType)}",
+                    request,
+                    cancellationToken);
+
+                if (response == null)
+                    throw new TadoApiException(HttpStatusCode.NotFound,
+                        $"Timetable blocks for zone {zoneId}, timetable type {timetableTypeId}, and day type {dayType} not found.");
+
+                return response.Select(block => block.ToDomain()).ToList();
+            }
+
         /// <summary>
         /// Creates a new zone and moves the specified devices into it.
         /// </summary>
@@ -897,6 +1123,29 @@ namespace TadoNetApi.Infrastructure.Services
         private static bool IsTimerTermination(string? type)
             => string.Equals(type, nameof(DurationModes.Timer), StringComparison.OrdinalIgnoreCase)
                 || string.Equals(type, "TIMER", StringComparison.OrdinalIgnoreCase);
+
+        private static void ValidateTimetableBlock(TimetableBlock timetableBlock, string paramName)
+        {
+            ArgumentNullException.ThrowIfNull(timetableBlock);
+
+            if (string.IsNullOrWhiteSpace(timetableBlock.DayType))
+                throw new ArgumentException("Timetable block day type must be provided.", paramName);
+
+            if (string.IsNullOrWhiteSpace(timetableBlock.Start))
+                throw new ArgumentException("Timetable block start time must be provided.", paramName);
+
+            if (string.IsNullOrWhiteSpace(timetableBlock.End))
+                throw new ArgumentException("Timetable block end time must be provided.", paramName);
+
+            if (timetableBlock.Setting == null)
+                throw new ArgumentException("Timetable block setting must be provided.", paramName);
+
+            if (timetableBlock.Setting.DeviceType == null)
+                throw new ArgumentException("Timetable block setting type must be provided.", paramName);
+
+            if (timetableBlock.Setting.Power == null)
+                throw new ArgumentException("Timetable block power state must be provided.", paramName);
+        }
 
         private async Task<ZoneSummary?> SetTemperatureAsync(int homeId, int zoneId, double? temperatureCelsius, double? temperatureFahrenheit, DeviceTypes deviceType, DurationModes durationMode, TimeSpan? timer, CancellationToken cancellationToken)
         {

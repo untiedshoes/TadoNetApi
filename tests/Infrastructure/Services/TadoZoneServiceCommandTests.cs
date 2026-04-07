@@ -631,6 +631,156 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                 It.IsAny<object?>()), Times.Never);
         }
 
+        [Fact(DisplayName = "SetActiveTimetableTypeAsync sends the spec-aligned active timetable command")]
+        public async Task SetActiveTimetableTypeAsync_SendsSpecAlignedActiveTimetableCommand()
+        {
+            SetActiveTimetableTypeRequest? capturedRequest = null;
+            var mockHttp = new Mock<ITadoHttpClient>();
+
+            mockHttp
+                .Setup(c => c.PutAsync<SetActiveTimetableTypeRequest, TadoTimetableTypeResponse>(
+                    It.IsAny<string>(),
+                    It.IsAny<SetActiveTimetableTypeRequest>(),
+                    It.IsAny<CancellationToken>()))
+                .Callback<string, SetActiveTimetableTypeRequest, CancellationToken>((_, req, _) =>
+                {
+                    capturedRequest = req;
+                })
+                .ReturnsAsync(new TadoTimetableTypeResponse
+                {
+                    Id = 3,
+                    Type = "SEVEN_DAY"
+                });
+
+            var service = new TadoZoneService(mockHttp.Object);
+            var result = await service.SetActiveTimetableTypeAsync(
+                1,
+                2,
+                new TimetableType { Id = 3, Type = "SEVEN_DAY" },
+                CancellationToken.None);
+
+            Assert.NotNull(capturedRequest);
+            Assert.Equal(3, capturedRequest!.Id);
+            Assert.Equal("SEVEN_DAY", capturedRequest.Type);
+            Assert.Equal(3, result.Id);
+            Assert.Equal("SEVEN_DAY", result.Type);
+
+            mockHttp.Verify(c => c.PutAsync<SetActiveTimetableTypeRequest, TadoTimetableTypeResponse>(
+                "homes/1/zones/2/schedule/activeTimetable",
+                It.Is<SetActiveTimetableTypeRequest>(r => r.Id == 3 && r.Type == "SEVEN_DAY"),
+                It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact(DisplayName = "SetActiveTimetableTypeAsync requires a positive timetable type ID")]
+        public async Task SetActiveTimetableTypeAsync_RequiresPositiveTimetableTypeId()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            var service = new TadoZoneService(mockHttp.Object);
+
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                service.SetActiveTimetableTypeAsync(1, 2, new TimetableType { Id = 0 }, CancellationToken.None));
+
+            mockHttp.Verify(c => c.PutAsync<SetActiveTimetableTypeRequest, TadoTimetableTypeResponse>(
+                It.IsAny<string>(),
+                It.IsAny<SetActiveTimetableTypeRequest>(),
+                It.IsAny<CancellationToken>()), Times.Never);
+        }
+
+        [Fact(DisplayName = "SetTimetableBlocksForDayTypeAsync sends the spec-aligned timetable blocks command")]
+        public async Task SetTimetableBlocksForDayTypeAsync_SendsSpecAlignedTimetableBlocksCommand()
+        {
+            List<SetTimetableBlockRequest>? capturedRequest = null;
+            var mockHttp = new Mock<ITadoHttpClient>();
+
+            mockHttp
+                .Setup(c => c.PutAsync<List<SetTimetableBlockRequest>, List<TadoTimetableBlockResponse>>(
+                    It.IsAny<string>(),
+                    It.IsAny<List<SetTimetableBlockRequest>>(),
+                    It.IsAny<CancellationToken>()))
+                .Callback<string, List<SetTimetableBlockRequest>, CancellationToken>((_, req, _) =>
+                {
+                    capturedRequest = req;
+                })
+                .ReturnsAsync(
+                [
+                    new TadoTimetableBlockResponse
+                    {
+                        DayType = "MONDAY",
+                        Start = "06:00",
+                        End = "08:00",
+                        GeolocationOverride = false,
+                        Setting = new TadoSettingResponse
+                        {
+                            Power = PowerStates.On,
+                            Temperature = new TadoTemperatureResponse { Celsius = 20 }
+                        }
+                    }
+                ]);
+
+            var service = new TadoZoneService(mockHttp.Object);
+            IReadOnlyList<TimetableBlock> blocks =
+            [
+                new()
+                {
+                    DayType = "MONDAY",
+                    Start = "06:00",
+                    End = "08:00",
+                    GeolocationOverride = false,
+                    Setting = new Setting
+                    {
+                        DeviceType = DeviceTypes.Heating,
+                        Power = PowerStates.On,
+                        Temperature = new Temperature { Celsius = 20 }
+                    }
+                }
+            ];
+
+            var result = await service.SetTimetableBlocksForDayTypeAsync(1, 2, 3, "MONDAY", blocks, CancellationToken.None);
+
+            Assert.NotNull(capturedRequest);
+            Assert.Single(capturedRequest!);
+            Assert.Equal("MONDAY", capturedRequest[0].DayType);
+            Assert.Equal("06:00", capturedRequest[0].Start);
+            Assert.Equal(PowerStates.On, capturedRequest[0].Setting.Power);
+            Assert.Single(result);
+            Assert.Equal("MONDAY", result[0].DayType);
+            Assert.Equal(20, result[0].Setting?.Temperature?.Celsius);
+
+            mockHttp.Verify(c => c.PutAsync<List<SetTimetableBlockRequest>, List<TadoTimetableBlockResponse>>(
+                "homes/1/zones/2/schedule/timetables/3/blocks/MONDAY",
+                It.IsAny<List<SetTimetableBlockRequest>>(),
+                It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact(DisplayName = "SetTimetableBlocksForDayTypeAsync requires day type and valid blocks")]
+        public async Task SetTimetableBlocksForDayTypeAsync_RequiresDayTypeAndValidBlocks()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            var service = new TadoZoneService(mockHttp.Object);
+
+            IReadOnlyList<TimetableBlock> invalidBlocks =
+            [
+                new()
+                {
+                    DayType = "MONDAY",
+                    Start = "06:00",
+                    End = "08:00",
+                    Setting = new Setting()
+                }
+            ];
+
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                service.SetTimetableBlocksForDayTypeAsync(1, 2, 3, " ", invalidBlocks, CancellationToken.None));
+
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                service.SetTimetableBlocksForDayTypeAsync(1, 2, 3, "MONDAY", invalidBlocks, CancellationToken.None));
+
+            mockHttp.Verify(c => c.PutAsync<List<SetTimetableBlockRequest>, List<TadoTimetableBlockResponse>>(
+                It.IsAny<string>(),
+                It.IsAny<List<SetTimetableBlockRequest>>(),
+                It.IsAny<CancellationToken>()), Times.Never);
+        }
+
         [Fact(DisplayName = "CreateZoneAsync sends the spec-aligned zone creation command")]
         public async Task CreateZoneAsync_SendsSpecAlignedZoneCreationCommand()
         {

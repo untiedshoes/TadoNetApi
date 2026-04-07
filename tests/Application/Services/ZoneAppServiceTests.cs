@@ -401,6 +401,58 @@ namespace TadoNetApi.Tests.Application.Services
         }
 
         /// <summary>
+        /// Tests that <see cref="ZoneAppService.SetActiveTimetableTypeAsync"/> delegates to the domain service.
+        /// </summary>
+        [Fact(DisplayName = "SetActiveTimetableTypeAsync passes through to domain service")]
+        public async Task SetActiveTimetableTypeAsync_PassesThroughToDomainService()
+        {
+            var timetableType = new TimetableType { Id = 2, Type = "THREE_DAY" };
+            var expected = new TimetableType { Id = 2, Type = "THREE_DAY" };
+            var (service, mock) = CreateService();
+            mock.Setup(s => s.SetActiveTimetableTypeAsync(1, 2, timetableType, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expected);
+
+            var result = await service.SetActiveTimetableTypeAsync(1, 2, timetableType, CancellationToken.None);
+
+            Assert.Same(expected, result);
+            mock.Verify(s => s.SetActiveTimetableTypeAsync(1, 2, timetableType, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        /// <summary>
+        /// Tests that <see cref="ZoneAppService.SetTimetableBlocksForDayTypeAsync"/> delegates to the domain service.
+        /// </summary>
+        [Fact(DisplayName = "SetTimetableBlocksForDayTypeAsync passes through to domain service")]
+        public async Task SetTimetableBlocksForDayTypeAsync_PassesThroughToDomainService()
+        {
+            IReadOnlyList<TimetableBlock> blocks =
+            [
+                new()
+                {
+                    DayType = "MONDAY",
+                    Start = "06:00",
+                    End = "08:00",
+                    GeolocationOverride = false,
+                    Setting = new Setting
+                    {
+                        DeviceType = DeviceTypes.Heating,
+                        Power = PowerStates.On,
+                        Temperature = new Temperature { Celsius = 20 }
+                    }
+                }
+            ];
+
+            var expected = blocks;
+            var (service, mock) = CreateService();
+            mock.Setup(s => s.SetTimetableBlocksForDayTypeAsync(1, 2, 3, "MONDAY", blocks, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expected);
+
+            var result = await service.SetTimetableBlocksForDayTypeAsync(1, 2, 3, "MONDAY", blocks, CancellationToken.None);
+
+            Assert.Same(expected, result);
+            mock.Verify(s => s.SetTimetableBlocksForDayTypeAsync(1, 2, 3, "MONDAY", blocks, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        /// <summary>
         /// Tests that <see cref="ZoneAppService.SetHeatingTemperatureFahrenheitAsync"/> delegates to the domain service.
         /// </summary>
         [Fact(DisplayName = "SetHeatingTemperatureFahrenheitAsync passes through to domain service")]
@@ -602,6 +654,136 @@ namespace TadoNetApi.Tests.Application.Services
             Assert.Equal("BALANCE", awayConfiguration.ComfortLevel);
             Assert.Equal(PowerStates.On, awayConfiguration.Setting?.Power);
             Assert.Equal(15, awayConfiguration.Setting?.Temperature?.Celsius);
+        }
+
+        /// <summary>
+        /// Tests that <see cref="ZoneAppService.GetActiveTimetableTypeAsync"/> returns the active timetable type.
+        /// </summary>
+        [Fact(DisplayName = "GetActiveTimetableTypeAsync returns active timetable type")]
+        public async Task GetActiveTimetableTypeAsync_ReturnsActiveTimetableType()
+        {
+            var expected = new TimetableType { Id = 1, Type = "ONE_DAY" };
+
+            var (service, mock) = CreateService();
+            mock.Setup(s => s.GetActiveTimetableTypeAsync(1, 1, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expected);
+
+            var timetableType = await service.GetActiveTimetableTypeAsync(1, 1);
+
+            Assert.NotNull(timetableType);
+            Assert.Equal(1, timetableType.Id);
+            Assert.Equal("ONE_DAY", timetableType.Type);
+        }
+
+        /// <summary>
+        /// Tests that <see cref="ZoneAppService.GetZoneTimetablesAsync"/> returns timetable types.
+        /// </summary>
+        [Fact(DisplayName = "GetZoneTimetablesAsync returns timetable types")]
+        public async Task GetZoneTimetablesAsync_ReturnsTimetableTypes()
+        {
+            IReadOnlyList<TimetableType> expected =
+            [
+                new() { Id = 1, Type = "ONE_DAY" },
+                new() { Id = 3, Type = "SEVEN_DAY" }
+            ];
+
+            var (service, mock) = CreateService();
+            mock.Setup(s => s.GetZoneTimetablesAsync(1, 1, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expected);
+
+            var timetableTypes = await service.GetZoneTimetablesAsync(1, 1);
+
+            Assert.Equal(2, timetableTypes.Count);
+            Assert.Equal("ONE_DAY", timetableTypes[0].Type);
+            Assert.Equal("SEVEN_DAY", timetableTypes[1].Type);
+        }
+
+        /// <summary>
+        /// Tests that <see cref="ZoneAppService.GetZoneTimetableAsync"/> returns a timetable type.
+        /// </summary>
+        [Fact(DisplayName = "GetZoneTimetableAsync returns timetable type")]
+        public async Task GetZoneTimetableAsync_ReturnsTimetableType()
+        {
+            var expected = new TimetableType { Id = 3, Type = "SEVEN_DAY" };
+
+            var (service, mock) = CreateService();
+            mock.Setup(s => s.GetZoneTimetableAsync(1, 1, 3, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expected);
+
+            var timetableType = await service.GetZoneTimetableAsync(1, 1, 3);
+
+            Assert.NotNull(timetableType);
+            Assert.Equal(3, timetableType.Id);
+            Assert.Equal("SEVEN_DAY", timetableType.Type);
+        }
+
+        /// <summary>
+        /// Tests that <see cref="ZoneAppService.GetZoneTimetableBlocksAsync"/> returns timetable blocks.
+        /// </summary>
+        [Fact(DisplayName = "GetZoneTimetableBlocksAsync returns timetable blocks")]
+        public async Task GetZoneTimetableBlocksAsync_ReturnsTimetableBlocks()
+        {
+            IReadOnlyList<TimetableBlock> expected =
+            [
+                new()
+                {
+                    DayType = "MONDAY",
+                    Start = "06:00",
+                    End = "08:00",
+                    GeolocationOverride = false,
+                    Setting = new Setting
+                    {
+                        Power = PowerStates.On,
+                        Temperature = new Temperature { Celsius = 20 }
+                    }
+                }
+            ];
+
+            var (service, mock) = CreateService();
+            mock.Setup(s => s.GetZoneTimetableBlocksAsync(1, 1, 3, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expected);
+
+            var blocks = await service.GetZoneTimetableBlocksAsync(1, 1, 3);
+
+            Assert.Single(blocks);
+            Assert.Equal("MONDAY", blocks[0].DayType);
+            Assert.Equal("06:00", blocks[0].Start);
+            Assert.Equal(20, blocks[0].Setting?.Temperature?.Celsius);
+        }
+
+        /// <summary>
+        /// Tests that <see cref="ZoneAppService.GetTimetableBlocksByDayTypeAsync"/> returns timetable blocks.
+        /// </summary>
+        [Fact(DisplayName = "GetTimetableBlocksByDayTypeAsync returns timetable blocks")]
+        public async Task GetTimetableBlocksByDayTypeAsync_ReturnsTimetableBlocks()
+        {
+            IReadOnlyList<TimetableBlock> expected =
+            [
+                new()
+                {
+                    DayType = "MONDAY",
+                    Start = "08:00",
+                    End = "10:00",
+                    GeolocationOverride = true,
+                    Setting = new Setting
+                    {
+                        Power = PowerStates.On,
+                        Temperature = new Temperature { Celsius = 21 }
+                    }
+                }
+            ];
+
+            var (service, mock) = CreateService();
+            mock.Setup(s => s.GetTimetableBlocksByDayTypeAsync(1, 1, 3, "MONDAY", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expected);
+
+            var blocks = await service.GetTimetableBlocksByDayTypeAsync(1, 1, 3, "MONDAY");
+
+            Assert.Single(blocks);
+            Assert.Equal("MONDAY", blocks[0].DayType);
+            Assert.Equal("08:00", blocks[0].Start);
+            Assert.True(blocks[0].GeolocationOverride);
+            Assert.Equal(21, blocks[0].Setting?.Temperature?.Celsius);
         }
 
         /// <summary>

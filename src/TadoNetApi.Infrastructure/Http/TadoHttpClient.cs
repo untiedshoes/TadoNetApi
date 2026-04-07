@@ -141,7 +141,7 @@ namespace TadoNetApi.Infrastructure.Http
 
                 if (response.StatusCode != expectedStatusCode)
                 {
-                    _logger.LogError(
+                    LogApiFailure(
                         "Tado API command failed. Expected: {ExpectedStatusCode}, Actual: {StatusCode}, Response: {Response}",
                         expectedStatusCode,
                         response.StatusCode,
@@ -202,10 +202,20 @@ namespace TadoNetApi.Infrastructure.Http
                 // Handle non-success responses
                 if (!response.IsSuccessStatusCode)
                 {
-                    _logger.LogError(
-                        "Tado API request failed. Status: {StatusCode}, Response: {Response}",
-                        response.StatusCode,
-                        content);
+                    if (response.StatusCode == HttpStatusCode.NotFound)
+                    {
+                        _logger.LogInformation(
+                            "Tado API request returned not found. Status: {StatusCode}, Response: {Response}",
+                            response.StatusCode,
+                            content);
+                    }
+                    else
+                    {
+                        _logger.LogError(
+                            "Tado API request failed. Status: {StatusCode}, Response: {Response}",
+                            response.StatusCode,
+                            content);
+                    }
 
                     // Wrap external API failure in a controlled exception
                     throw new TadoApiException(response.StatusCode, content);
@@ -242,6 +252,29 @@ namespace TadoNetApi.Infrastructure.Http
                 throw new TadoApiException(HttpStatusCode.UnprocessableEntity,
                     "Failed to deserialize API response.");
             }
+        }
+
+        private void LogApiFailure(
+            string message,
+            HttpStatusCode expectedStatusCode,
+            HttpStatusCode actualStatusCode,
+            string content)
+        {
+            if (actualStatusCode == HttpStatusCode.NotFound)
+            {
+                _logger.LogInformation(
+                    message,
+                    expectedStatusCode,
+                    actualStatusCode,
+                    content);
+                return;
+            }
+
+            _logger.LogError(
+                message,
+                expectedStatusCode,
+                actualStatusCode,
+                content);
         }
 
         #endregion

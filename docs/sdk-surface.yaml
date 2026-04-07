@@ -1,7 +1,7 @@
 document:
   name: TadoNetApi SDK Surface
   version: 1
-  lastUpdated: 2026-04-04
+  lastUpdated: 2026-04-07
   purpose: >-
     Companion reference for humans and AI agents. This is not an OpenAPI document for the
     upstream Tado REST API; it describes the public .NET SDK surface exposed by this repository.
@@ -367,6 +367,100 @@ services:
             modelFile: src/TadoNetApi.Domain/Entities/AwayConfiguration.cs
           summary: Returns the zone settings used when the home is in AWAY mode.
 
+        - name: GetActiveTimetableTypeAsync
+          kind: read
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+            - name: zoneId
+              type: int
+              validation: positive-id
+          returns:
+            type: TimetableType
+            nullable: false
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/TimetableType.cs
+          summary: Returns the currently active timetable type for a zone.
+
+        - name: GetZoneTimetablesAsync
+          kind: read
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+            - name: zoneId
+              type: int
+              validation: positive-id
+          returns:
+            type: TimetableType
+            collection: true
+            nullable: false
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/TimetableType.cs
+          summary: Returns the timetable types supported by a zone.
+
+        - name: GetZoneTimetableAsync
+          kind: read
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+            - name: zoneId
+              type: int
+              validation: positive-id
+            - name: timetableTypeId
+              type: int
+              validation: positive-id
+          returns:
+            type: TimetableType
+            nullable: false
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/TimetableType.cs
+          summary: Returns one timetable type definition for a zone.
+
+        - name: GetZoneTimetableBlocksAsync
+          kind: read
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+            - name: zoneId
+              type: int
+              validation: positive-id
+            - name: timetableTypeId
+              type: int
+              validation: positive-id
+          returns:
+            type: TimetableBlock
+            collection: true
+            nullable: false
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/TimetableBlock.cs
+          summary: Returns all timetable blocks for the specified timetable type.
+
+        - name: GetTimetableBlocksByDayTypeAsync
+          kind: read
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+            - name: zoneId
+              type: int
+              validation: positive-id
+            - name: timetableTypeId
+              type: int
+              validation: positive-id
+            - name: dayType
+              type: string
+          returns:
+            type: TimetableBlock
+            collection: true
+            nullable: false
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/TimetableBlock.cs
+          summary: Returns timetable blocks for the specified day type within a timetable.
+
         - name: GetZoneDayReportAsync
           kind: read
           parameters:
@@ -552,6 +646,53 @@ services:
             type: void
             nullable: false
           summary: Updates the settings used for a zone while the home is in AWAY mode.
+
+        - name: SetActiveTimetableTypeAsync
+          kind: command
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+            - name: zoneId
+              type: int
+              validation: positive-id
+            - name: timetableType
+              type: TimetableType
+              source: caller-provided
+              modelFile: src/TadoNetApi.Domain/Entities/TimetableType.cs
+          returns:
+            type: TimetableType
+            nullable: false
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/TimetableType.cs
+          summary: Updates and returns the active timetable type for a zone.
+
+        - name: SetTimetableBlocksForDayTypeAsync
+          kind: command
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+            - name: zoneId
+              type: int
+              validation: positive-id
+            - name: timetableTypeId
+              type: int
+              validation: positive-id
+            - name: dayType
+              type: string
+            - name: blocks
+              type: IReadOnlyList<TimetableBlock>
+              collection: true
+              source: caller-provided
+              modelFile: src/TadoNetApi.Domain/Entities/TimetableBlock.cs
+          returns:
+            type: TimetableBlock
+            collection: true
+            nullable: false
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/TimetableBlock.cs
+          summary: Updates and returns timetable blocks for the specified day type.
 
         - name: DeleteZoneOverlayAsync
           kind: command

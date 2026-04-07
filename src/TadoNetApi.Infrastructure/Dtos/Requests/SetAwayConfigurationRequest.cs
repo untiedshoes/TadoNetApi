@@ -56,7 +56,9 @@ public sealed class SetAwayConfigurationRequest
                     {
                         Celsius = awayConfiguration.Setting.Temperature.Celsius,
                         Fahrenheit = awayConfiguration.Setting.Temperature.Fahrenheit
-                    }
+                    },
+                Mode = awayConfiguration.Setting?.Mode,
+                IsBoost = awayConfiguration.Setting?.IsBoost
             }
         };
     }

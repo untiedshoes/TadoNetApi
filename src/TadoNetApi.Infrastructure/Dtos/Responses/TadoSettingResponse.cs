@@ -27,5 +27,17 @@ namespace TadoNetApi.Infrastructure.Dtos.Responses
         /// </summary>
         [JsonPropertyName("temperature")]
         public TadoTemperatureResponse? Temperature { get; set; }
+
+        /// <summary>
+        /// The active mode when applicable to the zone type.
+        /// </summary>
+        [JsonPropertyName("mode")]
+        public string? Mode { get; set; }
+
+        /// <summary>
+        /// Indicates whether boost mode is enabled when applicable.
+        /// </summary>
+        [JsonPropertyName("isBoost")]
+        public bool? IsBoost { get; set; }
     }
 }

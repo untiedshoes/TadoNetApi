@@ -1,6 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using TadoNetApi.Domain.Enums;
+using TadoNetApi.Domain.Entities;
 using TadoNetApi.Infrastructure.Dtos.Responses;
 using TadoNetApi.Infrastructure.Http;
 using TadoNetApi.Infrastructure.Services;
@@ -111,6 +112,138 @@ namespace TadoNetApi.Tests.Infrastructure.Services
             Assert.Equal("BALANCE", awayConfiguration.ComfortLevel);
             Assert.Equal(PowerStates.On, awayConfiguration.Setting?.Power);
             Assert.Equal(15, awayConfiguration.Setting?.Temperature?.Celsius);
+        }
+
+        [Fact(DisplayName = "GetActiveTimetableTypeAsync returns mapped timetable type")]
+        public async Task GetActiveTimetableTypeAsync_ReturnsMappedTimetableType()
+        {
+            var response = new TadoTimetableTypeResponse
+            {
+                Id = 1,
+                Type = "ONE_DAY"
+            };
+
+            var mockHttp = MockTadoHttpClient.CreateGet(response);
+            var service = new TadoZoneService(mockHttp.Object);
+
+            var timetableType = await service.GetActiveTimetableTypeAsync(homeId: 1, zoneId: 2, CancellationToken.None);
+
+            Assert.NotNull(timetableType);
+            Assert.Equal(1, timetableType.Id);
+            Assert.Equal("ONE_DAY", timetableType.Type);
+        }
+
+        [Fact(DisplayName = "GetZoneTimetablesAsync returns mapped timetable types")]
+        public async Task GetZoneTimetablesAsync_ReturnsMappedTimetableTypes()
+        {
+            var response = new List<TadoTimetableTypeResponse>
+            {
+                new() { Id = 1, Type = "ONE_DAY" },
+                new() { Id = 2, Type = "THREE_DAY" },
+                new() { Id = 3, Type = "SEVEN_DAY" }
+            };
+
+            var mockHttp = MockTadoHttpClient.CreateGet(response);
+            var service = new TadoZoneService(mockHttp.Object);
+
+            var timetableTypes = await service.GetZoneTimetablesAsync(homeId: 1, zoneId: 2, CancellationToken.None);
+
+            Assert.Equal(3, timetableTypes.Count);
+            Assert.Equal("ONE_DAY", timetableTypes[0].Type);
+            Assert.Equal("SEVEN_DAY", timetableTypes[2].Type);
+        }
+
+        [Fact(DisplayName = "GetZoneTimetableAsync uses the timetable type route and returns the mapped result")]
+        public async Task GetZoneTimetableAsync_UsesExpectedRoute()
+        {
+            var response = new TadoTimetableTypeResponse
+            {
+                Id = 3,
+                Type = "SEVEN_DAY"
+            };
+
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(client => client.GetAsync<TadoTimetableTypeResponse>(
+                    "homes/1/zones/2/schedule/timetables/3",
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(response);
+
+            var service = new TadoZoneService(mockHttp.Object);
+
+            var timetableType = await service.GetZoneTimetableAsync(1, 2, 3, CancellationToken.None);
+
+            Assert.NotNull(timetableType);
+            Assert.Equal(3, timetableType.Id);
+            Assert.Equal("SEVEN_DAY", timetableType.Type);
+            mockHttp.VerifyAll();
+        }
+
+        [Fact(DisplayName = "GetZoneTimetableBlocksAsync returns mapped timetable blocks")]
+        public async Task GetZoneTimetableBlocksAsync_ReturnsMappedTimetableBlocks()
+        {
+            var response = new List<TadoTimetableBlockResponse>
+            {
+                new()
+                {
+                    DayType = "MONDAY",
+                    Start = "06:00",
+                    End = "08:00",
+                    GeolocationOverride = false,
+                    Setting = new TadoSettingResponse
+                    {
+                        Power = PowerStates.On,
+                        Temperature = new TadoTemperatureResponse { Celsius = 20 }
+                    }
+                }
+            };
+
+            var mockHttp = MockTadoHttpClient.CreateGet(response);
+            var service = new TadoZoneService(mockHttp.Object);
+
+            var blocks = await service.GetZoneTimetableBlocksAsync(homeId: 1, zoneId: 2, timetableTypeId: 3, CancellationToken.None);
+
+            Assert.Single(blocks);
+            Assert.Equal("MONDAY", blocks[0].DayType);
+            Assert.Equal("06:00", blocks[0].Start);
+            Assert.False(blocks[0].GeolocationOverride);
+            Assert.Equal(20, blocks[0].Setting?.Temperature?.Celsius);
+        }
+
+        [Fact(DisplayName = "GetTimetableBlocksByDayTypeAsync appends the day type to the route")]
+        public async Task GetTimetableBlocksByDayTypeAsync_UsesExpectedRoute()
+        {
+            var response = new List<TadoTimetableBlockResponse>
+            {
+                new()
+                {
+                    DayType = "MONDAY",
+                    Start = "08:00",
+                    End = "10:00",
+                    GeolocationOverride = true,
+                    Setting = new TadoSettingResponse
+                    {
+                        Power = PowerStates.On,
+                        Temperature = new TadoTemperatureResponse { Celsius = 21 }
+                    }
+                }
+            };
+
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(client => client.GetAsync<List<TadoTimetableBlockResponse>>(
+                    "homes/1/zones/2/schedule/timetables/3/blocks/MONDAY",
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync(response);
+
+            var service = new TadoZoneService(mockHttp.Object);
+
+            var blocks = await service.GetTimetableBlocksByDayTypeAsync(1, 2, 3, "MONDAY", CancellationToken.None);
+
+            Assert.Single(blocks);
+            Assert.True(blocks[0].GeolocationOverride);
+            Assert.Equal(21, blocks[0].Setting?.Temperature?.Celsius);
+            mockHttp.VerifyAll();
         }
 
         [Fact(DisplayName = "GetZoneDayReportAsync returns mapped typed day report")]

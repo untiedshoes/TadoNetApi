@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog, and this project follows Semantic Versioning.
 
+## [0.9.0] - 2026-04-07
+
+### Added
+- Added zone schedule/timetable operations for `GET|PUT /homes/{homeId}/zones/{zoneId}/schedule/activeTimetable`, `GET /homes/{homeId}/zones/{zoneId}/schedule/timetables`, `GET /homes/{homeId}/zones/{zoneId}/schedule/timetables/{timetableTypeId}`, `GET /homes/{homeId}/zones/{zoneId}/schedule/timetables/{timetableTypeId}/blocks`, and `GET|PUT /homes/{homeId}/zones/{zoneId}/schedule/timetables/{timetableTypeId}/blocks/{dayType}`.
+- Updated the playground to show each zone's active schedule days and a simple timetable table.
+
+### Fixed
+- Added focused tests for timetable read and write routes, mapped response handling, and timetable payload validation.
+- Added the remaining `ZoneAppService` timetable passthrough coverage and reduced expected `404 NotFound` SDK noise in the playground/logging pipeline.
+
+### Changed
+- Bumped the package and assembly version metadata to `0.9.0`.
+
 ## [0.8.8] - 2026-04-07
 
 ### Added

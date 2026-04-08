@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
@@ -31,8 +32,11 @@ namespace TadoNetApi.Tests.Integration
                 return;
 
             using var provider = CreateProvider();
+            var userService = provider.GetRequiredService<UserAppService>();
             var deviceService = provider.GetRequiredService<DeviceAppService>();
             var homeId = GetRequiredInt32("TADO_HOME_ID");
+
+            await ValidateHomeAccessAsync(userService, homeId, CancellationToken.None);
 
             var entries = await deviceService.GetDeviceListAsync(homeId, CancellationToken.None);
 
@@ -52,10 +56,15 @@ namespace TadoNetApi.Tests.Integration
                 return;
 
             using var provider = CreateProvider();
+            var userService = provider.GetRequiredService<UserAppService>();
             var zoneService = provider.GetRequiredService<ZoneAppService>();
             var homeId = GetRequiredInt32("TADO_HOME_ID");
             var zoneId = GetRequiredInt32("TADO_HEATING_ZONE_ID");
             const double targetTemperature = 19.5;
+            var overlayApplied = false;
+
+            await ValidateHomeAccessAsync(userService, homeId, CancellationToken.None);
+            await ValidateZoneAccessAsync(zoneService, homeId, zoneId, CancellationToken.None);
 
             try
             {
@@ -69,11 +78,15 @@ namespace TadoNetApi.Tests.Integration
                 Assert.NotNull(summary!.Setting);
                 Assert.NotNull(summary.Setting!.Temperature);
                 Assert.Equal(targetTemperature, summary.Setting.Temperature!.Celsius);
+                overlayApplied = true;
             }
             finally
             {
-                var deleted = await zoneService.DeleteZoneOverlayAsync(homeId, zoneId, CancellationToken.None);
-                Assert.True(deleted);
+                if (overlayApplied)
+                {
+                    var deleted = await zoneService.DeleteZoneOverlayAsync(homeId, zoneId, CancellationToken.None);
+                    Assert.True(deleted);
+                }
             }
         }
 
@@ -97,6 +110,37 @@ namespace TadoNetApi.Tests.Integration
             => !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("TADO_ACCESS_TOKEN"))
                 && !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("TADO_HOME_ID"))
                 && !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("TADO_HEATING_ZONE_ID"));
+
+        private static async Task ValidateHomeAccessAsync(UserAppService userService, int homeId, CancellationToken cancellationToken)
+        {
+            var me = await userService.GetMeAsync(cancellationToken);
+            var homes = me?.Homes ?? [];
+
+            if (homes.Any(home => home.Id == homeId))
+                return;
+
+            var visibleHomes = homes.Length == 0
+                ? "none"
+                : string.Join(", ", homes.Select(home => $"{home.Name ?? "Unnamed Home"} ({home.Id})"));
+
+            throw new InvalidOperationException(
+                $"TADO_HOME_ID={homeId} is not accessible for the supplied TADO_ACCESS_TOKEN. Homes visible to the token: {visibleHomes}.");
+        }
+
+        private static async Task ValidateZoneAccessAsync(ZoneAppService zoneService, int homeId, int zoneId, CancellationToken cancellationToken)
+        {
+            var zones = await zoneService.GetZonesAsync(homeId, cancellationToken);
+
+            if (zones.Any(zone => zone.Id == zoneId))
+                return;
+
+            var visibleZones = zones.Count == 0
+                ? "none"
+                : string.Join(", ", zones.Select(zone => $"{zone.Name ?? "Unnamed Zone"} ({zone.Id})"));
+
+            throw new InvalidOperationException(
+                $"TADO_HEATING_ZONE_ID={zoneId} is not accessible within TADO_HOME_ID={homeId}. Zones visible to the token: {visibleZones}.");
+        }
 
         private static int GetRequiredInt32(string variableName)
         {

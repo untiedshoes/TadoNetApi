@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog, and this project follows Semantic Versioning.
 
+## [0.9.1] - 2026-04-08
+
+### Fixed
+- Corrected zone overlay cleanup to accept the Tado API's `204 No Content` response for `DELETE /homes/{homeId}/zones/{zoneId}/overlay`, which fixes the live integration round-trip path.
+
+### Changed
+- Bumped the package and assembly version metadata to `0.9.1`.
+
 ## [0.9.0] - 2026-04-07
 
 ### Added

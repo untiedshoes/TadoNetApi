@@ -13,9 +13,14 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 ### Fixed
 - Added focused tests for timetable read and write routes, mapped response handling, and timetable payload validation.
 - Added the remaining `ZoneAppService` timetable passthrough coverage and reduced expected `404 NotFound` SDK noise in the playground/logging pipeline.
+- Standardised the runtime JSON stack on `System.Text.Json` by removing the unused `Newtonsoft.Json` dependency and aligning the README with the actual serializer implementation.
+- Cleaned up nullable reference warnings across core entities, response DTOs, overlay handling, and test HTTP mocks so the solution builds warning-free.
 
 ### Changed
 - Bumped the package and assembly version metadata to `0.9.0`.
+- Removed the unused username/password configuration contract from `TadoApiConfig` and aligned authentication guidance around OAuth2 device authorization.
+- Added a parameterless `AddTadoInfrastructure()` overload for the default device-flow setup and updated the playground to use the transport-only config shape.
+- Tightened CI so push and pull-request runs execute build plus unit tests, while live integration tests run through a separate manual workflow using `TADO_ACCESS_TOKEN`, `TADO_HOME_ID`, and `TADO_HEATING_ZONE_ID`.
 
 ## [0.8.8] - 2026-04-07
 

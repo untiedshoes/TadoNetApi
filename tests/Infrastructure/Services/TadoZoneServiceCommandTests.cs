@@ -43,7 +43,7 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                     "homes/1/zones/2/overlay",
                     HttpMethod.Delete,
                     It.IsAny<CancellationToken>(),
-                    System.Net.HttpStatusCode.OK,
+                    System.Net.HttpStatusCode.NoContent,
                     null),
                 Times.Once);
         }

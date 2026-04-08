@@ -952,7 +952,7 @@ namespace TadoNetApi.Infrastructure.Services
                 $"homes/{homeId}/zones/{zoneId}/overlay",
                 HttpMethod.Delete,
                 cancellationToken,
-                HttpStatusCode.OK,
+                HttpStatusCode.NoContent,
                 null);
         }
 

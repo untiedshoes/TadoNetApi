@@ -112,6 +112,42 @@ public class TadoHomeService : IHomeService
     }
 
     /// <summary>
+    /// Retrieves the installations configured for a home.
+    /// </summary>
+    /// <param name="homeId">The ID of the home to inspect.</param>
+    /// <param name="cancellationToken">The cancellation token to observe.</param>
+    /// <returns>A read-only list of installations associated with the home.</returns>
+    public async Task<IReadOnlyList<Installation>> GetInstallationsAsync(int homeId, CancellationToken cancellationToken = default)
+    {
+        Guard.PositiveId(homeId, nameof(homeId));
+
+        var response = await _httpClient.GetAsync<List<TadoInstallationResponse>>(
+            $"homes/{homeId}/installations",
+            cancellationToken) ?? new List<TadoInstallationResponse>();
+
+        return response.ToDomainList();
+    }
+
+    /// <summary>
+    /// Retrieves a specific installation for a home.
+    /// </summary>
+    /// <param name="homeId">The ID of the home to inspect.</param>
+    /// <param name="installationId">The ID of the installation to retrieve.</param>
+    /// <param name="cancellationToken">The cancellation token to observe.</param>
+    /// <returns>The requested installation, or <see langword="null"/> when no payload is returned.</returns>
+    public async Task<Installation?> GetInstallationAsync(int homeId, int installationId, CancellationToken cancellationToken = default)
+    {
+        Guard.PositiveId(homeId, nameof(homeId));
+        Guard.PositiveId(installationId, nameof(installationId));
+
+        var dto = await _httpClient.GetAsync<TadoInstallationResponse>(
+            $"homes/{homeId}/installations/{installationId}",
+            cancellationToken);
+
+        return dto == null ? null : dto.ToDomain();
+    }
+
+    /// <summary>
     /// Retrieves the incident detection settings for a home.
     /// </summary>
     /// <param name="homeId">The ID of the home to inspect.</param>

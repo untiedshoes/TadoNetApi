@@ -20,7 +20,7 @@ namespace TadoNetApi.Infrastructure.Http
     /// Authentication is NOT handled here directly.
     /// It is delegated to <see cref="AuthDelegatingHandler"/> via HttpClient pipeline.
     /// </summary>
-    public class TadoHttpClient : ITadoHttpClient
+    public class TadoHttpClient : ITadoHttpClient, IPublicTadoHttpClient
     {
         private readonly HttpClient _httpClient;
         private readonly ILogger<TadoHttpClient> _logger;

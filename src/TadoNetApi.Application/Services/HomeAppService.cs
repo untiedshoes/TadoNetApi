@@ -57,6 +57,25 @@ public class HomeAppService
         _homeService.GetAirComfortAsync(homeId, cancellationToken);
 
     /// <summary>
+    /// Retrieves the installations configured for a home.
+    /// </summary>
+    /// <param name="homeId">The ID of the home to inspect.</param>
+    /// <param name="cancellationToken">The cancellation token to observe.</param>
+    /// <returns>A read-only list of installations associated with the home.</returns>
+    public Task<IReadOnlyList<Installation>> GetInstallationsAsync(int homeId, CancellationToken cancellationToken) =>
+        _homeService.GetInstallationsAsync(homeId, cancellationToken);
+
+    /// <summary>
+    /// Retrieves a specific installation for a home.
+    /// </summary>
+    /// <param name="homeId">The ID of the home to inspect.</param>
+    /// <param name="installationId">The ID of the installation to retrieve.</param>
+    /// <param name="cancellationToken">The cancellation token to observe.</param>
+    /// <returns>The requested installation, or <see langword="null"/> when no payload is returned.</returns>
+    public Task<Installation?> GetInstallationAsync(int homeId, int installationId, CancellationToken cancellationToken) =>
+        _homeService.GetInstallationAsync(homeId, installationId, cancellationToken);
+
+    /// <summary>
     /// Retrieves the incident detection settings for a home.
     /// </summary>
     /// <param name="homeId">The ID of the home to inspect.</param>

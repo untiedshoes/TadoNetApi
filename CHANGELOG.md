@@ -6,11 +6,16 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [0.9.1] - 2026-04-08
 
+### Added
+- Added home installation read support for `GET /homes/{homeId}/installations` and `GET /homes/{homeId}/installations/{installationId}`, and extended the playground to display installation data for live verification.
+- Added bridge and boiler-by-bridge support for `GET /bridges/{bridgeId}`, `GET /homeByBridge/{bridgeId}/boilerInfo`, `GET|PUT /homeByBridge/{bridgeId}/boilerMaxOutputTemperature`, and `GET /homeByBridge/{bridgeId}/boilerWiringInstallationState`.
+
 ### Fixed
 - Corrected zone overlay cleanup to accept the Tado API's `204 No Content` response for `DELETE /homes/{homeId}/zones/{zoneId}/overlay`, which fixes the live integration round-trip path.
 
 ### Changed
 - Bumped the package and assembly version metadata to `0.9.1`.
+- Updated the playground to auto-detect the Internet Bridge serial, prompt for the printed bridge auth key when needed, and use consistent section-banner formatting for live diagnostics.
 
 ## [0.9.0] - 2026-04-07
 

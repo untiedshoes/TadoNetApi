@@ -13,4 +13,13 @@ public static class Guard
         if (value <= 0)
             throw new ArgumentOutOfRangeException(paramName, "Identifier must be a positive integer.");
     }
+
+    /// <summary>
+    /// Ensures the provided string contains a non-empty value.
+    /// </summary>
+    public static void NotNullOrWhiteSpace(string? value, string paramName)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            throw new ArgumentException("Value cannot be null, empty, or whitespace.", paramName);
+    }
 }

@@ -141,6 +141,77 @@ namespace TadoNetApi.Tests.Infrastructure.Services
             Assert.Equal(76, airComfort.Comfort[0].Coordinate?.Angular);
         }
 
+        [Fact(DisplayName = "GetInstallationsAsync returns mapped installations")]
+        public async Task GetInstallationsAsync_ReturnsMappedInstallations()
+        {
+            var response = new List<TadoInstallationResponse>
+            {
+                new()
+                {
+                    Id = 101,
+                    CurrentType = "HEATING",
+                    Revision = 7,
+                    State = "COMPLETED",
+                    Devices =
+                    [
+                        new TadoDeviceResponse
+                        {
+                            SerialNo = "VA1234567890",
+                            ShortSerialNo = "VA1234567890",
+                            DeviceType = "VA01"
+                        }
+                    ]
+                }
+            };
+
+            var mockHttp = MockTadoHttpClient.CreateGet(response);
+            var service = new TadoHomeService(mockHttp.Object);
+
+            var installations = await service.GetInstallationsAsync(homeId: 1, CancellationToken.None);
+
+            Assert.Single(installations);
+            Assert.Equal(101, installations[0].Id);
+            Assert.Equal("HEATING", installations[0].CurrentType);
+            Assert.Equal(7, installations[0].Revision);
+            Assert.Equal("COMPLETED", installations[0].State);
+            Assert.Single(installations[0].Devices);
+            Assert.Equal("VA1234567890", installations[0].Devices[0].SerialNo);
+        }
+
+        [Fact(DisplayName = "GetInstallationAsync returns mapped installation")]
+        public async Task GetInstallationAsync_ReturnsMappedInstallation()
+        {
+            var response = new TadoInstallationResponse
+            {
+                Id = 101,
+                CurrentType = "HEATING",
+                Revision = 7,
+                State = "COMPLETED",
+                Devices =
+                [
+                    new TadoDeviceResponse
+                    {
+                        SerialNo = "VA1234567890",
+                        ShortSerialNo = "VA1234567890",
+                        DeviceType = "VA01"
+                    }
+                ]
+            };
+
+            var mockHttp = MockTadoHttpClient.CreateGet(response);
+            var service = new TadoHomeService(mockHttp.Object);
+
+            var installation = await service.GetInstallationAsync(homeId: 1, installationId: 101, CancellationToken.None);
+
+            Assert.NotNull(installation);
+            Assert.Equal(101, installation!.Id);
+            Assert.Equal("HEATING", installation.CurrentType);
+            Assert.Equal(7, installation.Revision);
+            Assert.Equal("COMPLETED", installation.State);
+            Assert.Single(installation.Devices);
+            Assert.Equal("VA1234567890", installation.Devices[0].SerialNo);
+        }
+
         [Fact(DisplayName = "GetIncidentDetectionAsync returns mapped incident detection")]
         public async Task GetIncidentDetectionAsync_ReturnsMappedIncidentDetection()
         {

@@ -99,6 +99,21 @@ TadoNetApi.Playground
 
 The playground is intentionally simple. It is there to exercise the real authentication flow, query live Tado data, and show the intended usage pattern for the library without hiding everything behind sample-only helper code.
 
+For bridge-scoped diagnostics, the playground supports these environment variables:
+
+```bash
+export TADO_BRIDGE_AUTH_KEY="printed-on-your-internet-bridge"
+export TADO_BRIDGE_ID="IB1234567890"
+```
+
+Notes:
+
+- `TADO_BRIDGE_AUTH_KEY` is the auth key printed on the physical tado Internet Bridge.
+- `TADO_BRIDGE_ID` is the Internet Bridge serial number (`IB01` device serial).
+- `TADO_BRIDGE_ID` is optional in the playground because it auto-detects the bridge serial from the `IB01` device in the home device list.
+- If `TADO_BRIDGE_AUTH_KEY` is not set, the playground will prompt for it interactively.
+- `TADO_PASSWORD` is not used for bridge services.
+
 ---
 
 ## Tech Stack
@@ -186,7 +201,9 @@ If you want a machine-readable map of the SDK surface, including method signatur
 | Service | Responsibility | Main Methods |
 |-------|-------|-------|
 | UserAppService | Retrieve the current authenticated user and home context | `GetMeAsync` |
-| HomeAppService | Read home data, home users, comfort, heating, flow-temperature optimisation, and diagnostic indicators, and manage presence state | `GetHomeAsync`, `GetHomeStateAsync`, `GetUsersAsync`, `GetAirComfortAsync`, `GetIncidentDetectionAsync`, `GetHeatingCircuitsAsync`, `GetHeatingSystemAsync`, `GetFlowTemperatureOptimisationAsync`, `SetHomePresenceAsync`, `ResetHomePresenceAsync`, `SetAwayRadiusInMetersAsync`, `SetIncidentDetectionAsync`, `SetHomeDetailsAsync`, `SetFlowTemperatureOptimisationAsync` |
+| HomeAppService | Read home data, installations, home users, comfort, heating, flow-temperature optimisation, and diagnostic indicators, and manage presence state | `GetHomeAsync`, `GetHomeStateAsync`, `GetUsersAsync`, `GetAirComfortAsync`, `GetInstallationsAsync`, `GetInstallationAsync`, `GetIncidentDetectionAsync`, `GetHeatingCircuitsAsync`, `GetHeatingSystemAsync`, `GetFlowTemperatureOptimisationAsync`, `SetHomePresenceAsync`, `ResetHomePresenceAsync`, `SetAwayRadiusInMetersAsync`, `SetIncidentDetectionAsync`, `SetHomeDetailsAsync`, `SetFlowTemperatureOptimisationAsync` |
+| BridgeAppService | Read public bridge metadata using bridge serial number and auth key | `GetBridgeAsync` |
+| BoilerByBridgeAppService | Read bridge-scoped boiler diagnostics and update boiler max output temperature using bridge serial number and auth key | `GetBoilerInfoAsync`, `GetBoilerMaxOutputTemperatureAsync`, `SetBoilerMaxOutputTemperatureAsync`, `GetBoilerWiringInstallationStateAsync` |
 | ZoneAppService | Read zone data, away-configuration settings, timetable schedules, day reports, and send zone-level and home-level overlay commands | `GetZonesAsync`, `GetZoneAsync`, `GetZoneStateAsync`, `GetZoneSummaryAsync`, `GetZoneCapabilitiesAsync`, `GetZoneControlAsync`, `GetDefaultZoneOverlayAsync`, `GetEarlyStartAsync`, `GetAwayConfigurationAsync`, `GetActiveTimetableTypeAsync`, `GetZoneTimetablesAsync`, `GetZoneTimetableAsync`, `GetZoneTimetableBlocksAsync`, `GetTimetableBlocksByDayTypeAsync`, `GetZoneDayReportAsync`, `GetZoneTemperatureOffsetAsync`, `CreateZoneAsync`, `SetZoneOverlaysAsync`, `DeleteZoneOverlaysAsync`, `DeleteZoneOverlayAsync`, `SetHeatingCircuitAsync`, `SetEarlyStartAsync`, `SetOpenWindowDetectionAsync`, `ActivateOpenWindowAsync`, `ResetOpenWindowAsync`, `SetZoneDetailsAsync`, `SetDefaultZoneOverlayAsync`, `SetAwayConfigurationAsync`, `SetActiveTimetableTypeAsync`, `SetTimetableBlocksForDayTypeAsync`, `SetHeatingTemperatureCelsiusAsync`, `SetHeatingTemperatureCelsiusAsync(DurationModes, timer)`, `SetHeatingTemperatureFahrenheitAsync`, `SetHotWaterTemperatureCelsiusAsync`, `SetHotWaterTemperatureFahrenheitAsync`, `SwitchHeatingOffAsync`, `SwitchHotWaterOffAsync` |
 | DeviceAppService | Read device and mobile-device data and send device-level commands | `GetDevicesAsync`, `GetDeviceListAsync`, `GetDeviceAsync`, `GetZoneTemperatureOffsetAsync`, `GetMobileDevicesAsync`, `GetMobileDeviceAsync`, `GetMobileDeviceSettingsAsync`, `GetZoneMeasuringDeviceAsync`, `MoveDeviceToZoneAsync`, `SetZoneMeasuringDeviceAsync`, `DeleteMobileDeviceAsync`, `SetMobileDeviceSettingsAsync`, `SetDeviceChildLockAsync`, `SayHiAsync`, `SetZoneTemperatureOffsetCelsiusAsync`, `SetZoneTemperatureOffsetFahrenheitAsync` |
 | WeatherAppService | Read weather data for a home | `GetWeatherAsync` |
@@ -198,7 +215,9 @@ Infrastructure services are the API-facing implementations behind the domain int
 | Service | Responsibility | Main Methods | Interface |
 |-------|-------|-------|-------|
 | TadoUserService | User endpoint integration | `GetMeAsync` | `IUserService` |
-| TadoHomeService | Home retrieval, home users, air comfort, heating, flow-temperature optimisation, incident detection, home state, presence updates, away-radius changes, incident-detection updates, home-details updates, and flow-temperature updates | `GetHomeAsync`, `GetHomeStateAsync`, `GetUsersAsync`, `GetAirComfortAsync`, `GetIncidentDetectionAsync`, `GetHeatingCircuitsAsync`, `GetHeatingSystemAsync`, `GetFlowTemperatureOptimisationAsync`, `SetHomePresenceAsync`, `ResetHomePresenceAsync`, `SetAwayRadiusInMetersAsync`, `SetIncidentDetectionAsync`, `SetHomeDetailsAsync`, `SetFlowTemperatureOptimisationAsync` | `IHomeService` |
+| TadoHomeService | Home retrieval, installation reads, home users, air comfort, heating, flow-temperature optimisation, incident detection, home state, presence updates, away-radius changes, incident-detection updates, home-details updates, and flow-temperature updates | `GetHomeAsync`, `GetHomeStateAsync`, `GetUsersAsync`, `GetAirComfortAsync`, `GetInstallationsAsync`, `GetInstallationAsync`, `GetIncidentDetectionAsync`, `GetHeatingCircuitsAsync`, `GetHeatingSystemAsync`, `GetFlowTemperatureOptimisationAsync`, `SetHomePresenceAsync`, `ResetHomePresenceAsync`, `SetAwayRadiusInMetersAsync`, `SetIncidentDetectionAsync`, `SetHomeDetailsAsync`, `SetFlowTemperatureOptimisationAsync` | `IHomeService` |
+| TadoBridgeService | Public bridge lookup via bridge serial number and auth key | `GetBridgeAsync` | `IBridgeService` |
+| TadoBoilerByBridgeService | Public boiler diagnostics and boiler max output temperature updates via bridge serial number and auth key | `GetBoilerInfoAsync`, `GetBoilerMaxOutputTemperatureAsync`, `SetBoilerMaxOutputTemperatureAsync`, `GetBoilerWiringInstallationStateAsync` | `IBoilerByBridgeService` |
 | TadoZoneService | Zone retrieval, away-configuration reads and writes, timetable schedule reads and writes, day-report reads, plus zone creation, single-zone and bulk overlay commands, heating-circuit updates, early-start, open-window-detection commands, zone-details/default-overlay updates, and overlay-temperature commands | `GetZonesAsync`, `GetZoneAsync`, `GetZoneStateAsync`, `GetZoneSummaryAsync`, `GetZoneCapabilitiesAsync`, `GetZoneControlAsync`, `GetDefaultZoneOverlayAsync`, `GetEarlyStartAsync`, `GetAwayConfigurationAsync`, `GetActiveTimetableTypeAsync`, `GetZoneTimetablesAsync`, `GetZoneTimetableAsync`, `GetZoneTimetableBlocksAsync`, `GetTimetableBlocksByDayTypeAsync`, `GetZoneDayReportAsync`, `GetZoneTemperatureOffsetAsync`, `CreateZoneAsync`, `SetZoneOverlaysAsync`, `DeleteZoneOverlaysAsync`, `DeleteZoneOverlayAsync`, `SetHeatingCircuitAsync`, `SetEarlyStartAsync`, `SetOpenWindowDetectionAsync`, `ActivateOpenWindowAsync`, `ResetOpenWindowAsync`, `SetZoneDetailsAsync`, `SetDefaultZoneOverlayAsync`, `SetAwayConfigurationAsync`, `SetActiveTimetableTypeAsync`, `SetTimetableBlocksForDayTypeAsync`, `SetHeatingTemperatureCelsiusAsync`, `SetHeatingTemperatureCelsiusAsync(DurationModes, timer)`, `SetHeatingTemperatureFahrenheitAsync`, `SetHotWaterTemperatureCelsiusAsync`, `SetHotWaterTemperatureFahrenheitAsync`, `SwitchHeatingOffAsync`, `SwitchHotWaterOffAsync` | `IZoneService` |
 | TadoDeviceService | Device and mobile-device retrieval plus zone move, measuring-device updates, mobile-device deletion, settings updates, child-lock, identify, and offset commands | `GetDevicesAsync`, `GetDeviceListAsync`, `GetDeviceAsync`, `GetZoneTemperatureOffsetAsync`, `GetMobileDevicesAsync`, `GetMobileDeviceAsync`, `GetMobileDeviceSettingsAsync`, `GetZoneMeasuringDeviceAsync`, `MoveDeviceToZoneAsync`, `SetZoneMeasuringDeviceAsync`, `DeleteMobileDeviceAsync`, `SetMobileDeviceSettingsAsync`, `SetDeviceChildLockAsync`, `SayHiAsync`, `SetZoneTemperatureOffsetCelsiusAsync`, `SetZoneTemperatureOffsetFahrenheitAsync` | `IDeviceService` |
 | TadoWeatherService | Weather endpoint integration | `GetWeatherAsync` | `IWeatherService` |
@@ -392,18 +411,6 @@ The list below reflects the current gap between this library and the community m
 ##### Home / User / Invitation Services
 
 - [ ] Implement invitation service methods -> `GET /homes/{homeId}/invitations`, `POST /homes/{homeId}/invitations`, `DELETE /homes/{homeId}/invitations/{invitationToken}`, `POST /homes/{homeId}/invitations/{invitationToken}/resend`
-
-##### Zone Services
-
-
-##### Device / Mobile Device Services
-
-- [ ] Implement installation endpoints -> `GET /homes/{homeId}/installations`, `GET /homes/{homeId}/installations/{installationId}`
-
-##### Specialized / Optional Services
-
-- [ ] Considering adding bridge service -> `GET /bridges/{bridgeId}`
-- [ ] Considering adding boiler-by-bridge service -> `GET /homeByBridge/{bridgeId}/boilerInfo`, `GET|PUT /homeByBridge/{bridgeId}/boilerMaxOutputTemperature`, `GET /homeByBridge/{bridgeId}/boilerWiringInstallationState`
 
 ##### Testing / Documentation
 

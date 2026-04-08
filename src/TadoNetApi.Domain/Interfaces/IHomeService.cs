@@ -40,6 +40,23 @@ public interface IHomeService
     Task<AirComfort> GetAirComfortAsync(int homeId, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Retrieves the installations configured for a home.
+    /// </summary>
+    /// <param name="homeId">The ID of the home.</param>
+    /// <param name="cancellationToken">The cancellation token to observe.</param>
+    /// <returns>A read-only list of installations associated with the home.</returns>
+    Task<IReadOnlyList<Installation>> GetInstallationsAsync(int homeId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Retrieves a specific installation for a home.
+    /// </summary>
+    /// <param name="homeId">The ID of the home.</param>
+    /// <param name="installationId">The ID of the installation to retrieve.</param>
+    /// <param name="cancellationToken">The cancellation token to observe.</param>
+    /// <returns>The requested installation, or <see langword="null"/> when no payload is returned.</returns>
+    Task<Installation?> GetInstallationAsync(int homeId, int installationId, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Retrieves the incident detection settings for a home.
     /// </summary>
     /// <param name="homeId">The ID of the home.</param>

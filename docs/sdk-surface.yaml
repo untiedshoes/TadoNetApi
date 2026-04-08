@@ -87,6 +87,36 @@ services:
             modelFile: src/TadoNetApi.Domain/Entities/AirComfort.cs
           summary: Returns freshness and room comfort indicators for a home.
 
+        - name: GetInstallationsAsync
+          kind: read
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+          returns:
+            type: Installation
+            collection: true
+            nullable: false
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/Installation.cs
+          summary: Returns the AC installations configured for a home.
+
+        - name: GetInstallationAsync
+          kind: read
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+            - name: installationId
+              type: int
+              validation: positive-id
+          returns:
+            type: Installation
+            nullable: true
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/Installation.cs
+          summary: Returns a specific AC installation for a home.
+
         - name: GetIncidentDetectionAsync
           kind: read
           parameters:
@@ -219,6 +249,94 @@ services:
             type: void
             nullable: false
           summary: Removes the manual presence lock and returns control to geo-tracking.
+
+    - name: BridgeAppService
+      interface: IBridgeService
+      implementation: TadoBridgeService
+      methods:
+        - name: GetBridgeAsync
+          kind: read
+          parameters:
+            - name: bridgeId
+              type: string
+              validation: non-empty
+            - name: authKey
+              type: string
+              validation: non-empty
+          returns:
+            type: Bridge
+            nullable: true
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/Bridge.cs
+          summary: Returns bridge metadata using the bridge serial number and auth key.
+
+    - name: BoilerByBridgeAppService
+      interface: IBoilerByBridgeService
+      implementation: TadoBoilerByBridgeService
+      methods:
+        - name: GetBoilerInfoAsync
+          kind: read
+          parameters:
+            - name: bridgeId
+              type: string
+              validation: non-empty
+            - name: authKey
+              type: string
+              validation: non-empty
+          returns:
+            type: BoilerInfo
+            nullable: true
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/BoilerInfo.cs
+          summary: Returns boiler presence and selected boiler identity for a bridge-scoped home.
+
+        - name: GetBoilerMaxOutputTemperatureAsync
+          kind: read
+          parameters:
+            - name: bridgeId
+              type: string
+              validation: non-empty
+            - name: authKey
+              type: string
+              validation: non-empty
+          returns:
+            type: BoilerMaxOutputTemperature
+            nullable: true
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/BoilerMaxOutputTemperature.cs
+          summary: Returns the bridge-scoped maximum boiler output temperature.
+
+        - name: SetBoilerMaxOutputTemperatureAsync
+          kind: command
+          parameters:
+            - name: bridgeId
+              type: string
+              validation: non-empty
+            - name: authKey
+              type: string
+              validation: non-empty
+            - name: boilerMaxOutputTemperatureInCelsius
+              type: double
+          returns:
+            type: void
+            nullable: false
+          summary: Updates the bridge-scoped maximum boiler output temperature.
+
+        - name: GetBoilerWiringInstallationStateAsync
+          kind: read
+          parameters:
+            - name: bridgeId
+              type: string
+              validation: non-empty
+            - name: authKey
+              type: string
+              validation: non-empty
+          returns:
+            type: BoilerWiringInstallationState
+            nullable: true
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/BoilerWiringInstallationState.cs
+          summary: Returns bridge-scoped boiler wiring, connectivity, and output-temperature diagnostics.
 
     - name: ZoneAppService
       interface: IZoneService

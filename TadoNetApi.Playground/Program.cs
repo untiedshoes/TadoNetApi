@@ -50,6 +50,11 @@ class Program
         var zoneService = provider.GetRequiredService<ZoneAppService>();
         var deviceService = provider.GetRequiredService<DeviceAppService>();
         var weatherService = provider.GetRequiredService<WeatherAppService>();
+        var bridgeService = provider.GetRequiredService<BridgeAppService>();
+        var boilerByBridgeService = provider.GetRequiredService<BoilerByBridgeAppService>();
+
+        var configuredBridgeId = Environment.GetEnvironmentVariable("TADO_BRIDGE_ID");
+        var bridgeAuthKey = Environment.GetEnvironmentVariable("TADO_BRIDGE_AUTH_KEY");
 
         var cancellationToken = CancellationToken.None;
         Console.WriteLine("🚀 Starting Tado Playground...");
@@ -57,6 +62,7 @@ class Program
         try
         {
             // 1️⃣ Device authorization
+            WriteSectionHeader("🔑 Device Authorisation");
             Console.WriteLine("🔑 Requesting device authorisation...");
             var deviceCodeInfo = await authService.StartDeviceAuthorisationAsync(cancellationToken);
             var verificationUri = !string.IsNullOrEmpty(deviceCodeInfo.VerificationUriComplete)
@@ -82,6 +88,7 @@ class Program
             var homeId = user.Homes.First().Id ?? throw new Exception("Home ID is null");
             var home = await homeService.GetHomeAsync((int)homeId, cancellationToken);
             var homeState = await homeService.GetHomeStateAsync((int)homeId, cancellationToken);
+            WriteSectionHeader("👤 User & Home");
             Console.WriteLine($"👤 User: {user.Name} ({user.Email})");
 
             if (home == null)
@@ -126,13 +133,63 @@ class Program
                 Console.WriteLine($"    🧭 Presence: {homeState.Presence}");
             }
 
-            // 3️⃣ Zones
+            // 3️⃣ Installations
+            try
+            {
+                WriteSectionHeader("🛠 Installations");
+                var installations = await homeService.GetInstallationsAsync((int)homeId, cancellationToken);
+
+                Console.WriteLine(installations.Count == 0
+                    ? "🛠 No installations found. This is still a successful response path and is expected for homes without AC installations."
+                    : $"🛠 Installations ({installations.Count}):");
+
+                foreach (var installation in installations)
+                {
+                    Console.WriteLine($"   • Installation {installation.Id} ({installation.CurrentType ?? "Unknown Type"})");
+                    Console.WriteLine($"       State: {installation.State ?? "Unknown"}");
+                    Console.WriteLine($"       Revision: {installation.Revision?.ToString() ?? "Unknown"}");
+                    Console.WriteLine($"       Devices: {installation.Devices.Length}");
+
+                    if (installation.Id.HasValue)
+                    {
+                        var installationDetails = await homeService.GetInstallationAsync((int)homeId, (int)installation.Id.Value, cancellationToken);
+
+                        if (installationDetails != null)
+                        {
+                            Console.WriteLine($"       Detail State: {installationDetails.State ?? "Unknown"}");
+
+                            if (installationDetails.Devices.Length > 0)
+                            {
+                                foreach (var installationDevice in installationDetails.Devices)
+                                {
+                                    var deviceName = !string.IsNullOrWhiteSpace(installationDevice.DeviceTypeName)
+                                        ? installationDevice.DeviceTypeName
+                                        : installationDevice.DeviceType ?? "Unknown Device";
+                                    var deviceIdentifier = !string.IsNullOrWhiteSpace(installationDevice.ShortSerialNo)
+                                        ? installationDevice.ShortSerialNo
+                                        : installationDevice.SerialNo ?? "Unknown Serial";
+
+                                    Console.WriteLine($"         - {deviceName} ({deviceIdentifier})");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (TadoApiException ex)
+            {
+                Console.WriteLine($"⚠️ Installation Error ({ex.StatusCode}): {ex.Message}");
+            }
+
+            // 5️⃣ Zones
             var zones = await zoneService.GetZonesAsync((int)homeId, cancellationToken);
             var zoneByDeviceShortSerial = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             var measuredZoneByDeviceSerial = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             var zoneNameById = zones
                 .Where(z => z.Id.HasValue)
                 .ToDictionary(z => z.Id!.Value, z => z.Name ?? "Unknown Zone");
+
+            WriteSectionHeader("🧩 Zones");
 
             Console.WriteLine(zones.Count == 0
                 ? "⚠️ No zones found."
@@ -278,13 +335,15 @@ class Program
                 }
             }
 
-            // 4️⃣ Devices
+            // 6️⃣ Devices
+            string? detectedBridgeId = null;
             string? sayHiDeviceId = null;
             string? sayHiDeviceSerialNo = null;
             string sayHiDeviceName = "Unknown Device";
             string sayHiZoneName = "Unknown Zone";
             try
             {
+                WriteSectionHeader("📦 Devices");
                 var devices = await deviceService.GetDevicesAsync((int)homeId, cancellationToken);
                 Console.WriteLine($"📦 Devices ({devices.Count}) in Home '{home?.Name ?? "Unknown"}':");
 
@@ -301,6 +360,13 @@ class Program
                     Console.WriteLine($"       Child Lock Enabled: {device.ChildLockEnabled?.ToString() ?? "N/A"}");
                     if (device.Duties != null && device.Duties.Any())
                         Console.WriteLine($"       Duties: {string.Join(", ", device.Duties)}");
+
+                    if (detectedBridgeId == null
+                        && string.Equals(device.DeviceType, "IB01", StringComparison.OrdinalIgnoreCase)
+                        && !string.IsNullOrWhiteSpace(device.SerialNo))
+                    {
+                        detectedBridgeId = device.SerialNo;
+                    }
 
                     var measuredZoneName = !string.IsNullOrWhiteSpace(device.ShortSerialNo)
                         && measuredZoneByDeviceSerial.TryGetValue(device.ShortSerialNo, out var measuredZoneByShortSerial)
@@ -343,9 +409,57 @@ class Program
                 Console.WriteLine($"⚠️ Device API Error ({ex.StatusCode}): {ex.Message}");
             }
 
-            // 5️⃣ Mobile Devices
+            WriteSectionHeader("🔌 Bridge Diagnostics");
+            Console.WriteLine("    BridgeId is the Internet Bridge serial number.");
+            Console.WriteLine("    The playground auto-detects it from the IB01 device Serial value shown above.");
+            Console.WriteLine("    You can still override it with TADO_BRIDGE_ID if needed.");
+            Console.WriteLine("    Provide the printed bridge auth key either by setting TADO_BRIDGE_AUTH_KEY before launch");
+            Console.WriteLine("    or by entering it when prompted below.");
+
+            var effectiveBridgeId = !string.IsNullOrWhiteSpace(configuredBridgeId)
+                ? configuredBridgeId
+                : detectedBridgeId;
+
+            if (!string.IsNullOrWhiteSpace(effectiveBridgeId))
+            {
+                var bridgeIdSource = !string.IsNullOrWhiteSpace(configuredBridgeId)
+                    ? "TADO_BRIDGE_ID"
+                    : "auto-detected IB01 device";
+                Console.WriteLine($"    Using BridgeId: {effectiveBridgeId} ({bridgeIdSource})");
+            }
+            else
+            {
+                Console.WriteLine("    ℹ️ Bridge diagnostics skipped because no IB01 bridge device was detected and TADO_BRIDGE_ID was not set.");
+            }
+
+            if (string.IsNullOrWhiteSpace(bridgeAuthKey) && !string.IsNullOrWhiteSpace(effectiveBridgeId))
+            {
+                Console.Write("    Enter TADO_BRIDGE_AUTH_KEY (printed on the Internet Bridge), or press Enter to skip: ");
+                var promptedBridgeAuthKey = Console.ReadLine();
+                bridgeAuthKey = string.IsNullOrWhiteSpace(promptedBridgeAuthKey)
+                    ? null
+                    : promptedBridgeAuthKey.Trim();
+            }
+
+            if (string.IsNullOrWhiteSpace(effectiveBridgeId) || string.IsNullOrWhiteSpace(bridgeAuthKey))
+            {
+                if (!string.IsNullOrWhiteSpace(effectiveBridgeId))
+                    Console.WriteLine("    ℹ️ Bridge diagnostics skipped because no bridge auth key was provided.");
+            }
+            else
+            {
+                await WriteBridgeDiagnosticsAsync(
+                    bridgeService,
+                    boilerByBridgeService,
+                    effectiveBridgeId,
+                    bridgeAuthKey,
+                    cancellationToken);
+            }
+
+            // 7️⃣ Mobile Devices
             try
             {
+                WriteSectionHeader("📱 Mobile Devices");
                 var mobileDevices = await deviceService.GetMobileDevicesAsync((int)homeId, cancellationToken);
                 Console.WriteLine($"📱 Mobile Devices ({mobileDevices.Count}) in Home '{home?.Name ?? "Unknown"}':");
 
@@ -390,9 +504,10 @@ class Program
                 Console.WriteLine($"⚠️ Mobile Device API Error ({ex.StatusCode}): {ex.Message}");
             }
 
-            // 6️⃣ Weather
+            // 8️⃣ Weather
             try
             {
+                WriteSectionHeader("☁️ Weather");
                 var weather = await weatherService.GetWeatherAsync((int)homeId, cancellationToken);                var state = weather.WeatherState?.Value ?? weather.WeatherState?.CurrentType ?? "Unknown";
                 var temperatureC = weather.OutsideTemperature?.Celsius?.ToString("0.0") ?? "N/A";
                 var temperatureF = weather.OutsideTemperature?.Fahrenheit?.ToString("0.0") ?? "N/A";
@@ -407,14 +522,16 @@ class Program
                 Console.WriteLine($"⚠️ Weather API Error ({ex.StatusCode}): {ex.Message}");
             }
 
-            // 7️⃣ Simple Command Example
+            // 9️⃣ Simple Command Example
             if (!string.IsNullOrWhiteSpace(sayHiDeviceId))
             {
+                WriteSectionHeader("👋 Simple Command Example");
                 var sayHiResult = await deviceService.SayHiAsync(sayHiDeviceId, cancellationToken);
                 Console.WriteLine($"👋 SayHiAsync (Zone: {sayHiZoneName}, Device: {sayHiDeviceName}, ID: {sayHiDeviceId}): {sayHiResult}");
             }
             else
             {
+                WriteSectionHeader("👋 Simple Command Example");
                 Console.WriteLine("ℹ️ SayHiAsync skipped (no eligible device found; short serial must not start with IB or BP).");
             }
 
@@ -429,6 +546,15 @@ class Program
             Console.WriteLine("⚠️ An error occurred:");
             Console.WriteLine(apiEx.Message);
         }
+    }
+
+    private static void WriteSectionHeader(string title)
+    {
+        const string divider = "======================";
+        Console.WriteLine();
+        Console.WriteLine(divider);
+        Console.WriteLine(title + ":");
+        Console.WriteLine(divider);
     }
 
     private static async Task WriteZoneTimetableAsync(
@@ -480,6 +606,68 @@ class Program
             }
         }
     }
+
+        private static async Task WriteBridgeDiagnosticsAsync(
+            BridgeAppService bridgeService,
+            BoilerByBridgeAppService boilerByBridgeService,
+            string bridgeId,
+            string bridgeAuthKey,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                var bridge = await bridgeService.GetBridgeAsync(bridgeId, bridgeAuthKey, cancellationToken);
+
+                if (bridge == null)
+                {
+                    Console.WriteLine("    ⚠️ Bridge lookup returned no payload.");
+                    return;
+                }
+
+                Console.WriteLine($"    Bridge ID: {bridgeId}");
+                Console.WriteLine($"    Linked Home ID: {bridge.HomeId?.ToString() ?? "Unknown"}");
+
+                var boilerInfo = await boilerByBridgeService.GetBoilerInfoAsync(bridgeId, bridgeAuthKey, cancellationToken);
+                if (boilerInfo != null)
+                {
+                    Console.WriteLine($"    Boiler Present: {FormatBoolean(boilerInfo.BoilerPresent)}");
+                    Console.WriteLine($"    Boiler ID: {boilerInfo.BoilerId?.ToString() ?? "Unknown"}");
+                }
+
+                var boilerMaxOutputTemperature = await boilerByBridgeService.GetBoilerMaxOutputTemperatureAsync(bridgeId, bridgeAuthKey, cancellationToken);
+                if (boilerMaxOutputTemperature?.BoilerMaxOutputTemperatureInCelsius.HasValue == true)
+                {
+                    Console.WriteLine($"    Boiler Max Output Temperature: {boilerMaxOutputTemperature.BoilerMaxOutputTemperatureInCelsius:0.0}°C");
+                }
+
+                var wiringState = await boilerByBridgeService.GetBoilerWiringInstallationStateAsync(bridgeId, bridgeAuthKey, cancellationToken);
+                if (wiringState != null)
+                {
+                    Console.WriteLine($"    Wiring State: {wiringState.State ?? "Unknown"}");
+                    Console.WriteLine($"    Bridge Connected: {FormatBoolean(wiringState.BridgeConnected)}");
+                    Console.WriteLine($"    Hot Water Zone Present: {FormatBoolean(wiringState.HotWaterZonePresent)}");
+
+                    if (wiringState.DeviceWiredToBoiler != null)
+                    {
+                        Console.WriteLine($"    Wired Device: {wiringState.DeviceWiredToBoiler.Type ?? "Unknown"} ({wiringState.DeviceWiredToBoiler.SerialNo ?? "Unknown Serial"})");
+                        Console.WriteLine($"      Therm Interface: {wiringState.DeviceWiredToBoiler.ThermInterfaceType ?? "Unknown"}");
+                        Console.WriteLine($"      Connected: {FormatBoolean(wiringState.DeviceWiredToBoiler.Connected)}");
+                    }
+
+                    if (wiringState.Boiler?.OutputTemperature?.Celsius.HasValue == true)
+                    {
+                        Console.WriteLine($"    Boiler Output Temperature: {wiringState.Boiler.OutputTemperature.Celsius:0.0}°C");
+                    }
+                }
+            }
+            catch (TadoApiException ex)
+            {
+                Console.WriteLine($"    ⚠️ Bridge Diagnostics Error ({ex.StatusCode}): {ex.Message}");
+            }
+        }
+
+        private static string FormatBoolean(bool? value)
+            => value.HasValue ? (value.Value ? "Yes" : "No") : "Unknown";
 
     private static string PadCell(string? value, int width)
         => (value ?? "-").PadRight(width);

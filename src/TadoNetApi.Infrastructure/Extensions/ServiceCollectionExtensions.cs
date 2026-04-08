@@ -60,6 +60,13 @@ namespace TadoNetApi.Infrastructure.Extensions
             .AddHttpMessageHandler<AuthDelegatingHandler>()
             .AddHttpMessageHandler<RetryDelegatingHandler>();
 
+            services.AddHttpClient<IPublicTadoHttpClient, TadoHttpClient>(client =>
+            {
+                client.BaseAddress = new Uri(TadoApiEndpoints.ApiBaseUrl);
+                client.Timeout = TimeSpan.FromSeconds(30);
+            })
+            .AddHttpMessageHandler<RetryDelegatingHandler>();
+
             // ----------------------------
             // Domain services
             // ----------------------------
@@ -68,6 +75,8 @@ namespace TadoNetApi.Infrastructure.Extensions
             services.AddTransient<IDeviceService, TadoDeviceService>();
             services.AddTransient<IZoneService, TadoZoneService>();
             services.AddTransient<IWeatherService, TadoWeatherService>();
+            services.AddTransient<IBridgeService, TadoBridgeService>();
+            services.AddTransient<IBoilerByBridgeService, TadoBoilerByBridgeService>();
 
             // ----------------------------
             // Application services
@@ -77,6 +86,8 @@ namespace TadoNetApi.Infrastructure.Extensions
             services.AddTransient<ZoneAppService>();
             services.AddTransient<DeviceAppService>();
             services.AddTransient<WeatherAppService>();
+            services.AddTransient<BridgeAppService>();
+            services.AddTransient<BoilerByBridgeAppService>();
 
             return services;
         }

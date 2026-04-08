@@ -156,6 +156,73 @@ namespace TadoNetApi.Tests.Application.Services
         }
 
         /// <summary>
+        /// Tests that <see cref="HomeAppService.GetInstallationsAsync"/> returns the installations from the domain service.
+        /// </summary>
+        [Fact(DisplayName = "GetInstallationsAsync returns installations")]
+        public async Task GetInstallationsAsync_ReturnsInstallations()
+        {
+            var expectedInstallations = new List<Installation>
+            {
+                new()
+                {
+                    Id = 101,
+                    CurrentType = "HEATING",
+                    Revision = 7,
+                    State = "COMPLETED",
+                    Devices =
+                    [
+                        new Device { SerialNo = "VA1234567890", ShortSerialNo = "VA1234567890" }
+                    ]
+                }
+            };
+
+            var mockHomeService = new Mock<IHomeService>();
+            mockHomeService.Setup(s => s.GetInstallationsAsync(1, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedInstallations);
+
+            var service = new HomeAppService(mockHomeService.Object);
+
+            var installations = await service.GetInstallationsAsync(1, CancellationToken.None);
+
+            Assert.Single(installations);
+            Assert.Equal(101, installations[0].Id);
+            Assert.Equal("HEATING", installations[0].CurrentType);
+            Assert.Single(installations[0].Devices);
+        }
+
+        /// <summary>
+        /// Tests that <see cref="HomeAppService.GetInstallationAsync"/> returns the installation from the domain service.
+        /// </summary>
+        [Fact(DisplayName = "GetInstallationAsync returns installation")]
+        public async Task GetInstallationAsync_ReturnsInstallation()
+        {
+            var expectedInstallation = new Installation
+            {
+                Id = 101,
+                CurrentType = "HEATING",
+                Revision = 7,
+                State = "COMPLETED",
+                Devices =
+                [
+                    new Device { SerialNo = "VA1234567890", ShortSerialNo = "VA1234567890" }
+                ]
+            };
+
+            var mockHomeService = new Mock<IHomeService>();
+            mockHomeService.Setup(s => s.GetInstallationAsync(1, 101, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedInstallation);
+
+            var service = new HomeAppService(mockHomeService.Object);
+
+            var installation = await service.GetInstallationAsync(1, 101, CancellationToken.None);
+
+            Assert.NotNull(installation);
+            Assert.Equal(101, installation?.Id);
+            Assert.Equal("COMPLETED", installation?.State);
+            Assert.Single(installation?.Devices!);
+        }
+
+        /// <summary>
         /// Tests that <see cref="HomeAppService.GetIncidentDetectionAsync"/> returns the incident detection payload from the domain service.
         /// </summary>
         [Fact(DisplayName = "GetIncidentDetectionAsync returns incident detection")]

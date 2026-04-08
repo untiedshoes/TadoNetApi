@@ -88,8 +88,7 @@ namespace TadoNetApi.Infrastructure.Services
         /// <exception cref="TadoApiException">Thrown if the device is not found or request fails.</exception>
         public async Task<Device> GetDeviceAsync(string deviceId, CancellationToken cancellationToken = default)
         {
-            if (string.IsNullOrWhiteSpace(deviceId))
-                throw new ArgumentException("Device ID must be provided.", nameof(deviceId));
+            Guard.NotNullOrWhiteSpace(deviceId, nameof(deviceId));
 
             try
             {
@@ -228,8 +227,7 @@ namespace TadoNetApi.Infrastructure.Services
             Guard.PositiveId(homeId, nameof(homeId));
             Guard.PositiveId(zoneId, nameof(zoneId));
 
-            if (string.IsNullOrWhiteSpace(deviceSerialNo))
-                throw new ArgumentException("Device serial number must be provided.", nameof(deviceSerialNo));
+            Guard.NotNullOrWhiteSpace(deviceSerialNo, nameof(deviceSerialNo));
 
             var request = new MoveDeviceToZoneRequest
             {
@@ -261,8 +259,7 @@ namespace TadoNetApi.Infrastructure.Services
             Guard.PositiveId(homeId, nameof(homeId));
             Guard.PositiveId(zoneId, nameof(zoneId));
 
-            if (string.IsNullOrWhiteSpace(deviceSerialNo))
-                throw new ArgumentException("Device serial number must be provided.", nameof(deviceSerialNo));
+            Guard.NotNullOrWhiteSpace(deviceSerialNo, nameof(deviceSerialNo));
 
             var request = new SetZoneMeasuringDeviceRequest
             {
@@ -420,8 +417,7 @@ namespace TadoNetApi.Infrastructure.Services
         /// <returns>Boolean indicating if the request was successful.</returns>
         public async Task<bool> SetDeviceChildLockAsync(string deviceId, bool enableChildLock, CancellationToken cancellationToken = default)
         {
-            if (string.IsNullOrWhiteSpace(deviceId))
-                throw new ArgumentException("Device ID must be provided.", nameof(deviceId));
+            Guard.NotNullOrWhiteSpace(deviceId, nameof(deviceId));
 
             return await _httpClient.SendAsync(
                 $"devices/{deviceId}/childLock",
@@ -439,8 +435,7 @@ namespace TadoNetApi.Infrastructure.Services
         /// <returns>Boolean indicating if the request was successful.</returns>
         public async Task<bool> SayHiAsync(string deviceId, CancellationToken cancellationToken = default)
         {
-            if (string.IsNullOrWhiteSpace(deviceId))
-                throw new ArgumentException("Device ID must be provided.", nameof(deviceId));
+            Guard.NotNullOrWhiteSpace(deviceId, nameof(deviceId));
 
             return await _httpClient.SendAsync(
                 $"devices/{deviceId}/identify",
@@ -459,8 +454,7 @@ namespace TadoNetApi.Infrastructure.Services
         /// <returns>Boolean indicating if the request was successful.</returns>
         public async Task<bool> SetZoneTemperatureOffsetCelsiusAsync(string deviceId, double temperature, CancellationToken cancellationToken = default)
         {
-            if (string.IsNullOrWhiteSpace(deviceId))
-                throw new ArgumentException("Device ID must be provided.", nameof(deviceId));
+            Guard.NotNullOrWhiteSpace(deviceId, nameof(deviceId));
 
             return await _httpClient.SendAsync(
                 $"devices/{deviceId}/temperatureOffset",
@@ -479,8 +473,7 @@ namespace TadoNetApi.Infrastructure.Services
         /// <returns>Boolean indicating if the request was successful.</returns>
         public async Task<bool> SetZoneTemperatureOffsetFahrenheitAsync(string deviceId, double temperature, CancellationToken cancellationToken = default)
         {
-            if (string.IsNullOrWhiteSpace(deviceId))
-                throw new ArgumentException("Device ID must be provided.", nameof(deviceId));
+            Guard.NotNullOrWhiteSpace(deviceId, nameof(deviceId));
 
             return await _httpClient.SendAsync(
                 $"devices/{deviceId}/temperatureOffset",

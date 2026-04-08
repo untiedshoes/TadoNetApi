@@ -888,6 +888,50 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                 It.IsAny<CancellationToken>()), Times.Once);
         }
 
+        [Fact(DisplayName = "SetHeatingTemperatureCelsiusAsync default overload sends a manual heating overlay")]
+        public async Task SetHeatingTemperatureCelsiusAsync_DefaultOverload_SendsManualHeatingOverlay()
+        {
+            SetZoneTemperatureRequest? capturedRequest = null;
+            string? capturedJson = null;
+            var mockHttp = new Mock<ITadoHttpClient>();
+
+            mockHttp
+                .Setup(c => c.PutAsync<SetZoneTemperatureRequest, TadoZoneSummaryResponse>(
+                    It.IsAny<string>(),
+                    It.IsAny<SetZoneTemperatureRequest>(),
+                    It.IsAny<CancellationToken>()))
+                .Callback<string, SetZoneTemperatureRequest, CancellationToken>((_, req, _) =>
+                {
+                    capturedRequest = req;
+                    capturedJson = JsonSerializer.Serialize(req);
+                })
+                .ReturnsAsync(new TadoZoneSummaryResponse
+                {
+                    Termination = new TadoTerminationResponse { CurrentType = DurationModes.UntilNextManualChange }
+                });
+
+            var service = new TadoZoneService(mockHttp.Object);
+
+            var response = await service.SetHeatingTemperatureCelsiusAsync(1, 2, 21.0, CancellationToken.None);
+
+            Assert.NotNull(capturedRequest);
+            Assert.Equal(DurationModes.UntilNextManualChange, capturedRequest!.Termination.CurrentType);
+            Assert.Null(capturedRequest.Termination.DurationInSeconds);
+            Assert.Equal(DeviceTypes.Heating, capturedRequest.Setting.DeviceType);
+            Assert.Equal(PowerStates.On, capturedRequest.Setting.Power);
+            Assert.Equal(21.0, capturedRequest.Setting.Temperature?.Celsius);
+            Assert.Null(capturedRequest.Setting.Temperature?.Fahrenheit);
+            Assert.NotNull(capturedJson);
+            Assert.Contains("\"typeSkillBasedApp\":\"MANUAL\"", capturedJson);
+            Assert.DoesNotContain("\"durationInSeconds\"", capturedJson);
+            Assert.Equal(DurationModes.UntilNextManualChange.ToString(), response?.Termination?.Type);
+
+            mockHttp.Verify(c => c.PutAsync<SetZoneTemperatureRequest, TadoZoneSummaryResponse>(
+                "homes/1/zones/2/overlay",
+                It.IsAny<SetZoneTemperatureRequest>(),
+                It.IsAny<CancellationToken>()), Times.Once);
+        }
+
         [Fact(DisplayName = "SetHeatingTemperatureCelsiusAsync timer mode sets durationInSeconds")]
         public async Task SetHeatingTemperatureCelsiusAsync_TimerWithDuration_SetsDurationInSeconds()
         {

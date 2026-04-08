@@ -466,8 +466,7 @@ namespace TadoNetApi.Infrastructure.Services
             Guard.PositiveId(zoneId, nameof(zoneId));
             Guard.PositiveId(timetableTypeId, nameof(timetableTypeId));
 
-            if (string.IsNullOrWhiteSpace(dayType))
-                throw new ArgumentException("Day type must be provided.", nameof(dayType));
+            Guard.NotNullOrWhiteSpace(dayType, nameof(dayType));
 
             try
             {
@@ -664,8 +663,7 @@ namespace TadoNetApi.Infrastructure.Services
 
                 ArgumentNullException.ThrowIfNull(zoneDetails);
 
-                if (string.IsNullOrWhiteSpace(zoneDetails.Name))
-                    throw new ArgumentException("Zone name is required.", nameof(zoneDetails));
+                Guard.NotNullOrWhiteSpace(zoneDetails.Name, nameof(zoneDetails));
 
                 var request = SetZoneDetailsRequest.FromDomain(zoneDetails);
 
@@ -698,8 +696,7 @@ namespace TadoNetApi.Infrastructure.Services
                 if (defaultOverlay.TerminationCondition == null)
                     throw new ArgumentException("Default overlay termination condition must be provided.", nameof(defaultOverlay));
 
-                if (string.IsNullOrWhiteSpace(defaultOverlay.TerminationCondition.Type))
-                    throw new ArgumentException("Default overlay termination type must be provided.", nameof(defaultOverlay));
+                Guard.NotNullOrWhiteSpace(defaultOverlay.TerminationCondition.Type, nameof(defaultOverlay));
 
                 if (string.Equals(defaultOverlay.TerminationCondition.Type, DurationModes.Timer.ToString(), StringComparison.OrdinalIgnoreCase)
                     && (!defaultOverlay.TerminationCondition.DurationInSeconds.HasValue || defaultOverlay.TerminationCondition.DurationInSeconds.Value <= 0))
@@ -797,8 +794,7 @@ namespace TadoNetApi.Infrastructure.Services
 
                 ArgumentNullException.ThrowIfNull(awayConfiguration);
 
-                if (string.IsNullOrWhiteSpace(awayConfiguration.Type))
-                    throw new ArgumentException("Away configuration type must be provided.", nameof(awayConfiguration));
+                Guard.NotNullOrWhiteSpace(awayConfiguration.Type, nameof(awayConfiguration));
 
                 if (awayConfiguration.Setting == null)
                     throw new ArgumentException("Away configuration setting must be provided.", nameof(awayConfiguration));
@@ -867,8 +863,7 @@ namespace TadoNetApi.Infrastructure.Services
                 Guard.PositiveId(zoneId, nameof(zoneId));
                 Guard.PositiveId(timetableTypeId, nameof(timetableTypeId));
 
-                if (string.IsNullOrWhiteSpace(dayType))
-                    throw new ArgumentException("Day type must be provided.", nameof(dayType));
+                Guard.NotNullOrWhiteSpace(dayType, nameof(dayType));
 
                 if (blocks == null)
                     throw new ArgumentNullException(nameof(blocks));
@@ -904,8 +899,7 @@ namespace TadoNetApi.Infrastructure.Services
         {
             Guard.PositiveId(homeId, nameof(homeId));
 
-            if (string.IsNullOrWhiteSpace(zoneType))
-                throw new ArgumentException("Zone type is required.", nameof(zoneType));
+            Guard.NotNullOrWhiteSpace(zoneType, nameof(zoneType));
 
             if (deviceSerialNumbers == null)
                 throw new ArgumentNullException(nameof(deviceSerialNumbers));
@@ -913,8 +907,10 @@ namespace TadoNetApi.Infrastructure.Services
             if (deviceSerialNumbers.Count == 0)
                 throw new ArgumentException("At least one device serial number is required.", nameof(deviceSerialNumbers));
 
-            if (deviceSerialNumbers.Any(string.IsNullOrWhiteSpace))
-                throw new ArgumentException("Device serial numbers cannot be null, empty, or whitespace.", nameof(deviceSerialNumbers));
+            foreach (var deviceSerialNumber in deviceSerialNumbers)
+            {
+                Guard.NotNullOrWhiteSpace(deviceSerialNumber, nameof(deviceSerialNumbers));
+            }
 
             var request = new CreateZoneRequest
             {
@@ -1110,8 +1106,7 @@ namespace TadoNetApi.Infrastructure.Services
             if (overlay.Termination == null)
                 throw new ArgumentException("Zone overlay termination must be provided.", paramName);
 
-            if (string.IsNullOrWhiteSpace(overlay.Termination.Type))
-                throw new ArgumentException("Zone overlay termination type must be provided.", paramName);
+            Guard.NotNullOrWhiteSpace(overlay.Termination.Type, paramName);
 
             if (IsTimerTermination(overlay.Termination.Type)
                 && (!overlay.Termination.DurationInSeconds.HasValue || overlay.Termination.DurationInSeconds.Value <= 0))
@@ -1128,14 +1123,11 @@ namespace TadoNetApi.Infrastructure.Services
         {
             ArgumentNullException.ThrowIfNull(timetableBlock);
 
-            if (string.IsNullOrWhiteSpace(timetableBlock.DayType))
-                throw new ArgumentException("Timetable block day type must be provided.", paramName);
+            Guard.NotNullOrWhiteSpace(timetableBlock.DayType, paramName);
 
-            if (string.IsNullOrWhiteSpace(timetableBlock.Start))
-                throw new ArgumentException("Timetable block start time must be provided.", paramName);
+            Guard.NotNullOrWhiteSpace(timetableBlock.Start, paramName);
 
-            if (string.IsNullOrWhiteSpace(timetableBlock.End))
-                throw new ArgumentException("Timetable block end time must be provided.", paramName);
+            Guard.NotNullOrWhiteSpace(timetableBlock.End, paramName);
 
             if (timetableBlock.Setting == null)
                 throw new ArgumentException("Timetable block setting must be provided.", paramName);

@@ -57,6 +57,14 @@ public interface IHomeService
     Task<Installation?> GetInstallationAsync(int homeId, int installationId, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Retrieves the pending invitations for a home.
+    /// </summary>
+    /// <param name="homeId">The ID of the home.</param>
+    /// <param name="cancellationToken">The cancellation token to observe.</param>
+    /// <returns>A read-only list of pending invitations associated with the home.</returns>
+    Task<IReadOnlyList<Invitation>> GetInvitationsAsync(int homeId, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Retrieves the incident detection settings for a home.
     /// </summary>
     /// <param name="homeId">The ID of the home.</param>
@@ -134,4 +142,29 @@ public interface IHomeService
     /// <param name="maxFlowTemperature">The maximum flow temperature to apply.</param>
     /// <param name="cancellationToken">The cancellation token to observe.</param>
     Task SetFlowTemperatureOptimisationAsync(int homeId, int maxFlowTemperature, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Sends an invitation to join a home.
+    /// </summary>
+    /// <param name="homeId">The ID of the home to update.</param>
+    /// <param name="email">The email address to invite.</param>
+    /// <param name="cancellationToken">The cancellation token to observe.</param>
+    /// <returns>The created invitation.</returns>
+    Task<Invitation> SendInvitationAsync(int homeId, string email, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Revokes a pending invitation.
+    /// </summary>
+    /// <param name="homeId">The ID of the home to update.</param>
+    /// <param name="invitationToken">The unique invitation token.</param>
+    /// <param name="cancellationToken">The cancellation token to observe.</param>
+    Task DeleteInvitationAsync(int homeId, string invitationToken, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Resends a pending invitation.
+    /// </summary>
+    /// <param name="homeId">The ID of the home to update.</param>
+    /// <param name="invitationToken">The unique invitation token.</param>
+    /// <param name="cancellationToken">The cancellation token to observe.</param>
+    Task ResendInvitationAsync(int homeId, string invitationToken, CancellationToken cancellationToken = default);
 }

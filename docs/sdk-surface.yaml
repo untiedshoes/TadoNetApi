@@ -117,6 +117,20 @@ services:
             modelFile: src/TadoNetApi.Domain/Entities/Installation.cs
           summary: Returns a specific AC installation for a home.
 
+        - name: GetInvitationsAsync
+          kind: read
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+          returns:
+            type: Invitation
+            collection: true
+            nullable: false
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/Invitation.cs
+          summary: Returns the pending invitations for a home.
+
         - name: GetIncidentDetectionAsync
           kind: read
           parameters:
@@ -238,6 +252,50 @@ services:
             type: void
             nullable: false
           summary: Updates the maximum flow temperature for a home's boiler optimisation.
+
+        - name: SendInvitationAsync
+          kind: command
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+            - name: email
+              type: string
+              validation: required
+          returns:
+            type: Invitation
+            nullable: false
+            source: domain
+            modelFile: src/TadoNetApi.Domain/Entities/Invitation.cs
+          summary: Sends a pending invitation to the specified email address.
+
+        - name: DeleteInvitationAsync
+          kind: command
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+            - name: invitationToken
+              type: string
+              validation: required
+          returns:
+            type: void
+            nullable: false
+          summary: Revokes a pending invitation.
+
+        - name: ResendInvitationAsync
+          kind: command
+          parameters:
+            - name: homeId
+              type: int
+              validation: positive-id
+            - name: invitationToken
+              type: string
+              validation: required
+          returns:
+            type: void
+            nullable: false
+          summary: Resends a pending invitation.
 
         - name: ResetHomePresenceAsync
           kind: command

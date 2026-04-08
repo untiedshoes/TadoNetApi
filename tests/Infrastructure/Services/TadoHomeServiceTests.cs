@@ -212,6 +212,50 @@ namespace TadoNetApi.Tests.Infrastructure.Services
             Assert.Equal("VA1234567890", installation.Devices[0].SerialNo);
         }
 
+        [Fact(DisplayName = "GetInvitationsAsync returns mapped invitations")]
+        public async Task GetInvitationsAsync_ReturnsMappedInvitations()
+        {
+            var response = new List<TadoInvitationResponse>
+            {
+                new()
+                {
+                    Token = "token-1",
+                    Email = "invitee@example.com",
+                    FirstSent = new DateTime(2025, 2, 3, 18, 44, 14, DateTimeKind.Utc),
+                    LastSent = new DateTime(2025, 2, 4, 18, 44, 14, DateTimeKind.Utc),
+                    Inviter = new TadoInvitationInviterResponse
+                    {
+                        Name = "Jane Doe",
+                        Email = "jane@example.com",
+                        Username = "jane@example.com",
+                        Enabled = true,
+                        Id = "a7c7fc08-e362-4700-e9a1-45a5bded5c124",
+                        HomeId = 1,
+                        Locale = "en",
+                        Type = "WEB_USER",
+                        Home = new TadoHomeResponse
+                        {
+                            Id = 1,
+                            Name = "My Home"
+                        }
+                    }
+                }
+            };
+
+            var mockHttp = MockTadoHttpClient.CreateGet(response);
+            var service = new TadoHomeService(mockHttp.Object);
+
+            var invitations = await service.GetInvitationsAsync(homeId: 1, CancellationToken.None);
+
+            Assert.Single(invitations);
+            Assert.Equal("token-1", invitations[0].Token);
+            Assert.Equal("invitee@example.com", invitations[0].Email);
+            Assert.Equal(new DateTime(2025, 2, 3, 18, 44, 14, DateTimeKind.Utc), invitations[0].FirstSent);
+            Assert.Equal("Jane Doe", invitations[0].Inviter?.Name);
+            Assert.True(invitations[0].Inviter?.Enabled);
+            Assert.Equal("My Home", invitations[0].Inviter?.Home?.Name);
+        }
+
         [Fact(DisplayName = "GetIncidentDetectionAsync returns mapped incident detection")]
         public async Task GetIncidentDetectionAsync_ReturnsMappedIncidentDetection()
         {
@@ -573,6 +617,108 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                     It.IsAny<CancellationToken>(),
                     HttpStatusCode.NoContent,
                     It.Is<SetFlowTemperatureOptimisationRequest>(body => body.MaxFlowTemperature == 55 && JsonSerializer.Serialize(body).Contains("\"maxFlowTemperature\":55"))),
+                Times.Once);
+        }
+
+        [Fact(DisplayName = "SendInvitationAsync sends the spec-aligned invitation command")]
+        public async Task SendInvitationAsync_SendsSpecAlignedInvitationCommand()
+        {
+            SendInvitationRequest? capturedRequest = null;
+
+            var response = new TadoInvitationResponse
+            {
+                Token = "token-1",
+                Email = "invitee@example.com"
+            };
+
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.PostAsync<SendInvitationRequest, TadoInvitationResponse>(
+                    It.IsAny<string>(),
+                    It.IsAny<SendInvitationRequest>(),
+                    It.IsAny<CancellationToken>()))
+                .Callback<string, SendInvitationRequest, CancellationToken>((_, body, _) => capturedRequest = body)
+                .ReturnsAsync(response);
+
+            var service = new TadoHomeService(mockHttp.Object);
+
+            var invitation = await service.SendInvitationAsync(homeId: 1, email: "invitee@example.com", CancellationToken.None);
+
+            Assert.NotNull(capturedRequest);
+            Assert.Equal("invitee@example.com", capturedRequest!.Email);
+            Assert.Equal("token-1", invitation.Token);
+            mockHttp.Verify(c => c.PostAsync<SendInvitationRequest, TadoInvitationResponse>(
+                    "homes/1/invitations",
+                    It.Is<SendInvitationRequest>(body => body.Email == "invitee@example.com"),
+                    It.IsAny<CancellationToken>()),
+                Times.Once);
+        }
+
+        [Fact(DisplayName = "SendInvitationAsync rejects missing email")]
+        public async Task SendInvitationAsync_RejectsMissingEmail()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            var service = new TadoHomeService(mockHttp.Object);
+
+            var exception = await Assert.ThrowsAsync<ArgumentException>(() =>
+                service.SendInvitationAsync(homeId: 1, email: " ", CancellationToken.None));
+
+            Assert.Equal("email", exception.ParamName);
+            mockHttp.Verify(c => c.PostAsync<SendInvitationRequest, TadoInvitationResponse>(
+                It.IsAny<string>(),
+                It.IsAny<SendInvitationRequest>(),
+                It.IsAny<CancellationToken>()), Times.Never);
+        }
+
+        [Fact(DisplayName = "DeleteInvitationAsync sends the spec-aligned invitation delete command")]
+        public async Task DeleteInvitationAsync_SendsSpecAlignedInvitationDeleteCommand()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.SendAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<HttpMethod>(),
+                    It.IsAny<CancellationToken>(),
+                    It.IsAny<HttpStatusCode>(),
+                    It.IsAny<object?>()))
+                .ReturnsAsync(true);
+
+            var service = new TadoHomeService(mockHttp.Object);
+
+            await service.DeleteInvitationAsync(homeId: 1, invitationToken: "token-1", CancellationToken.None);
+
+            mockHttp.Verify(c => c.SendAsync(
+                    "homes/1/invitations/token-1",
+                    HttpMethod.Delete,
+                    It.IsAny<CancellationToken>(),
+                    HttpStatusCode.NoContent,
+                    null),
+                Times.Once);
+        }
+
+        [Fact(DisplayName = "ResendInvitationAsync sends the spec-aligned invitation resend command")]
+        public async Task ResendInvitationAsync_SendsSpecAlignedInvitationResendCommand()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.SendAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<HttpMethod>(),
+                    It.IsAny<CancellationToken>(),
+                    It.IsAny<HttpStatusCode>(),
+                    It.IsAny<object?>()))
+                .ReturnsAsync(true);
+
+            var service = new TadoHomeService(mockHttp.Object);
+
+            await service.ResendInvitationAsync(homeId: 1, invitationToken: "token-1", CancellationToken.None);
+
+            mockHttp.Verify(c => c.SendAsync(
+                    "homes/1/invitations/token-1/resend",
+                    HttpMethod.Post,
+                    It.IsAny<CancellationToken>(),
+                    HttpStatusCode.NoContent,
+                    null),
                 Times.Once);
         }
     }

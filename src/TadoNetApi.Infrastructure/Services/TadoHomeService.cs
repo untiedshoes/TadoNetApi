@@ -148,6 +148,23 @@ public class TadoHomeService : IHomeService
     }
 
     /// <summary>
+    /// Retrieves the pending invitations for a home.
+    /// </summary>
+    /// <param name="homeId">The ID of the home to inspect.</param>
+    /// <param name="cancellationToken">The cancellation token to observe.</param>
+    /// <returns>A read-only list of pending invitations associated with the home.</returns>
+    public async Task<IReadOnlyList<Invitation>> GetInvitationsAsync(int homeId, CancellationToken cancellationToken = default)
+    {
+        Guard.PositiveId(homeId, nameof(homeId));
+
+        var response = await _httpClient.GetAsync<List<TadoInvitationResponse>>(
+            $"homes/{homeId}/invitations",
+            cancellationToken) ?? new List<TadoInvitationResponse>();
+
+        return response.ToDomainList();
+    }
+
+    /// <summary>
     /// Retrieves the incident detection settings for a home.
     /// </summary>
     /// <param name="homeId">The ID of the home to inspect.</param>
@@ -370,8 +387,7 @@ public class TadoHomeService : IHomeService
         if (homeDetails == null)
             throw new ArgumentNullException(nameof(homeDetails));
 
-        if (string.IsNullOrWhiteSpace(homeDetails.Name))
-            throw new ArgumentException("Home name must be provided.", nameof(homeDetails));
+        Guard.NotNullOrWhiteSpace(homeDetails.Name, nameof(homeDetails));
 
         if (homeDetails.ContactDetails == null)
             throw new ArgumentException("Home contact details must be provided.", nameof(homeDetails));
@@ -413,6 +429,73 @@ public class TadoHomeService : IHomeService
             cancellationToken,
             System.Net.HttpStatusCode.NoContent,
             request);
+    }
+
+    /// <summary>
+    /// Sends an invitation to join a home.
+    /// </summary>
+    /// <param name="homeId">The ID of the home to update.</param>
+    /// <param name="email">The email address to invite.</param>
+    /// <param name="cancellationToken">The cancellation token to observe.</param>
+    /// <returns>The created invitation.</returns>
+    public async Task<Invitation> SendInvitationAsync(int homeId, string email, CancellationToken cancellationToken = default)
+    {
+        Guard.PositiveId(homeId, nameof(homeId));
+        Guard.NotNullOrWhiteSpace(email, nameof(email));
+
+        var request = new SendInvitationRequest
+        {
+            Email = email
+        };
+
+        var response = await _httpClient.PostAsync<SendInvitationRequest, TadoInvitationResponse>(
+            $"homes/{homeId}/invitations",
+            request,
+            cancellationToken);
+
+        if (response == null)
+        {
+            throw new TadoApiException(System.Net.HttpStatusCode.NotFound,
+                $"Invitation response for home {homeId} was empty.");
+        }
+
+        return response.ToDomain();
+    }
+
+    /// <summary>
+    /// Revokes a pending invitation.
+    /// </summary>
+    /// <param name="homeId">The ID of the home to update.</param>
+    /// <param name="invitationToken">The unique invitation token.</param>
+    /// <param name="cancellationToken">The cancellation token to observe.</param>
+    public async Task DeleteInvitationAsync(int homeId, string invitationToken, CancellationToken cancellationToken = default)
+    {
+        Guard.PositiveId(homeId, nameof(homeId));
+        Guard.NotNullOrWhiteSpace(invitationToken, nameof(invitationToken));
+
+        await _httpClient.SendAsync(
+            $"homes/{homeId}/invitations/{invitationToken}",
+            HttpMethod.Delete,
+            cancellationToken,
+            System.Net.HttpStatusCode.NoContent);
+    }
+
+    /// <summary>
+    /// Resends a pending invitation.
+    /// </summary>
+    /// <param name="homeId">The ID of the home to update.</param>
+    /// <param name="invitationToken">The unique invitation token.</param>
+    /// <param name="cancellationToken">The cancellation token to observe.</param>
+    public async Task ResendInvitationAsync(int homeId, string invitationToken, CancellationToken cancellationToken = default)
+    {
+        Guard.PositiveId(homeId, nameof(homeId));
+        Guard.NotNullOrWhiteSpace(invitationToken, nameof(invitationToken));
+
+        await _httpClient.SendAsync(
+            $"homes/{homeId}/invitations/{invitationToken}/resend",
+            HttpMethod.Post,
+            cancellationToken,
+            System.Net.HttpStatusCode.NoContent);
     }
 
     #endregion

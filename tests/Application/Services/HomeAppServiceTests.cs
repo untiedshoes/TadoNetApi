@@ -223,6 +223,40 @@ namespace TadoNetApi.Tests.Application.Services
         }
 
         /// <summary>
+        /// Tests that <see cref="HomeAppService.GetInvitationsAsync"/> returns the invitations from the domain service.
+        /// </summary>
+        [Fact(DisplayName = "GetInvitationsAsync returns invitations")]
+        public async Task GetInvitationsAsync_ReturnsInvitations()
+        {
+            var expectedInvitations = new List<Invitation>
+            {
+                new()
+                {
+                    Token = "token-1",
+                    Email = "invitee@example.com",
+                    Inviter = new InvitationInviter
+                    {
+                        Name = "Alice Example",
+                        Email = "alice@example.com"
+                    }
+                }
+            };
+
+            var mockHomeService = new Mock<IHomeService>();
+            mockHomeService.Setup(s => s.GetInvitationsAsync(1, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedInvitations);
+
+            var service = new HomeAppService(mockHomeService.Object);
+
+            var invitations = await service.GetInvitationsAsync(1, CancellationToken.None);
+
+            Assert.Single(invitations);
+            Assert.Equal("token-1", invitations[0].Token);
+            Assert.Equal("invitee@example.com", invitations[0].Email);
+            Assert.Equal("Alice Example", invitations[0].Inviter?.Name);
+        }
+
+        /// <summary>
         /// Tests that <see cref="HomeAppService.GetIncidentDetectionAsync"/> returns the incident detection payload from the domain service.
         /// </summary>
         [Fact(DisplayName = "GetIncidentDetectionAsync returns incident detection")]
@@ -363,6 +397,64 @@ namespace TadoNetApi.Tests.Application.Services
             await service.SetHomePresenceAsync(1, "HOME", CancellationToken.None);
 
             mockHomeService.Verify(s => s.SetHomePresenceAsync(1, "HOME", It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        /// <summary>
+        /// Tests that <see cref="HomeAppService.SendInvitationAsync"/> returns the invitation from the domain service.
+        /// </summary>
+        [Fact(DisplayName = "SendInvitationAsync returns invitation")]
+        public async Task SendInvitationAsync_ReturnsInvitation()
+        {
+            var expectedInvitation = new Invitation
+            {
+                Token = "token-1",
+                Email = "invitee@example.com"
+            };
+
+            var mockHomeService = new Mock<IHomeService>();
+            mockHomeService.Setup(s => s.SendInvitationAsync(1, "invitee@example.com", It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedInvitation);
+
+            var service = new HomeAppService(mockHomeService.Object);
+
+            var invitation = await service.SendInvitationAsync(1, "invitee@example.com", CancellationToken.None);
+
+            Assert.Equal("token-1", invitation.Token);
+            Assert.Equal("invitee@example.com", invitation.Email);
+        }
+
+        /// <summary>
+        /// Tests that <see cref="HomeAppService.DeleteInvitationAsync"/> delegates to the domain service.
+        /// </summary>
+        [Fact(DisplayName = "DeleteInvitationAsync passes through to domain service")]
+        public async Task DeleteInvitationAsync_PassesThroughToDomainService()
+        {
+            var mockHomeService = new Mock<IHomeService>();
+            mockHomeService.Setup(s => s.DeleteInvitationAsync(1, "token-1", It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
+
+            var service = new HomeAppService(mockHomeService.Object);
+
+            await service.DeleteInvitationAsync(1, "token-1", CancellationToken.None);
+
+            mockHomeService.Verify(s => s.DeleteInvitationAsync(1, "token-1", It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        /// <summary>
+        /// Tests that <see cref="HomeAppService.ResendInvitationAsync"/> delegates to the domain service.
+        /// </summary>
+        [Fact(DisplayName = "ResendInvitationAsync passes through to domain service")]
+        public async Task ResendInvitationAsync_PassesThroughToDomainService()
+        {
+            var mockHomeService = new Mock<IHomeService>();
+            mockHomeService.Setup(s => s.ResendInvitationAsync(1, "token-1", It.IsAny<CancellationToken>()))
+                .Returns(Task.CompletedTask);
+
+            var service = new HomeAppService(mockHomeService.Object);
+
+            await service.ResendInvitationAsync(1, "token-1", CancellationToken.None);
+
+            mockHomeService.Verify(s => s.ResendInvitationAsync(1, "token-1", It.IsAny<CancellationToken>()), Times.Once);
         }
 
         /// <summary>

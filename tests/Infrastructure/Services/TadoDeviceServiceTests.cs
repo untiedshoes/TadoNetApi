@@ -359,10 +359,10 @@ namespace TadoNetApi.Tests.Infrastructure.Services
 
         /// <summary>
         /// Integration test scaffold.
-        /// Will run against a real Tado account if <c>TADO_USERNAME</c> and <c>TADO_PASSWORD</c> 
-        /// environment variables are set. Marked as Integration category.
+        /// Intended to be adapted for a real Tado account using a valid access token and safe test IDs.
+        /// Marked as Integration category.
         /// </summary>
-        [Fact(DisplayName = "GetDevicesAsync integration test", Skip = "Run manually with real credentials")]
+        [Fact(DisplayName = "GetDevicesAsync integration test", Skip = "Run manually with a real access token and safe test IDs")]
         [Trait("Category", "Integration")]
         public async Task GetDevicesAsync_IntegrationTest()
         {

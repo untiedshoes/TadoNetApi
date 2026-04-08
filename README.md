@@ -51,11 +51,7 @@ The library is designed to be consumed through dependency injection and applicat
 ```csharp
 var services = new ServiceCollection();
 
-services.AddTadoInfrastructure(new TadoApiConfig
-{
-    Username = Environment.GetEnvironmentVariable("TADO_USERNAME") ?? string.Empty,
-    Password = Environment.GetEnvironmentVariable("TADO_PASSWORD") ?? string.Empty
-});
+services.AddTadoInfrastructure();
 
 using var provider = services.BuildServiceProvider();
 
@@ -76,6 +72,21 @@ foreach (var home in me.Homes ?? [])
     Console.WriteLine(home.Name);
 }
 ```
+
+## Authentication Model
+
+The SDK uses Tado's OAuth2 device authorization flow for interactive authentication.
+
+- The application requests a device code from Tado.
+- The user opens the verification URL in a browser and signs in directly with Tado.
+- The SDK exchanges the approved device code for an access token and refresh token.
+- Subsequent API calls use the cached access token and refresh it automatically when required.
+
+This means the SDK itself does not accept or use a username/password configuration payload.
+
+`TadoApiConfig` is only used for transport behavior such as retries and backoff. Authentication is handled by `ITadoAuthService` and `TadoAuthService`.
+
+For non-interactive automation, such as CI integration tests, this repository uses a pre-generated `TADO_ACCESS_TOKEN` plus safe test IDs. That path exists only for automated test execution where an interactive browser sign-in is not possible.
 
 ---
 
@@ -132,7 +143,7 @@ TadoNetApi/
 │  │  └─ Services/               # HomeAppService, ZoneAppService, DeviceAppService, etc.
 │  └─ TadoNetApi.Infrastructure/ # External API integration and transport concerns
 │     ├─ Auth/                   # TadoAuthService for OAuth2 device authorization
-│     ├─ Config/                 # TadoApiConfig for credentials and settings
+│     ├─ Config/                 # TadoApiConfig for retry and transport settings
 │     ├─ Converters/             # JSON converters for enums
 │     ├─ Dtos/                   # API request/response DTOs
 │     ├─ Extensions/             # DI registration extensions
@@ -204,7 +215,7 @@ The quickest way to explore the library is to run the playground against a real 
 ### 1. Prerequisites
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
-- A Tado account with valid credentials
+- A Tado account you can sign into during the OAuth device flow
 
 ### 2. Clone the repo
 
@@ -213,16 +224,9 @@ git clone https://github.com/untiedshoes/TadoNetApi.git
 cd TadoNetApi
 ```
 
-### 3. Configure your Tado credentials
+### 3. Optional environment variables
 
-Set your Tado credentials as environment variables:
-
-```bash
-export TADO_USERNAME="your-email@example.com"
-export TADO_PASSWORD="your-password"
-```
-
-If you want verbose `HttpClient` logging in the playground, you can also set:
+If you want verbose `HttpClient` logging in the playground, you can set:
 
 ```bash
 export TADO_VERBOSE_HTTP_LOGS="true"
@@ -260,8 +264,6 @@ using TadoNetApi.Infrastructure.Extensions;
 
 var config = new TadoApiConfig
 {
-    Username = Environment.GetEnvironmentVariable("TADO_USERNAME") ?? "",
-    Password = Environment.GetEnvironmentVariable("TADO_PASSWORD") ?? "",
     MaxRetries = 5,
     InitialRetryDelayMs = 1000
 };
@@ -302,6 +304,38 @@ Console.WriteLine($"Weather: {weather.WeatherState?.Value ?? weather.WeatherStat
 
 For the complete runnable example, see [TadoNetApi.Playground/Program.cs](TadoNetApi.Playground/Program.cs).
 
+### Retry configuration
+
+The SDK does not require username/password configuration. Authentication is handled through Tado's OAuth device authorization flow.
+
+`TadoApiConfig` is only used to control transport behavior such as retries and backoff:
+
+```csharp
+services.AddTadoInfrastructure(new TadoApiConfig
+{
+    MaxRetries = 5,
+    InitialRetryDelayMs = 1000
+});
+```
+
+If you are happy with the defaults, use:
+
+```csharp
+services.AddTadoInfrastructure();
+```
+
+### CI integration path
+
+The playground and normal consumer usage should use the interactive OAuth device flow shown above.
+
+The repository's integration tests use a different path because CI cannot complete a browser sign-in. When run in automation, the tests expect:
+
+- `TADO_ACCESS_TOKEN`
+- `TADO_HOME_ID`
+- `TADO_HEATING_ZONE_ID`
+
+Those values are only for the integration test harness. They are not part of the normal SDK authentication model.
+
 ---
 
 ## Testing
@@ -317,6 +351,8 @@ Run tests with:
 ```bash
 dotnet test
 ```
+
+Unit tests run by default. Integration tests are intended to be run manually or from CI with a valid access token and safe test IDs.
 
 ---
 

@@ -19,7 +19,6 @@ namespace TadoNetApi.Infrastructure.Auth
     {
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly ILogger<TadoAuthService> _logger;
-        private readonly TadoApiConfig _config;
 
         private TadoAuthResponse? _token;
         private readonly object _lock = new();
@@ -32,12 +31,10 @@ namespace TadoNetApi.Infrastructure.Auth
         /// Initializes a new instance of the <see cref="TadoAuthService"/> class.
         /// </summary>
         /// <param name="httpClientFactory">Factory used to create configured HTTP clients.</param>
-        /// <param name="config">Tado API configuration settings.</param>
         /// <param name="logger">Logger instance for diagnostic output.</param>
-        public TadoAuthService(IHttpClientFactory httpClientFactory, TadoApiConfig config, ILogger<TadoAuthService> logger)
+        public TadoAuthService(IHttpClientFactory httpClientFactory, ILogger<TadoAuthService> logger)
         {
             _httpClientFactory = httpClientFactory;
-            _config = config;
             _logger = logger;
         }
 

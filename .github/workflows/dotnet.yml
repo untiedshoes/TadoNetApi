@@ -5,10 +5,11 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build-test:
-    name: Build & Test Solution
+    name: Build & Unit Test
     runs-on: windows-latest
 
     steps:
@@ -42,19 +43,37 @@ jobs:
       # Run backend (unit) tests
       # -----------------------
       - name: Run unit tests
-        run: dotnet test TadoNetApi.slnx --no-build --verbosity normal --filter "Category!=Integration"
+        run: dotnet test tests/tests.csproj --no-build --verbosity normal --filter "Category!=Integration"
 
-      # -----------------------
-      # Run integration tests (if secrets exist)
-      # -----------------------
-      - name: Run integration tests
+  integration-test:
+    name: Manual Integration Test
+    runs-on: windows-latest
+    if: github.event_name == 'workflow_dispatch'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup .NET 10 SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore dependencies
+        run: dotnet restore TadoNetApi.slnx
+
+      - name: Build solution
+        run: dotnet build TadoNetApi.slnx --no-restore --configuration Debug
+
+      - name: Run integration tests with token and safe IDs
         shell: bash
         env:
-          TADO_USERNAME: ${{ secrets.TADO_USERNAME }}
-          TADO_PASSWORD: ${{ secrets.TADO_PASSWORD }}
+          TADO_ACCESS_TOKEN: ${{ secrets.TADO_ACCESS_TOKEN }}
+          TADO_HOME_ID: ${{ secrets.TADO_HOME_ID }}
+          TADO_HEATING_ZONE_ID: ${{ secrets.TADO_HEATING_ZONE_ID }}
         run: |
-          if [ -z "$TADO_USERNAME" ] || [ -z "$TADO_PASSWORD" ]; then
-            echo "⚠️ Skipping integration tests – TADO credentials not set."
+          if [ -z "$TADO_ACCESS_TOKEN" ] || [ -z "$TADO_HOME_ID" ] || [ -z "$TADO_HEATING_ZONE_ID" ]; then
+            echo "⚠️ Skipping integration tests – token or safe test IDs not set."
             exit 0
           fi
-          dotnet test TadoNetApi.slnx --no-build --filter "Category=Integration" --verbosity normal
+          dotnet test tests/tests.csproj --no-build --filter "Category=Integration" --verbosity normal

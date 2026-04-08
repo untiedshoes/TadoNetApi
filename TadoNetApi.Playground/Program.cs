@@ -19,17 +19,9 @@ class Program
     {
         var config = new TadoApiConfig
         {
-            Username = Environment.GetEnvironmentVariable("TADO_USERNAME") ?? "",
-            Password = Environment.GetEnvironmentVariable("TADO_PASSWORD") ?? "",
             MaxRetries = 5,
             InitialRetryDelayMs = 1000
         };
-
-        if (string.IsNullOrEmpty(config.Username) || string.IsNullOrEmpty(config.Password))
-        {
-            Console.WriteLine("❌ Missing Tado credentials in environment variables.");
-            return;
-        }
 
         var enableVerboseHttpLogs = string.Equals(
             Environment.GetEnvironmentVariable("TADO_VERBOSE_HTTP_LOGS"),

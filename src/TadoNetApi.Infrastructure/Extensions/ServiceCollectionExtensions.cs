@@ -12,6 +12,10 @@ namespace TadoNetApi.Infrastructure.Extensions
     public static class ServiceCollectionExtensions
     {
         public static IServiceCollection AddTadoInfrastructure(
+            this IServiceCollection services)
+            => services.AddTadoInfrastructure(new TadoApiConfig());
+
+        public static IServiceCollection AddTadoInfrastructure(
             this IServiceCollection services,
             TadoApiConfig config)
         {
@@ -35,9 +39,8 @@ namespace TadoNetApi.Infrastructure.Extensions
             {
                 var factory = sp.GetRequiredService<IHttpClientFactory>();
                 var logger = sp.GetRequiredService<Microsoft.Extensions.Logging.ILogger<TadoAuthService>>();
-                var cfg = sp.GetRequiredService<TadoApiConfig>();
 
-                return new TadoAuthService(factory, cfg, logger);
+                return new TadoAuthService(factory, logger);
             });
 
             // ----------------------------

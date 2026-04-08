@@ -23,10 +23,13 @@ namespace TadoNetApi.Tests.Integration
         /// <summary>
         /// Verifies that the real device-list endpoint can be queried through the application-service layer.
         /// </summary>
-        [Fact(DisplayName = "GetDeviceListAsync integration test", Skip = SkipMessage)]
+        [Fact(DisplayName = "GetDeviceListAsync integration test")]
         [Trait("Category", "Integration")]
         public async Task GetDeviceListAsync_IntegrationTest()
         {
+            if (!HasIntegrationEnvironment())
+                return;
+
             using var provider = CreateProvider();
             var deviceService = provider.GetRequiredService<DeviceAppService>();
             var homeId = GetRequiredInt32("TADO_HOME_ID");
@@ -41,10 +44,13 @@ namespace TadoNetApi.Tests.Integration
         /// Verifies that a zone overlay can be created and then removed again through the application-service layer.
         /// Uses a dedicated heating zone and removes the overlay in cleanup.
         /// </summary>
-        [Fact(DisplayName = "SetHeatingTemperatureCelsiusAsync overlay round-trip integration test", Skip = SkipMessage)]
+        [Fact(DisplayName = "SetHeatingTemperatureCelsiusAsync overlay round-trip integration test")]
         [Trait("Category", "Integration")]
         public async Task SetHeatingTemperatureCelsiusAsync_OverlayRoundTrip_IntegrationTest()
         {
+            if (!HasIntegrationEnvironment())
+                return;
+
             using var provider = CreateProvider();
             var zoneService = provider.GetRequiredService<ZoneAppService>();
             var homeId = GetRequiredInt32("TADO_HOME_ID");
@@ -79,8 +85,6 @@ namespace TadoNetApi.Tests.Integration
             services.AddLogging();
             services.AddTadoInfrastructure(new TadoApiConfig
             {
-                Username = string.Empty,
-                Password = string.Empty,
                 MaxRetries = 3,
                 InitialRetryDelayMs = 250
             });
@@ -88,6 +92,11 @@ namespace TadoNetApi.Tests.Integration
 
             return services.BuildServiceProvider();
         }
+
+        private static bool HasIntegrationEnvironment()
+            => !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("TADO_ACCESS_TOKEN"))
+                && !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("TADO_HOME_ID"))
+                && !string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("TADO_HEATING_ZONE_ID"));
 
         private static int GetRequiredInt32(string variableName)
         {

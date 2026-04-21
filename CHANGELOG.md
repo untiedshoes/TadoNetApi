@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog, and this project follows Semantic Versioning.
 
+## [1.0.1] - 2026-04-21
+
+### Fixed
+- Added `HttpRequestException` catch blocks to `GetHomeAsync`, `GetHomeStateAsync`, `GetWeatherAsync`, `GetBridgeAsync`, `GetBoilerInfoAsync`, `GetBoilerMaxOutputTemperatureAsync`, and `GetBoilerWiringInstallationStateAsync`; all now surface as `TadoApiException(ServiceUnavailable)` for consistent error handling.
+
+### Changed
+- Retry log messages in `RetryDelegatingHandler` now include the HTTP method and request URI for easier diagnostics.
+
+### Tests
+- Added `FakeHttpMessageHandler` in `tests/Fakes/` for direct `HttpClient`-pipeline testing.
+- Added `TadoHttpClientTests` covering 200 OK deserialization, 4xx/5xx responses, timeout, caller cancellation, network failure, malformed JSON, null deserialization, and throttle exhaustion.
+- Extended failure-path coverage across `TadoZoneService`, `TadoHomeService`, `TadoDeviceService`, `TadoWeatherService`, `TadoBridgeService`, and `TadoBoilerByBridgeService`.
+- Added XML `<summary>` documentation to all test methods across the test suite.
+
 ## [1.0.0] - 2026-04-08
 
 ### Added

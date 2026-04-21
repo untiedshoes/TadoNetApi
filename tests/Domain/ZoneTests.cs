@@ -5,6 +5,9 @@ namespace TadoNetApi.Tests.Domain
 {
     public class ZoneTests
     {
+        /// <summary>
+        /// Test.
+        /// </summary>
         [Fact]
         public void Can_Create_Zone_With_Properties()
         {

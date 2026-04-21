@@ -10,6 +10,7 @@ using TadoNetApi.Domain.Entities;
 using TadoNetApi.Infrastructure.Dtos.Requests;
 using TadoNetApi.Infrastructure.Dtos.Responses;
 using TadoNetApi.Infrastructure.Http;
+using TadoNetApi.Infrastructure.Exceptions;
 using TadoNetApi.Infrastructure.Services;
 using TadoNetApi.Tests.Mocks;
 using Xunit;
@@ -18,6 +19,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
 {
     public class TadoHomeServiceTests
     {
+        /// <summary>
+        /// GetHomeAsync returns mapped house with incident detection.
+        /// </summary>
         [Fact(DisplayName = "GetHomeAsync returns mapped house with incident detection")]
         public async Task GetHomeAsync_ReturnsMappedHouseWithIncidentDetection()
         {
@@ -55,6 +59,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
             Assert.True(home.IncidentDetection?.Supported);
         }
 
+        /// <summary>
+        /// GetUsersAsync returns mapped users.
+        /// </summary>
         [Fact(DisplayName = "GetUsersAsync returns mapped users")]
         public async Task GetUsersAsync_ReturnsMappedUsers()
         {
@@ -93,6 +100,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
             Assert.Equal("Bob Example", users[1].Name);
         }
 
+        /// <summary>
+        /// GetAirComfortAsync returns mapped air comfort.
+        /// </summary>
         [Fact(DisplayName = "GetAirComfortAsync returns mapped air comfort")]
         public async Task GetAirComfortAsync_ReturnsMappedAirComfort()
         {
@@ -141,6 +151,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
             Assert.Equal(76, airComfort.Comfort[0].Coordinate?.Angular);
         }
 
+        /// <summary>
+        /// GetInstallationsAsync returns mapped installations.
+        /// </summary>
         [Fact(DisplayName = "GetInstallationsAsync returns mapped installations")]
         public async Task GetInstallationsAsync_ReturnsMappedInstallations()
         {
@@ -178,6 +191,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
             Assert.Equal("VA1234567890", installations[0].Devices[0].SerialNo);
         }
 
+        /// <summary>
+        /// GetInstallationAsync returns mapped installation.
+        /// </summary>
         [Fact(DisplayName = "GetInstallationAsync returns mapped installation")]
         public async Task GetInstallationAsync_ReturnsMappedInstallation()
         {
@@ -212,6 +228,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
             Assert.Equal("VA1234567890", installation.Devices[0].SerialNo);
         }
 
+        /// <summary>
+        /// GetInvitationsAsync returns mapped invitations.
+        /// </summary>
         [Fact(DisplayName = "GetInvitationsAsync returns mapped invitations")]
         public async Task GetInvitationsAsync_ReturnsMappedInvitations()
         {
@@ -256,6 +275,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
             Assert.Equal("My Home", invitations[0].Inviter?.Home?.Name);
         }
 
+        /// <summary>
+        /// GetIncidentDetectionAsync returns mapped incident detection.
+        /// </summary>
         [Fact(DisplayName = "GetIncidentDetectionAsync returns mapped incident detection")]
         public async Task GetIncidentDetectionAsync_ReturnsMappedIncidentDetection()
         {
@@ -277,6 +299,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
             Assert.False(incidentDetection.Supported);
         }
 
+        /// <summary>
+        /// GetHeatingCircuitsAsync returns mapped heating circuits.
+        /// </summary>
         [Fact(DisplayName = "GetHeatingCircuitsAsync returns mapped heating circuits")]
         public async Task GetHeatingCircuitsAsync_ReturnsMappedHeatingCircuits()
         {
@@ -301,6 +326,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
             Assert.Equal("BR3209250550", circuits[0].DriverShortSerialNo);
         }
 
+        /// <summary>
+        /// GetHeatingSystemAsync returns mapped heating system.
+        /// </summary>
         [Fact(DisplayName = "GetHeatingSystemAsync returns mapped heating system")]
         public async Task GetHeatingSystemAsync_ReturnsMappedHeatingSystem()
         {
@@ -330,6 +358,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
             Assert.False(heatingSystem.UnderfloorHeating?.Present);
         }
 
+        /// <summary>
+        /// GetFlowTemperatureOptimisationAsync returns mapped flow temperature optimisation.
+        /// </summary>
         [Fact(DisplayName = "GetFlowTemperatureOptimisationAsync returns mapped flow temperature optimisation")]
         public async Task GetFlowTemperatureOptimisationAsync_ReturnsMappedFlowTemperatureOptimisation()
         {
@@ -365,6 +396,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
             Assert.Equal("BR1234567890", flowTemperatureOptimisation.OpenThermDeviceSerialNumber);
         }
 
+        /// <summary>
+        /// SetHomePresenceAsync sends the spec-aligned presence lock command.
+        /// </summary>
         [Fact(DisplayName = "SetHomePresenceAsync sends the spec-aligned presence lock command")]
         public async Task SetHomePresenceAsync_SendsSpecAlignedPresenceLockCommand()
         {
@@ -391,6 +425,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                 Times.Once);
         }
 
+        /// <summary>
+        /// SetHomePresenceAsync rejects invalid presence values.
+        /// </summary>
         [Fact(DisplayName = "SetHomePresenceAsync rejects invalid presence values")]
         public async Task SetHomePresenceAsync_RejectsInvalidPresenceValues()
         {
@@ -409,6 +446,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                 It.IsAny<object?>()), Times.Never);
         }
 
+        /// <summary>
+        /// ResetHomePresenceAsync sends the spec-aligned presence lock delete command.
+        /// </summary>
         [Fact(DisplayName = "ResetHomePresenceAsync sends the spec-aligned presence lock delete command")]
         public async Task ResetHomePresenceAsync_SendsSpecAlignedPresenceLockDeleteCommand()
         {
@@ -435,6 +475,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                 Times.Once);
         }
 
+        /// <summary>
+        /// SetAwayRadiusInMetersAsync sends the spec-aligned away-radius command.
+        /// </summary>
         [Fact(DisplayName = "SetAwayRadiusInMetersAsync sends the spec-aligned away-radius command")]
         public async Task SetAwayRadiusInMetersAsync_SendsSpecAlignedAwayRadiusCommand()
         {
@@ -461,6 +504,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                 Times.Once);
         }
 
+        /// <summary>
+        /// SetAwayRadiusInMetersAsync rejects negative distances.
+        /// </summary>
         [Fact(DisplayName = "SetAwayRadiusInMetersAsync rejects negative distances")]
         public async Task SetAwayRadiusInMetersAsync_RejectsNegativeDistances()
         {
@@ -479,6 +525,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                 It.IsAny<object?>()), Times.Never);
         }
 
+        /// <summary>
+        /// SetIncidentDetectionAsync sends the spec-aligned incident-detection command.
+        /// </summary>
         [Fact(DisplayName = "SetIncidentDetectionAsync sends the spec-aligned incident-detection command")]
         public async Task SetIncidentDetectionAsync_SendsSpecAlignedIncidentDetectionCommand()
         {
@@ -505,6 +554,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                 Times.Once);
         }
 
+        /// <summary>
+        /// SetHomeDetailsAsync sends the spec-aligned home-details command.
+        /// </summary>
         [Fact(DisplayName = "SetHomeDetailsAsync sends the spec-aligned home-details command")]
         public async Task SetHomeDetailsAsync_SendsSpecAlignedHomeDetailsCommand()
         {
@@ -569,6 +621,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                 Times.Once);
         }
 
+        /// <summary>
+        /// SetHomeDetailsAsync rejects missing home names.
+        /// </summary>
         [Fact(DisplayName = "SetHomeDetailsAsync rejects missing home names")]
         public async Task SetHomeDetailsAsync_RejectsMissingHomeNames()
         {
@@ -594,6 +649,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                 It.IsAny<object?>()), Times.Never);
         }
 
+        /// <summary>
+        /// SetFlowTemperatureOptimisationAsync sends the spec-aligned flow-temperature command.
+        /// </summary>
         [Fact(DisplayName = "SetFlowTemperatureOptimisationAsync sends the spec-aligned flow-temperature command")]
         public async Task SetFlowTemperatureOptimisationAsync_SendsSpecAlignedFlowTemperatureCommand()
         {
@@ -620,6 +678,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                 Times.Once);
         }
 
+        /// <summary>
+        /// SendInvitationAsync sends the spec-aligned invitation command.
+        /// </summary>
         [Fact(DisplayName = "SendInvitationAsync sends the spec-aligned invitation command")]
         public async Task SendInvitationAsync_SendsSpecAlignedInvitationCommand()
         {
@@ -654,6 +715,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                 Times.Once);
         }
 
+        /// <summary>
+        /// SendInvitationAsync rejects missing email.
+        /// </summary>
         [Fact(DisplayName = "SendInvitationAsync rejects missing email")]
         public async Task SendInvitationAsync_RejectsMissingEmail()
         {
@@ -670,6 +734,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                 It.IsAny<CancellationToken>()), Times.Never);
         }
 
+        /// <summary>
+        /// DeleteInvitationAsync sends the spec-aligned invitation delete command.
+        /// </summary>
         [Fact(DisplayName = "DeleteInvitationAsync sends the spec-aligned invitation delete command")]
         public async Task DeleteInvitationAsync_SendsSpecAlignedInvitationDeleteCommand()
         {
@@ -696,6 +763,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                 Times.Once);
         }
 
+        /// <summary>
+        /// ResendInvitationAsync sends the spec-aligned invitation resend command.
+        /// </summary>
         [Fact(DisplayName = "ResendInvitationAsync sends the spec-aligned invitation resend command")]
         public async Task ResendInvitationAsync_SendsSpecAlignedInvitationResendCommand()
         {
@@ -720,6 +790,46 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                     HttpStatusCode.NoContent,
                     null),
                 Times.Once);
+        }
+
+        /// <summary>
+        /// GetHomeAsync throws TadoApiException when API returns Unauthorized.
+        /// </summary>
+        [Fact(DisplayName = "GetHomeAsync throws TadoApiException when API returns Unauthorized")]
+        public async Task GetHomeAsync_ShouldThrowTadoApiException_WhenApiReturnsUnauthorized()
+        {
+            var mockHttp = MockTadoHttpClient.CreateGet<TadoHouseResponse>(
+                returnValue: null!,
+                transientFailures: int.MaxValue,
+                transientException: new TadoApiException(HttpStatusCode.Unauthorized, "Unauthorized"));
+
+            var service = new TadoHomeService(mockHttp.Object);
+
+            var exception = await Assert.ThrowsAsync<TadoApiException>(() =>
+                service.GetHomeAsync(homeId: 1, CancellationToken.None));
+
+            Assert.Equal(HttpStatusCode.Unauthorized, exception.StatusCode);
+        }
+
+        /// <summary>
+        /// GetUsersAsync throws TadoApiException with ServiceUnavailable when network fails.
+        /// </summary>
+        [Fact(DisplayName = "GetUsersAsync throws TadoApiException with ServiceUnavailable when network fails")]
+        public async Task GetUsersAsync_ShouldThrowTadoApiException_WhenNetworkFails()
+        {
+            // GetUsersAsync wraps HttpRequestException → TadoApiException(ServiceUnavailable).
+            // GetHomeAsync has no catch block and would propagate HttpRequestException unchanged.
+            var mockHttp = MockTadoHttpClient.CreateGet<List<TadoUserResponse>>(
+                returnValue: null!,
+                transientFailures: int.MaxValue,
+                transientException: new HttpRequestException("Network failed"));
+
+            var service = new TadoHomeService(mockHttp.Object);
+
+            var exception = await Assert.ThrowsAsync<TadoApiException>(() =>
+                service.GetUsersAsync(homeId: 1, CancellationToken.None));
+
+            Assert.Equal(HttpStatusCode.ServiceUnavailable, exception.StatusCode);
         }
     }
 }

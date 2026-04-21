@@ -6,6 +6,9 @@ namespace TadoNetApi.Tests.Domain
 {
     public class HomeTests
     {
+        /// <summary>
+        /// Test.
+        /// </summary>
         [Fact]
         public void Can_Create_Home_With_Properties()
         {

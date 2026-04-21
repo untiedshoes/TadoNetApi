@@ -1,6 +1,9 @@
+using System.Net;
+using System.Net.Http;
 using TadoNetApi.Domain.Entities;
 using TadoNetApi.Domain.Interfaces;
 using TadoNetApi.Infrastructure.Dtos.Responses;
+using TadoNetApi.Infrastructure.Exceptions;
 using TadoNetApi.Infrastructure.Http;
 using TadoNetApi.Infrastructure.Mappers;
 using TadoNetApi.Infrastructure.Validation;
@@ -24,11 +27,19 @@ namespace TadoNetApi.Infrastructure.Services
             Guard.NotNullOrWhiteSpace(bridgeId, nameof(bridgeId));
             Guard.NotNullOrWhiteSpace(authKey, nameof(authKey));
 
-            var dto = await _httpClient.GetAsync<TadoBridgeResponse>(
-                $"bridges/{Uri.EscapeDataString(bridgeId)}?authKey={Uri.EscapeDataString(authKey)}",
-                cancellationToken);
+            try
+            {
+                var dto = await _httpClient.GetAsync<TadoBridgeResponse>(
+                    $"bridges/{Uri.EscapeDataString(bridgeId)}?authKey={Uri.EscapeDataString(authKey)}",
+                    cancellationToken);
 
-            return dto == null ? null : dto.ToDomain();
+                return dto == null ? null : dto.ToDomain();
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new TadoApiException(HttpStatusCode.ServiceUnavailable,
+                    $"Failed to retrieve bridge: {ex.Message}");
+            }
         }
     }
 }

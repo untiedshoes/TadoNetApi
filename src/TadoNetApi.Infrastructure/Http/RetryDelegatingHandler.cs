@@ -51,7 +51,11 @@ public class RetryDelegatingHandler : DelegatingHandler
 
             if (attempt > _config.MaxRetries)
             {
-                _logger.LogError("Tado API rate limit exceeded after {Attempts} attempts.", attempt);
+                _logger.LogError(
+                    "Tado API rate limit exceeded after {Attempts} attempts. {Method} {Uri}",
+                    attempt,
+                    retryRequest.Method,
+                    retryRequest.RequestUri);
                 var exception = new RequestThrottledException(retryRequest, response);
                 response.Dispose();
                 throw exception;
@@ -62,7 +66,9 @@ public class RetryDelegatingHandler : DelegatingHandler
             var throttledException = new RequestThrottledException(retryRequest, response);
 
             _logger.LogWarning(
-                "Tado API rate limited. Attempt {Attempt}/{MaxRetries}. Waiting {Seconds}s before retrying. Policy={Policy} Remaining={Remaining} Reset={Reset}s",
+                "Tado API rate limited. {Method} {Uri} Attempt {Attempt}/{MaxRetries}. Waiting {Seconds}s before retrying. Policy={Policy} Remaining={Remaining} Reset={Reset}s",
+                retryRequest.Method,
+                retryRequest.RequestUri,
                 attempt,
                 _config.MaxRetries,
                 waitSeconds,

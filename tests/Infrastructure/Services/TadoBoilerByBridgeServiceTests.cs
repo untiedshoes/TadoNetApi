@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Moq;
 using TadoNetApi.Infrastructure.Dtos.Requests;
 using TadoNetApi.Infrastructure.Dtos.Responses;
+using TadoNetApi.Infrastructure.Exceptions;
 using TadoNetApi.Infrastructure.Http;
 using TadoNetApi.Infrastructure.Services;
 using Xunit;
@@ -14,6 +15,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
 {
     public class TadoBoilerByBridgeServiceTests
     {
+        /// <summary>
+        /// GetBoilerInfoAsync returns mapped boiler info.
+        /// </summary>
         [Fact(DisplayName = "GetBoilerInfoAsync returns mapped boiler info")]
         public async Task GetBoilerInfoAsync_ReturnsMappedBoilerInfo()
         {
@@ -37,6 +41,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
             Assert.Equal(2699, boilerInfo.BoilerId);
         }
 
+        /// <summary>
+        /// GetBoilerMaxOutputTemperatureAsync returns mapped output temperature.
+        /// </summary>
         [Fact(DisplayName = "GetBoilerMaxOutputTemperatureAsync returns mapped output temperature")]
         public async Task GetBoilerMaxOutputTemperatureAsync_ReturnsMappedOutputTemperature()
         {
@@ -58,6 +65,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
             Assert.Equal(55, temperature!.BoilerMaxOutputTemperatureInCelsius);
         }
 
+        /// <summary>
+        /// SetBoilerMaxOutputTemperatureAsync sends bridge-scoped max output temperature command.
+        /// </summary>
         [Fact(DisplayName = "SetBoilerMaxOutputTemperatureAsync sends bridge-scoped max output temperature command")]
         public async Task SetBoilerMaxOutputTemperatureAsync_SendsBridgeScopedCommand()
         {
@@ -84,6 +94,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                 Times.Once);
         }
 
+        /// <summary>
+        /// GetBoilerWiringInstallationStateAsync returns mapped boiler wiring state.
+        /// </summary>
         [Fact(DisplayName = "GetBoilerWiringInstallationStateAsync returns mapped boiler wiring state")]
         public async Task GetBoilerWiringInstallationStateAsync_ReturnsMappedBoilerWiringState()
         {
@@ -125,6 +138,44 @@ namespace TadoNetApi.Tests.Infrastructure.Services
             Assert.True(state.HotWaterZonePresent);
             Assert.Equal("BR123456789", state.DeviceWiredToBoiler?.SerialNo);
             Assert.Equal(56, state.Boiler?.OutputTemperature?.Celsius);
+        }
+
+        /// <summary>
+        /// GetBoilerInfoAsync throws TadoApiException when API returns Unauthorized.
+        /// </summary>
+        [Fact(DisplayName = "GetBoilerInfoAsync throws TadoApiException when API returns Unauthorized")]
+        public async Task GetBoilerInfoAsync_ShouldThrowTadoApiException_WhenApiReturnsUnauthorized()
+        {
+            var mockHttp = new Mock<IPublicTadoHttpClient>();
+            mockHttp
+                .Setup(c => c.GetAsync<TadoBoilerInfoResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new TadoApiException(HttpStatusCode.Unauthorized, "Unauthorized"));
+
+            var service = new TadoBoilerByBridgeService(mockHttp.Object);
+
+            var exception = await Assert.ThrowsAsync<TadoApiException>(() =>
+                service.GetBoilerInfoAsync("IB3328595968", "1234", CancellationToken.None));
+
+            Assert.Equal(HttpStatusCode.Unauthorized, exception.StatusCode);
+        }
+
+        /// <summary>
+        /// GetBoilerInfoAsync throws TadoApiException with ServiceUnavailable when network fails.
+        /// </summary>
+        [Fact(DisplayName = "GetBoilerInfoAsync throws TadoApiException with ServiceUnavailable when network fails")]
+        public async Task GetBoilerInfoAsync_ShouldThrowTadoApiException_WhenNetworkFails()
+        {
+            var mockHttp = new Mock<IPublicTadoHttpClient>();
+            mockHttp
+                .Setup(c => c.GetAsync<TadoBoilerInfoResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new HttpRequestException("Network failed"));
+
+            var service = new TadoBoilerByBridgeService(mockHttp.Object);
+
+            var exception = await Assert.ThrowsAsync<TadoApiException>(() =>
+                service.GetBoilerInfoAsync("IB3328595968", "1234", CancellationToken.None));
+
+            Assert.Equal(HttpStatusCode.ServiceUnavailable, exception.StatusCode);
         }
     }
 }

@@ -1,8 +1,12 @@
+using System.Collections.Generic;
+using System.Net;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using TadoNetApi.Domain.Enums;
 using TadoNetApi.Domain.Entities;
 using TadoNetApi.Infrastructure.Dtos.Responses;
+using TadoNetApi.Infrastructure.Exceptions;
 using TadoNetApi.Infrastructure.Http;
 using TadoNetApi.Infrastructure.Services;
 using TadoNetApi.Tests.Mocks;
@@ -13,6 +17,76 @@ namespace TadoNetApi.Tests.Infrastructure.Services
 {
     public class TadoZoneServiceReadTests
     {
+        /// <summary>
+        /// GetZonesAsync returns mapped zones when API returns valid response.
+        /// </summary>
+        [Fact(DisplayName = "GetZonesAsync returns mapped zones when API returns valid response")]
+        public async Task GetZonesAsync_ShouldReturnZones_WhenApiReturnsValidResponse()
+        {
+            // Arrange
+            var response = new List<TadoZoneResponse>
+            {
+                new TadoZoneResponse { Id = 1, Name = "Living Room", CurrentType = "HEATING" },
+                new TadoZoneResponse { Id = 2, Name = "Bedroom", CurrentType = "HEATING" }
+            };
+
+            var mockHttp = MockTadoHttpClient.CreateGet(response);
+            var service = new TadoZoneService(mockHttp.Object);
+
+            // Act
+            var zones = await service.GetZonesAsync(homeId: 1, CancellationToken.None);
+
+            // Assert
+            Assert.Equal(2, zones.Count);
+            Assert.Equal("Living Room", zones[0].Name);
+            Assert.Equal("Bedroom", zones[1].Name);
+        }
+
+        /// <summary>
+        /// GetZonesAsync throws TadoApiException with 401 when API returns Unauthorized.
+        /// </summary>
+        [Fact(DisplayName = "GetZonesAsync throws TadoApiException with 401 when API returns Unauthorized")]
+        public async Task GetZonesAsync_ShouldThrowTadoApiException_WhenApiReturns401()
+        {
+            // Arrange
+            var mockHttp = MockTadoHttpClient.CreateGet<List<TadoZoneResponse>>(
+                returnValue: null!,
+                transientFailures: int.MaxValue,
+                transientException: new TadoApiException(HttpStatusCode.Unauthorized, "Unauthorized"));
+
+            var service = new TadoZoneService(mockHttp.Object);
+
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<TadoApiException>(() =>
+                service.GetZonesAsync(homeId: 1, CancellationToken.None));
+
+            Assert.Equal(HttpStatusCode.Unauthorized, exception.StatusCode);
+        }
+
+        /// <summary>
+        /// GetZonesAsync propagates TadoApiException with RequestTimeout when request times out.
+        /// </summary>
+        [Fact(DisplayName = "GetZonesAsync propagates TadoApiException with RequestTimeout when request times out")]
+        public async Task GetZonesAsync_ShouldThrowTadoApiException_WhenRequestTimesOut()
+        {
+            // Arrange — TadoHttpClient translates TaskCanceledException → TadoApiException(RequestTimeout)
+            var mockHttp = MockTadoHttpClient.CreateGet<List<TadoZoneResponse>>(
+                returnValue: null!,
+                transientFailures: int.MaxValue,
+                transientException: new TadoApiException(HttpStatusCode.RequestTimeout, "Request timed out"));
+
+            var service = new TadoZoneService(mockHttp.Object);
+
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<TadoApiException>(() =>
+                service.GetZonesAsync(homeId: 1, CancellationToken.None));
+
+            Assert.Equal(HttpStatusCode.RequestTimeout, exception.StatusCode);
+        }
+
+        /// <summary>
+        /// GetZoneControlAsync returns mapped zone control.
+        /// </summary>
         [Fact(DisplayName = "GetZoneControlAsync returns mapped zone control")]
         public async Task GetZoneControlAsync_ReturnsMappedZoneControl()
         {
@@ -58,6 +132,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
             Assert.Equal("VA1234567890", control.Duties?.Drivers?[0].SerialNo);
         }
 
+        /// <summary>
+        /// GetDefaultZoneOverlayAsync returns mapped default overlay.
+        /// </summary>
         [Fact(DisplayName = "GetDefaultZoneOverlayAsync returns mapped default overlay")]
         public async Task GetDefaultZoneOverlayAsync_ReturnsMappedDefaultOverlay()
         {
@@ -83,6 +160,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
             Assert.Equal(900, defaultOverlay.TerminationCondition?.DurationInSeconds);
         }
 
+        /// <summary>
+        /// GetAwayConfigurationAsync returns mapped away configuration.
+        /// </summary>
         [Fact(DisplayName = "GetAwayConfigurationAsync returns mapped away configuration")]
         public async Task GetAwayConfigurationAsync_ReturnsMappedAwayConfiguration()
         {
@@ -114,6 +194,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
             Assert.Equal(15, awayConfiguration.Setting?.Temperature?.Celsius);
         }
 
+        /// <summary>
+        /// GetActiveTimetableTypeAsync returns mapped timetable type.
+        /// </summary>
         [Fact(DisplayName = "GetActiveTimetableTypeAsync returns mapped timetable type")]
         public async Task GetActiveTimetableTypeAsync_ReturnsMappedTimetableType()
         {
@@ -133,6 +216,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
             Assert.Equal("ONE_DAY", timetableType.Type);
         }
 
+        /// <summary>
+        /// GetZoneTimetablesAsync returns mapped timetable types.
+        /// </summary>
         [Fact(DisplayName = "GetZoneTimetablesAsync returns mapped timetable types")]
         public async Task GetZoneTimetablesAsync_ReturnsMappedTimetableTypes()
         {
@@ -153,6 +239,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
             Assert.Equal("SEVEN_DAY", timetableTypes[2].Type);
         }
 
+        /// <summary>
+        /// GetZoneTimetableAsync uses the timetable type route and returns the mapped result.
+        /// </summary>
         [Fact(DisplayName = "GetZoneTimetableAsync uses the timetable type route and returns the mapped result")]
         public async Task GetZoneTimetableAsync_UsesExpectedRoute()
         {
@@ -179,6 +268,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
             mockHttp.VerifyAll();
         }
 
+        /// <summary>
+        /// GetZoneTimetableBlocksAsync returns mapped timetable blocks.
+        /// </summary>
         [Fact(DisplayName = "GetZoneTimetableBlocksAsync returns mapped timetable blocks")]
         public async Task GetZoneTimetableBlocksAsync_ReturnsMappedTimetableBlocks()
         {
@@ -210,6 +302,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
             Assert.Equal(20, blocks[0].Setting?.Temperature?.Celsius);
         }
 
+        /// <summary>
+        /// GetTimetableBlocksByDayTypeAsync appends the day type to the route.
+        /// </summary>
         [Fact(DisplayName = "GetTimetableBlocksByDayTypeAsync appends the day type to the route")]
         public async Task GetTimetableBlocksByDayTypeAsync_UsesExpectedRoute()
         {
@@ -246,6 +341,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
             mockHttp.VerifyAll();
         }
 
+        /// <summary>
+        /// GetZoneDayReportAsync returns mapped typed day report.
+        /// </summary>
         [Fact(DisplayName = "GetZoneDayReportAsync returns mapped typed day report")]
         public async Task GetZoneDayReportAsync_ReturnsMappedZoneDayReport()
         {
@@ -321,6 +419,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
             Assert.Equal("SUN", dayReport.Weather?.Slots?.Slots?["12:00"].State);
         }
 
+        /// <summary>
+        /// GetZoneDayReportAsync appends the optional date query.
+        /// </summary>
         [Fact(DisplayName = "GetZoneDayReportAsync appends the optional date query")]
         public async Task GetZoneDayReportAsync_WithDate_UsesExpectedPath()
         {

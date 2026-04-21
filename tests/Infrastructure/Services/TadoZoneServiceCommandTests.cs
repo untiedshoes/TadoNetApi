@@ -20,6 +20,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
     /// </summary>
     public class TadoZoneServiceCommandTests
     {
+        /// <summary>
+        /// DeleteZoneOverlayAsync sends the spec-aligned overlay delete command.
+        /// </summary>
         [Fact(DisplayName = "DeleteZoneOverlayAsync sends the spec-aligned overlay delete command")]
         public async Task DeleteZoneOverlayAsync_SendsSpecAlignedOverlayDeleteCommand()
         {
@@ -48,6 +51,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                 Times.Once);
         }
 
+        /// <summary>
+        /// SetHeatingCircuitAsync sends the spec-aligned heating circuit command.
+        /// </summary>
         [Fact(DisplayName = "SetHeatingCircuitAsync sends the spec-aligned heating circuit command")]
         public async Task SetHeatingCircuitAsync_SendsSpecAlignedHeatingCircuitCommand()
         {
@@ -82,6 +88,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                 It.IsAny<CancellationToken>()), Times.Once);
         }
 
+        /// <summary>
+        /// SetHeatingCircuitAsync sends an empty body to remove the heating circuit assignment.
+        /// </summary>
         [Fact(DisplayName = "SetHeatingCircuitAsync sends an empty body to remove the heating circuit assignment")]
         public async Task SetHeatingCircuitAsync_NullCircuit_SendsEmptyBody()
         {
@@ -115,6 +124,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                 It.IsAny<CancellationToken>()), Times.Once);
         }
 
+        /// <summary>
+        /// SetHeatingCircuitAsync rejects non-positive circuit numbers.
+        /// </summary>
         [Fact(DisplayName = "SetHeatingCircuitAsync rejects non-positive circuit numbers")]
         public async Task SetHeatingCircuitAsync_RejectsNonPositiveCircuitNumbers()
         {
@@ -130,6 +142,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                 It.IsAny<CancellationToken>()), Times.Never);
         }
 
+        /// <summary>
+        /// SetOpenWindowDetectionAsync sends the spec-aligned open window detection command.
+        /// </summary>
         [Fact(DisplayName = "SetOpenWindowDetectionAsync sends the spec-aligned open window detection command")]
         public async Task SetOpenWindowDetectionAsync_SendsSpecAlignedOpenWindowDetectionCommand()
         {
@@ -172,6 +187,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                 Times.Once);
         }
 
+        /// <summary>
+        /// SetOpenWindowDetectionAsync requires enabled state and timeout.
+        /// </summary>
         [Fact(DisplayName = "SetOpenWindowDetectionAsync requires enabled state and timeout")]
         public async Task SetOpenWindowDetectionAsync_RequiresEnabledStateAndTimeout()
         {
@@ -192,6 +210,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                 It.IsAny<object?>()), Times.Never);
         }
 
+        /// <summary>
+        /// SetOpenWindowDetectionAsync rejects negative timeout.
+        /// </summary>
         [Fact(DisplayName = "SetOpenWindowDetectionAsync rejects negative timeout")]
         public async Task SetOpenWindowDetectionAsync_RejectsNegativeTimeout()
         {
@@ -209,6 +230,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                 It.IsAny<object?>()), Times.Never);
         }
 
+        /// <summary>
+        /// ActivateOpenWindowAsync sends the spec-aligned open window activation command.
+        /// </summary>
         [Fact(DisplayName = "ActivateOpenWindowAsync sends the spec-aligned open window activation command")]
         public async Task ActivateOpenWindowAsync_SendsSpecAlignedOpenWindowActivationCommand()
         {
@@ -236,6 +260,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                 Times.Once);
         }
 
+        /// <summary>
+        /// ResetOpenWindowAsync sends the spec-aligned open window reset command.
+        /// </summary>
         [Fact(DisplayName = "ResetOpenWindowAsync sends the spec-aligned open window reset command")]
         public async Task ResetOpenWindowAsync_SendsSpecAlignedOpenWindowResetCommand()
         {
@@ -263,6 +290,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                 Times.Once);
         }
 
+        /// <summary>
+        /// SetZoneDetailsAsync sends the spec-aligned zone details command.
+        /// </summary>
         [Fact(DisplayName = "SetZoneDetailsAsync sends the spec-aligned zone details command")]
         public async Task SetZoneDetailsAsync_SendsSpecAlignedZoneDetailsCommand()
         {
@@ -298,6 +328,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                 It.IsAny<CancellationToken>()), Times.Once);
         }
 
+        /// <summary>
+        /// SetZoneDetailsAsync requires a zone name.
+        /// </summary>
         [Fact(DisplayName = "SetZoneDetailsAsync requires a zone name")]
         public async Task SetZoneDetailsAsync_RequiresZoneName()
         {
@@ -313,6 +346,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                 It.IsAny<CancellationToken>()), Times.Never);
         }
 
+        /// <summary>
+        /// SetDefaultZoneOverlayAsync sends the spec-aligned default overlay command.
+        /// </summary>
         [Fact(DisplayName = "SetDefaultZoneOverlayAsync sends the spec-aligned default overlay command")]
         public async Task SetDefaultZoneOverlayAsync_SendsSpecAlignedDefaultOverlayCommand()
         {
@@ -364,6 +400,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                 It.IsAny<CancellationToken>()), Times.Once);
         }
 
+        /// <summary>
+        /// SetDefaultZoneOverlayAsync requires termination details.
+        /// </summary>
         [Fact(DisplayName = "SetDefaultZoneOverlayAsync requires termination details")]
         public async Task SetDefaultZoneOverlayAsync_RequiresTerminationDetails()
         {
@@ -403,6 +442,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                 It.IsAny<CancellationToken>()), Times.Never);
         }
 
+        /// <summary>
+        /// SetZoneOverlaysAsync sends the spec-aligned bulk overlay command.
+        /// </summary>
         [Fact(DisplayName = "SetZoneOverlaysAsync sends the spec-aligned bulk overlay command")]
         public async Task SetZoneOverlaysAsync_SendsSpecAlignedBulkOverlayCommand()
         {
@@ -459,6 +501,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                 Times.Once);
         }
 
+        /// <summary>
+        /// SetZoneOverlaysAsync requires at least one valid overlay.
+        /// </summary>
         [Fact(DisplayName = "SetZoneOverlaysAsync requires at least one valid overlay")]
         public async Task SetZoneOverlaysAsync_RequiresAtLeastOneValidOverlay()
         {
@@ -494,6 +539,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                 It.IsAny<object?>()), Times.Never);
         }
 
+        /// <summary>
+        /// DeleteZoneOverlaysAsync sends the spec-aligned bulk overlay delete command.
+        /// </summary>
         [Fact(DisplayName = "DeleteZoneOverlaysAsync sends the spec-aligned bulk overlay delete command")]
         public async Task DeleteZoneOverlaysAsync_SendsSpecAlignedBulkOverlayDeleteCommand()
         {
@@ -521,6 +569,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                 Times.Once);
         }
 
+        /// <summary>
+        /// DeleteZoneOverlaysAsync requires at least one positive zone ID.
+        /// </summary>
         [Fact(DisplayName = "DeleteZoneOverlaysAsync requires at least one positive zone ID")]
         public async Task DeleteZoneOverlaysAsync_RequiresAtLeastOnePositiveZoneId()
         {
@@ -541,6 +592,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                 It.IsAny<object?>()), Times.Never);
         }
 
+        /// <summary>
+        /// SetAwayConfigurationAsync sends the spec-aligned away configuration command.
+        /// </summary>
         [Fact(DisplayName = "SetAwayConfigurationAsync sends the spec-aligned away configuration command")]
         public async Task SetAwayConfigurationAsync_SendsSpecAlignedAwayConfigurationCommand()
         {
@@ -593,6 +647,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                 Times.Once);
         }
 
+        /// <summary>
+        /// SetAwayConfigurationAsync requires type and setting details.
+        /// </summary>
         [Fact(DisplayName = "SetAwayConfigurationAsync requires type and setting details")]
         public async Task SetAwayConfigurationAsync_RequiresTypeAndSettingDetails()
         {
@@ -631,6 +688,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                 It.IsAny<object?>()), Times.Never);
         }
 
+        /// <summary>
+        /// SetActiveTimetableTypeAsync sends the spec-aligned active timetable command.
+        /// </summary>
         [Fact(DisplayName = "SetActiveTimetableTypeAsync sends the spec-aligned active timetable command")]
         public async Task SetActiveTimetableTypeAsync_SendsSpecAlignedActiveTimetableCommand()
         {
@@ -671,6 +731,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                 It.IsAny<CancellationToken>()), Times.Once);
         }
 
+        /// <summary>
+        /// SetActiveTimetableTypeAsync requires a positive timetable type ID.
+        /// </summary>
         [Fact(DisplayName = "SetActiveTimetableTypeAsync requires a positive timetable type ID")]
         public async Task SetActiveTimetableTypeAsync_RequiresPositiveTimetableTypeId()
         {
@@ -686,6 +749,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                 It.IsAny<CancellationToken>()), Times.Never);
         }
 
+        /// <summary>
+        /// SetTimetableBlocksForDayTypeAsync sends the spec-aligned timetable blocks command.
+        /// </summary>
         [Fact(DisplayName = "SetTimetableBlocksForDayTypeAsync sends the spec-aligned timetable blocks command")]
         public async Task SetTimetableBlocksForDayTypeAsync_SendsSpecAlignedTimetableBlocksCommand()
         {
@@ -752,6 +818,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                 It.IsAny<CancellationToken>()), Times.Once);
         }
 
+        /// <summary>
+        /// SetTimetableBlocksForDayTypeAsync requires day type and valid blocks.
+        /// </summary>
         [Fact(DisplayName = "SetTimetableBlocksForDayTypeAsync requires day type and valid blocks")]
         public async Task SetTimetableBlocksForDayTypeAsync_RequiresDayTypeAndValidBlocks()
         {
@@ -781,6 +850,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                 It.IsAny<CancellationToken>()), Times.Never);
         }
 
+        /// <summary>
+        /// CreateZoneAsync sends the spec-aligned zone creation command.
+        /// </summary>
         [Fact(DisplayName = "CreateZoneAsync sends the spec-aligned zone creation command")]
         public async Task CreateZoneAsync_SendsSpecAlignedZoneCreationCommand()
         {
@@ -819,6 +891,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                 Times.Once);
         }
 
+        /// <summary>
+        /// CreateZoneAsync rejects missing device serial numbers.
+        /// </summary>
         [Fact(DisplayName = "CreateZoneAsync rejects missing device serial numbers")]
         public async Task CreateZoneAsync_RejectsMissingDeviceSerialNumbers()
         {
@@ -837,6 +912,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                 It.IsAny<object?>()), Times.Never);
         }
 
+        /// <summary>
+        /// SetHeatingTemperatureCelsiusAsync falls back to manual when timer is missing.
+        /// </summary>
         [Fact(DisplayName = "SetHeatingTemperatureCelsiusAsync falls back to manual when timer is missing")]
         public async Task SetHeatingTemperatureCelsiusAsync_TimerWithoutTimer_FallsBackToManual()
         {
@@ -888,6 +966,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                 It.IsAny<CancellationToken>()), Times.Once);
         }
 
+        /// <summary>
+        /// SetHeatingTemperatureCelsiusAsync default overload sends a manual heating overlay.
+        /// </summary>
         [Fact(DisplayName = "SetHeatingTemperatureCelsiusAsync default overload sends a manual heating overlay")]
         public async Task SetHeatingTemperatureCelsiusAsync_DefaultOverload_SendsManualHeatingOverlay()
         {
@@ -932,6 +1013,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                 It.IsAny<CancellationToken>()), Times.Once);
         }
 
+        /// <summary>
+        /// SetHeatingTemperatureCelsiusAsync timer mode sets durationInSeconds.
+        /// </summary>
         [Fact(DisplayName = "SetHeatingTemperatureCelsiusAsync timer mode sets durationInSeconds")]
         public async Task SetHeatingTemperatureCelsiusAsync_TimerWithDuration_SetsDurationInSeconds()
         {
@@ -982,6 +1066,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
             Assert.Equal(900, response?.Termination?.DurationInSeconds);
         }
 
+        /// <summary>
+        /// SetHeatingTemperatureFahrenheitAsync sends a Fahrenheit heating overlay.
+        /// </summary>
         [Fact(DisplayName = "SetHeatingTemperatureFahrenheitAsync sends a Fahrenheit heating overlay")]
         public async Task SetHeatingTemperatureFahrenheitAsync_SendsFahrenheitHeatingOverlay()
         {
@@ -1010,6 +1097,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
             Assert.DoesNotContain("\"celsius\"", capturedJson);
         }
 
+        /// <summary>
+        /// SetHotWaterTemperatureCelsiusAsync sends a Celsius hot water overlay.
+        /// </summary>
         [Fact(DisplayName = "SetHotWaterTemperatureCelsiusAsync sends a Celsius hot water overlay")]
         public async Task SetHotWaterTemperatureCelsiusAsync_SendsCelsiusHotWaterOverlay()
         {
@@ -1038,6 +1128,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
             Assert.DoesNotContain("\"fahrenheit\"", capturedJson);
         }
 
+        /// <summary>
+        /// SetHotWaterTemperatureFahrenheitAsync sends a Fahrenheit hot water overlay.
+        /// </summary>
         [Fact(DisplayName = "SetHotWaterTemperatureFahrenheitAsync sends a Fahrenheit hot water overlay")]
         public async Task SetHotWaterTemperatureFahrenheitAsync_SendsFahrenheitHotWaterOverlay()
         {
@@ -1066,6 +1159,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
             Assert.DoesNotContain("\"celsius\"", capturedJson);
         }
 
+        /// <summary>
+        /// SwitchHeatingOffAsync sends an off heating overlay.
+        /// </summary>
         [Fact(DisplayName = "SwitchHeatingOffAsync sends an off heating overlay")]
         public async Task SwitchHeatingOffAsync_SendsOffHeatingOverlay()
         {
@@ -1093,6 +1189,9 @@ namespace TadoNetApi.Tests.Infrastructure.Services
             Assert.DoesNotContain("\"temperature\"", capturedJson);
         }
 
+        /// <summary>
+        /// SwitchHotWaterOffAsync sends an off hot water overlay.
+        /// </summary>
         [Fact(DisplayName = "SwitchHotWaterOffAsync sends an off hot water overlay")]
         public async Task SwitchHotWaterOffAsync_SendsOffHotWaterOverlay()
         {

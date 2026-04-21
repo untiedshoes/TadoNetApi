@@ -4,6 +4,7 @@ using TadoNetApi.Domain.Entities;
 using TadoNetApi.Domain.Interfaces;
 using TadoNetApi.Infrastructure.Dtos.Requests;
 using TadoNetApi.Infrastructure.Dtos.Responses;
+using TadoNetApi.Infrastructure.Exceptions;
 using TadoNetApi.Infrastructure.Http;
 using TadoNetApi.Infrastructure.Mappers;
 using TadoNetApi.Infrastructure.Validation;
@@ -24,14 +25,30 @@ namespace TadoNetApi.Infrastructure.Services
 
         public async Task<BoilerInfo?> GetBoilerInfoAsync(string bridgeId, string authKey, CancellationToken cancellationToken = default)
         {
-            var dto = await _httpClient.GetAsync<TadoBoilerInfoResponse>(BuildEndpoint(bridgeId, authKey, "boilerInfo"), cancellationToken);
-            return dto == null ? null : dto.ToDomain();
+            try
+            {
+                var dto = await _httpClient.GetAsync<TadoBoilerInfoResponse>(BuildEndpoint(bridgeId, authKey, "boilerInfo"), cancellationToken);
+                return dto == null ? null : dto.ToDomain();
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new TadoApiException(HttpStatusCode.ServiceUnavailable,
+                    $"Failed to retrieve boiler info: {ex.Message}");
+            }
         }
 
         public async Task<BoilerMaxOutputTemperature?> GetBoilerMaxOutputTemperatureAsync(string bridgeId, string authKey, CancellationToken cancellationToken = default)
         {
-            var dto = await _httpClient.GetAsync<TadoBoilerMaxOutputTemperatureResponse>(BuildEndpoint(bridgeId, authKey, "boilerMaxOutputTemperature"), cancellationToken);
-            return dto == null ? null : dto.ToDomain();
+            try
+            {
+                var dto = await _httpClient.GetAsync<TadoBoilerMaxOutputTemperatureResponse>(BuildEndpoint(bridgeId, authKey, "boilerMaxOutputTemperature"), cancellationToken);
+                return dto == null ? null : dto.ToDomain();
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new TadoApiException(HttpStatusCode.ServiceUnavailable,
+                    $"Failed to retrieve boiler max output temperature: {ex.Message}");
+            }
         }
 
         public async Task SetBoilerMaxOutputTemperatureAsync(string bridgeId, string authKey, double boilerMaxOutputTemperatureInCelsius, CancellationToken cancellationToken = default)
@@ -49,8 +66,16 @@ namespace TadoNetApi.Infrastructure.Services
 
         public async Task<BoilerWiringInstallationState?> GetBoilerWiringInstallationStateAsync(string bridgeId, string authKey, CancellationToken cancellationToken = default)
         {
-            var dto = await _httpClient.GetAsync<TadoBoilerWiringInstallationStateResponse>(BuildEndpoint(bridgeId, authKey, "boilerWiringInstallationState"), cancellationToken);
-            return dto == null ? null : dto.ToDomain();
+            try
+            {
+                var dto = await _httpClient.GetAsync<TadoBoilerWiringInstallationStateResponse>(BuildEndpoint(bridgeId, authKey, "boilerWiringInstallationState"), cancellationToken);
+                return dto == null ? null : dto.ToDomain();
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new TadoApiException(HttpStatusCode.ServiceUnavailable,
+                    $"Failed to retrieve boiler wiring installation state: {ex.Message}");
+            }
         }
 
         private static string BuildEndpoint(string bridgeId, string authKey, string resource)

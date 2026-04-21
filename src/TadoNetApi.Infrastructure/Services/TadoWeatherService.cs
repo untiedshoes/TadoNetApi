@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http;
 using TadoNetApi.Domain.Entities;
 using TadoNetApi.Domain.Interfaces;
 using TadoNetApi.Infrastructure.Dtos.Responses;
@@ -37,11 +38,19 @@ public class TadoWeatherService : IWeatherService
     {
         Guard.PositiveId(homeId, nameof(homeId));
 
-        var response = await _httpClient.GetAsync<TadoWeatherResponse>($"homes/{homeId}/weather", cancellationToken);
-        if (response == null)
-            throw new TadoApiException(HttpStatusCode.NotFound, $"Weather not found");
+        try
+        {
+            var response = await _httpClient.GetAsync<TadoWeatherResponse>($"homes/{homeId}/weather", cancellationToken);
+            if (response == null)
+                throw new TadoApiException(HttpStatusCode.NotFound, $"Weather not found");
 
-        return WeatherMapper.ToDomain(response);
+            return WeatherMapper.ToDomain(response);
+        }
+        catch (HttpRequestException ex)
+        {
+            throw new TadoApiException(HttpStatusCode.ServiceUnavailable,
+                $"Failed to retrieve weather: {ex.Message}");
+        }
     }
 
     #endregion

@@ -650,5 +650,43 @@ namespace TadoNetApi.Tests.Infrastructure.Services
                 It.IsAny<HttpStatusCode>(),
                 It.IsAny<object?>()), Times.Never);
         }
+
+        /// <summary>
+        /// GetDevicesAsync throws TadoApiException when API returns Unauthorized.
+        /// </summary>
+        [Fact(DisplayName = "GetDevicesAsync throws TadoApiException when API returns Unauthorized")]
+        public async Task GetDevicesAsync_ShouldThrowTadoApiException_WhenApiReturnsUnauthorized()
+        {
+            var mockHttp = MockTadoHttpClient.CreateGet<List<TadoDeviceResponse>>(
+                returnValue: null!,
+                transientFailures: int.MaxValue,
+                transientException: new TadoApiException(HttpStatusCode.Unauthorized, "Unauthorized"));
+
+            var service = new TadoDeviceService(mockHttp.Object);
+
+            var exception = await Assert.ThrowsAsync<TadoApiException>(() =>
+                service.GetDevicesAsync(homeId: 1, CancellationToken.None));
+
+            Assert.Equal(HttpStatusCode.Unauthorized, exception.StatusCode);
+        }
+
+        /// <summary>
+        /// GetDevicesAsync throws TadoApiException with ServiceUnavailable when network fails.
+        /// </summary>
+        [Fact(DisplayName = "GetDevicesAsync throws TadoApiException with ServiceUnavailable when network fails")]
+        public async Task GetDevicesAsync_ShouldThrowTadoApiException_WhenNetworkFails()
+        {
+            var mockHttp = MockTadoHttpClient.CreateGet<List<TadoDeviceResponse>>(
+                returnValue: null!,
+                transientFailures: int.MaxValue,
+                transientException: new HttpRequestException("Network failed"));
+
+            var service = new TadoDeviceService(mockHttp.Object);
+
+            var exception = await Assert.ThrowsAsync<TadoApiException>(() =>
+                service.GetDevicesAsync(homeId: 1, CancellationToken.None));
+
+            Assert.Equal(HttpStatusCode.ServiceUnavailable, exception.StatusCode);
+        }
     }
 }

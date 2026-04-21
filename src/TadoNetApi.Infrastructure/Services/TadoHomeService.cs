@@ -1,3 +1,4 @@
+using System.Net.Http;
 using TadoNetApi.Domain.Entities;
 using TadoNetApi.Domain.Interfaces;
 using TadoNetApi.Infrastructure.Dtos.Requests;
@@ -37,9 +38,16 @@ public class TadoHomeService : IHomeService
     {
         Guard.PositiveId(homeId, nameof(homeId));
 
-        var dto = await _httpClient.GetAsync<TadoHouseResponse>($"homes/{homeId}", cancellationToken);
-
-        return dto == null ? null : HouseMapper.ToDomain(dto);
+        try
+        {
+            var dto = await _httpClient.GetAsync<TadoHouseResponse>($"homes/{homeId}", cancellationToken);
+            return dto == null ? null : HouseMapper.ToDomain(dto);
+        }
+        catch (HttpRequestException ex)
+        {
+            throw new TadoApiException(System.Net.HttpStatusCode.ServiceUnavailable,
+                $"Failed to retrieve home: {ex.Message}");
+        }
     }
 
     /// <summary>
@@ -52,9 +60,16 @@ public class TadoHomeService : IHomeService
     {
         Guard.PositiveId(homeId, nameof(homeId));
 
-        var dto = await _httpClient.GetAsync<TadoHomeStateResponse>($"homes/{homeId}/state", cancellationToken);
-
-        return dto == null ? null : dto.ToDomain();
+        try
+        {
+            var dto = await _httpClient.GetAsync<TadoHomeStateResponse>($"homes/{homeId}/state", cancellationToken);
+            return dto == null ? null : dto.ToDomain();
+        }
+        catch (HttpRequestException ex)
+        {
+            throw new TadoApiException(System.Net.HttpStatusCode.ServiceUnavailable,
+                $"Failed to retrieve home state: {ex.Message}");
+        }
     }
 
     /// <summary>
@@ -165,7 +180,7 @@ public class TadoHomeService : IHomeService
     }
 
     /// <summary>
-    /// Retrieves the incident detection settings for a home.
+    /// Retrieves the incident detection settings for a home. 
     /// </summary>
     /// <param name="homeId">The ID of the home to inspect.</param>
     /// <param name="cancellationToken">The cancellation token to observe.</param>

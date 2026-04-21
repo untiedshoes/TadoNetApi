@@ -9,6 +9,9 @@ namespace TadoNetApi.Tests.Infrastructure.Http;
 
 public class RetryDelegatingHandlerTests
 {
+    /// <summary>
+    /// RetryDelegatingHandler retries 429 responses and returns success.
+    /// </summary>
     [Fact(DisplayName = "RetryDelegatingHandler retries 429 responses and returns success")]
     public async Task SendAsync_RetriesTooManyRequests_AndReturnsSuccess()
     {
@@ -28,6 +31,9 @@ public class RetryDelegatingHandlerTests
         Assert.Equal(2, innerHandler.CallCount);
     }
 
+    /// <summary>
+    /// RetryDelegatingHandler throws RequestThrottledException with rate-limit details.
+    /// </summary>
     [Fact(DisplayName = "RetryDelegatingHandler throws RequestThrottledException with rate-limit details")]
     public async Task SendAsync_ThrowsRequestThrottledException_WithRateLimitDetails()
     {

@@ -169,9 +169,11 @@ TadoNetApi/
 ├─ tests/                        # Unit and integration tests
 │  ├─ Application/Services/      # AppService delegation/orchestration tests
 │  ├─ Domain/                    # Entity tests
+│  ├─ Fakes/                     # FakeHttpMessageHandler for HttpClient-level tests
+│  ├─ Infrastructure/Http/       # TadoHttpClient and RetryDelegatingHandler tests
 │  ├─ Infrastructure/Services/   # HTTP, mapping, and command behavior tests
 │  ├─ Integration/               # Real API integration tests
-│  └─ Mocks/                     # Mock services and HTTP helpers
+│  └─ Mocks/                     # MockTadoHttpClient helpers (Moq-based)
 ├─ docs/                         # Machine-readable SDK reference and supporting docs
 └─ .gitignore
 ```
@@ -359,12 +361,21 @@ Those values are only for the integration test harness. They are not part of the
 
 ## Testing
 
-The test project covers domain behavior, mapping, service-level logic, and selected integration paths against the real API surface.
+The test project covers domain behavior, mapping, service-level logic, HTTP transport behavior, and selected integration paths against the real API surface.
 
 - Unit tests live in the `tests` project
 - xUnit is used as the test framework
-- Moq is used for isolation around infrastructure dependencies
+- Moq is used for interface-level isolation (`ITadoHttpClient`, `IZoneService`, etc.)
+- `FakeHttpMessageHandler` in `tests/Fakes/` wires a delegate directly into `HttpClient` to test `TadoHttpClient` without a live network
 - Coverlet is included for coverage collection
+
+**Failure path coverage includes:**
+- 4xx responses: 400, 401, 403, 404
+- 5xx responses: 500, 503 (network failure → `ServiceUnavailable`)
+- Timeouts and caller cancellation (`TaskCanceledException` → `TadoApiException(RequestTimeout)`)
+- Malformed JSON response (`UnprocessableEntity`)
+- Null deserialization on 200 OK
+- Rate-limit exhaustion (`RequestThrottledException` with parsed headers)
 
 Run tests with:
 ```bash

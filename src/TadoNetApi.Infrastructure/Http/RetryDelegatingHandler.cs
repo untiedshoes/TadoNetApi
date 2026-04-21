@@ -47,16 +47,31 @@ public class RetryDelegatingHandler : DelegatingHandler
             HttpResponseMessage response = await base.SendAsync(retryRequest, cancellationToken);
 
             if (response.StatusCode != (HttpStatusCode)429) // Not rate-limited
+            {
+                // Log a recovery message so that a preceding rate-limit warning
+                // isn't left dangling in the log without a resolution event.
+                if (attempt > 1)
+                    _logger.LogInformation(
+                        "Tado API recovered after {Attempts} retries. {Method} {Uri}",
+                        attempt - 1,
+                        retryRequest.Method,
+                        retryRequest.RequestUri);
                 return response;
+            }
 
             if (attempt > _config.MaxRetries)
             {
+                // Include the rate-limit headers on the terminal error so the full
+                // context is available even if the preceding warnings were filtered out.
+                var exception = new RequestThrottledException(retryRequest, response);
                 _logger.LogError(
-                    "Tado API rate limit exceeded after {Attempts} attempts. {Method} {Uri}",
+                    "Tado API rate limit exceeded after {Attempts} attempts. {Method} {Uri} Policy={Policy} Remaining={Remaining} Reset={Reset}s",
                     attempt,
                     retryRequest.Method,
-                    retryRequest.RequestUri);
-                var exception = new RequestThrottledException(retryRequest, response);
+                    retryRequest.RequestUri,
+                    exception.RateLimitPolicyName,
+                    exception.RemainingRequests,
+                    exception.ResetTimeSeconds);
                 response.Dispose();
                 throw exception;
             }

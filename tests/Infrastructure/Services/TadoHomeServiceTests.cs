@@ -19,6 +19,8 @@ namespace TadoNetApi.Tests.Infrastructure.Services
 {
     public class TadoHomeServiceTests
     {
+        #region Happy-path tests
+
         /// <summary>
         /// GetHomeAsync returns mapped house with incident detection.
         /// </summary>
@@ -832,4 +834,5 @@ namespace TadoNetApi.Tests.Infrastructure.Services
             Assert.Equal(HttpStatusCode.ServiceUnavailable, exception.StatusCode);
         }
     }
+    #endregion 
 }

@@ -26,6 +26,8 @@ namespace TadoNetApi.Tests.Infrastructure.Services
     /// </summary>
     public class TadoDeviceServiceTests
     {
+        #region Happy-path tests
+
         /// <summary>
         /// Tests that <see cref="TadoDeviceService.GetDevicesAsync"/> returns a mapped list of devices.
         /// </summary>
@@ -178,6 +180,10 @@ namespace TadoNetApi.Tests.Infrastructure.Services
             Assert.Equal("SU3339800320", entry.Device.ShortSerialNo);
             Assert.Contains("UI", entry.ZoneDuties!);
         }
+
+        #endregion
+
+        #region Validation/Failure-scenario tests
 
         /// <summary>
         /// Tests that transient failures are retried and eventually succeed.
@@ -357,6 +363,10 @@ namespace TadoNetApi.Tests.Infrastructure.Services
             Assert.Equal("215.1", device.CurrentFwVersion);
         }
 
+        #endregion
+
+        #region Integration tests
+
         /// <summary>
         /// Integration test scaffold.
         /// Intended to be adapted for a real Tado account using a valid access token and safe test IDs.
@@ -372,6 +382,8 @@ namespace TadoNetApi.Tests.Infrastructure.Services
             // var devices = await service.GetDevicesAsync(homeId: 123, CancellationToken.None);
             // Assert.NotEmpty(devices);
         }
+
+        #endregion
 
         /// <summary>
         /// Tests that <see cref="TadoDeviceService.SetZoneTemperatureOffsetCelsiusAsync"/>

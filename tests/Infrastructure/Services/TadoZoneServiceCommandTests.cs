@@ -20,6 +20,8 @@ namespace TadoNetApi.Tests.Infrastructure.Services
     /// </summary>
     public class TadoZoneServiceCommandTests
     {
+        #region Command Success Tests
+
         /// <summary>
         /// DeleteZoneOverlayAsync sends the spec-aligned overlay delete command.
         /// </summary>
@@ -1218,5 +1220,11 @@ namespace TadoNetApi.Tests.Infrastructure.Services
             Assert.Contains("\"power\":\"OFF\"", capturedJson);
             Assert.DoesNotContain("\"temperature\"", capturedJson);
         }
+
+        #endregion
+
+        #region Validation/Failure Tests
+
+        #endregion
     }
 }

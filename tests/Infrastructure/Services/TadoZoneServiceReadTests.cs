@@ -17,6 +17,8 @@ namespace TadoNetApi.Tests.Infrastructure.Services
 {
     public class TadoZoneServiceReadTests
     {
+        #region Happy-path tests
+
         /// <summary>
         /// GetZonesAsync returns mapped zones when API returns valid response.
         /// </summary>
@@ -40,48 +42,6 @@ namespace TadoNetApi.Tests.Infrastructure.Services
             Assert.Equal(2, zones.Count);
             Assert.Equal("Living Room", zones[0].Name);
             Assert.Equal("Bedroom", zones[1].Name);
-        }
-
-        /// <summary>
-        /// GetZonesAsync throws TadoApiException with 401 when API returns Unauthorized.
-        /// </summary>
-        [Fact(DisplayName = "GetZonesAsync throws TadoApiException with 401 when API returns Unauthorized")]
-        public async Task GetZonesAsync_ShouldThrowTadoApiException_WhenApiReturns401()
-        {
-            // Arrange
-            var mockHttp = MockTadoHttpClient.CreateGet<List<TadoZoneResponse>>(
-                returnValue: null!,
-                transientFailures: int.MaxValue,
-                transientException: new TadoApiException(HttpStatusCode.Unauthorized, "Unauthorized"));
-
-            var service = new TadoZoneService(mockHttp.Object);
-
-            // Act & Assert
-            var exception = await Assert.ThrowsAsync<TadoApiException>(() =>
-                service.GetZonesAsync(homeId: 1, CancellationToken.None));
-
-            Assert.Equal(HttpStatusCode.Unauthorized, exception.StatusCode);
-        }
-
-        /// <summary>
-        /// GetZonesAsync propagates TadoApiException with RequestTimeout when request times out.
-        /// </summary>
-        [Fact(DisplayName = "GetZonesAsync propagates TadoApiException with RequestTimeout when request times out")]
-        public async Task GetZonesAsync_ShouldThrowTadoApiException_WhenRequestTimesOut()
-        {
-            // Arrange — TadoHttpClient translates TaskCanceledException → TadoApiException(RequestTimeout)
-            var mockHttp = MockTadoHttpClient.CreateGet<List<TadoZoneResponse>>(
-                returnValue: null!,
-                transientFailures: int.MaxValue,
-                transientException: new TadoApiException(HttpStatusCode.RequestTimeout, "Request timed out"));
-
-            var service = new TadoZoneService(mockHttp.Object);
-
-            // Act & Assert
-            var exception = await Assert.ThrowsAsync<TadoApiException>(() =>
-                service.GetZonesAsync(homeId: 1, CancellationToken.None));
-
-            Assert.Equal(HttpStatusCode.RequestTimeout, exception.StatusCode);
         }
 
         /// <summary>
@@ -238,6 +198,54 @@ namespace TadoNetApi.Tests.Infrastructure.Services
             Assert.Equal("ONE_DAY", timetableTypes[0].Type);
             Assert.Equal("SEVEN_DAY", timetableTypes[2].Type);
         }
+
+        #endregion
+
+        #region Failure-scenario tests
+
+        /// <summary>
+        /// GetZonesAsync throws TadoApiException with 401 when API returns Unauthorized.
+        /// </summary>
+        [Fact(DisplayName = "GetZonesAsync throws TadoApiException with 401 when API returns Unauthorized")]
+        public async Task GetZonesAsync_ShouldThrowTadoApiException_WhenApiReturns401()
+        {
+            // Arrange
+            var mockHttp = MockTadoHttpClient.CreateGet<List<TadoZoneResponse>>(
+                returnValue: null!,
+                transientFailures: int.MaxValue,
+                transientException: new TadoApiException(HttpStatusCode.Unauthorized, "Unauthorized"));
+
+            var service = new TadoZoneService(mockHttp.Object);
+
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<TadoApiException>(() =>
+                service.GetZonesAsync(homeId: 1, CancellationToken.None));
+
+            Assert.Equal(HttpStatusCode.Unauthorized, exception.StatusCode);
+        }
+
+        /// <summary>
+        /// GetZonesAsync propagates TadoApiException with RequestTimeout when request times out.
+        /// </summary>
+        [Fact(DisplayName = "GetZonesAsync propagates TadoApiException with RequestTimeout when request times out")]
+        public async Task GetZonesAsync_ShouldThrowTadoApiException_WhenRequestTimesOut()
+        {
+            // Arrange — TadoHttpClient translates TaskCanceledException → TadoApiException(RequestTimeout)
+            var mockHttp = MockTadoHttpClient.CreateGet<List<TadoZoneResponse>>(
+                returnValue: null!,
+                transientFailures: int.MaxValue,
+                transientException: new TadoApiException(HttpStatusCode.RequestTimeout, "Request timed out"));
+
+            var service = new TadoZoneService(mockHttp.Object);
+
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<TadoApiException>(() =>
+                service.GetZonesAsync(homeId: 1, CancellationToken.None));
+
+            Assert.Equal(HttpStatusCode.RequestTimeout, exception.StatusCode);
+        }
+
+        #endregion
 
         /// <summary>
         /// GetZoneTimetableAsync uses the timetable type route and returns the mapped result.

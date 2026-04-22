@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog, and this project follows Semantic Versioning.
 
+## [1.0.2] - 2026-04-22
+
+### Added
+- Integration tests for failure scenarios (e.g., invalid token) in `ZoneIntegrationTests`.
+- Explicit coverage for negative API responses and error handling paths.
+
+### Changed
+- Improved robustness by verifying error handling in integration tests.
+
 ## [1.0.1] - 2026-04-21
 
 ### Fixed

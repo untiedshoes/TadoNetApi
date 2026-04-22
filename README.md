@@ -382,7 +382,7 @@ Run tests with:
 dotnet test
 ```
 
-Unit tests run by default. Integration tests are intended to be run manually or from CI with a valid access token and safe test IDs.
+Unit tests run by default. Integration tests (including failure scenarios) require a valid access token and safe test IDs.
 
 ---
 

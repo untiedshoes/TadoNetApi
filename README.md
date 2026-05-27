@@ -161,6 +161,7 @@ TadoNetApi/
 │     ├─ Config/                 # TadoApiConfig for retry and transport settings
 │     ├─ Converters/             # JSON converters for enums
 │     ├─ Dtos/                   # API request/response DTOs
+│     ├─ Exceptions/             # SDK-specific API and throttling exceptions
 │     ├─ Extensions/             # DI registration extensions
 │     ├─ Http/                   # TadoHttpClient with auth, retries, throttling
 │     ├─ Mappers/                # DTO to domain entity mapping
@@ -168,10 +169,16 @@ TadoNetApi/
 ├─ TadoNetApi.Playground/        # Console app demonstrating API usage
 ├─ tests/                        # Unit and integration tests
 │  ├─ Application/Services/      # AppService delegation/orchestration tests
-│  ├─ Domain/                    # Entity tests
+│  ├─ Domain/Entities/           # Entity and domain helper tests
 │  ├─ Fakes/                     # FakeHttpMessageHandler for HttpClient-level tests
+│  ├─ Infrastructure/Auth/       # OAuth device-flow and token lifecycle tests
+│  ├─ Infrastructure/Converters/ # JSON converter tests
+│  ├─ Infrastructure/Dtos/       # Request mapping tests
+│  ├─ Infrastructure/Exceptions/ # Exception diagnostic tests
+│  ├─ Infrastructure/Extensions/ # DI registration tests
 │  ├─ Infrastructure/Http/       # TadoHttpClient and RetryDelegatingHandler tests
-│  ├─ Infrastructure/Services/   # HTTP, mapping, and command behavior tests
+│  ├─ Infrastructure/Mappers/    # DTO-to-domain mapper tests
+│  ├─ Infrastructure/Services/   # Service read/write/error-path tests
 │  ├─ Integration/               # Real API integration tests
 │  └─ Mocks/                     # MockTadoHttpClient helpers (Moq-based)
 ├─ docs/                         # Machine-readable SDK reference and supporting docs
@@ -368,6 +375,8 @@ The test project covers domain behavior, mapping, service-level logic, HTTP tran
 - Moq is used for interface-level isolation (`ITadoHttpClient`, `IZoneService`, etc.)
 - `FakeHttpMessageHandler` in `tests/Fakes/` wires a delegate directly into `HttpClient` to test `TadoHttpClient` without a live network
 - Coverlet is included for coverage collection
+- The current verified baseline is `97.0%` line coverage and `79.5%` branch coverage
+- Test folders mirror the production layout so application, domain, and infrastructure behavior can be located quickly
 
 **Failure path coverage includes:**
 - 4xx responses: 400, 401, 403, 404
@@ -380,6 +389,11 @@ The test project covers domain behavior, mapping, service-level logic, HTTP tran
 Run tests with:
 ```bash
 dotnet test
+```
+
+Collect coverage with:
+```bash
+dotnet test --collect:"XPlat Code Coverage"
 ```
 
 Unit tests run by default. Integration tests (including failure scenarios) require a valid access token and safe test IDs.

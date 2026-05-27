@@ -870,5 +870,56 @@ namespace TadoNetApi.Tests.Application.Services
             Assert.Equal(1.0, result.Celsius);
             Assert.Equal(33.8, result.Fahrenheit);
         }
+
+        /// <summary>
+        /// Tests that <see cref="ZoneAppService.SetEarlyStartAsync"/> delegates to the domain service.
+        /// </summary>
+        [Fact(DisplayName = "SetEarlyStartAsync passes through to domain service")]
+        public async Task SetEarlyStartAsync_PassesThroughToDomainService()
+        {
+            var (service, mock) = CreateService();
+            mock.Setup(s => s.SetEarlyStartAsync(1, 2, true, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(true);
+
+            var result = await service.SetEarlyStartAsync(1, 2, true, CancellationToken.None);
+
+            Assert.True(result);
+            mock.Verify(s => s.SetEarlyStartAsync(1, 2, true, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        /// <summary>
+        /// Tests that the default overload of <see cref="ZoneAppService.SetHeatingTemperatureCelsiusAsync"/> delegates to the domain service.
+        /// </summary>
+        [Fact(DisplayName = "SetHeatingTemperatureCelsiusAsync default overload passes through to domain service")]
+        public async Task SetHeatingTemperatureCelsiusAsync_DefaultOverload_PassesThroughToDomainService()
+        {
+            var expected = new ZoneSummary();
+            var (service, mock) = CreateService();
+            mock.Setup(s => s.SetHeatingTemperatureCelsiusAsync(1, 2, 20.5, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expected);
+
+            var result = await service.SetHeatingTemperatureCelsiusAsync(1, 2, 20.5, CancellationToken.None);
+
+            Assert.Same(expected, result);
+            mock.Verify(s => s.SetHeatingTemperatureCelsiusAsync(1, 2, 20.5, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        /// <summary>
+        /// Tests that the duration-mode overload of SetHeatingTemperatureCelsiusAsync delegates to the domain service.
+        /// </summary>
+        [Fact(DisplayName = "SetHeatingTemperatureCelsiusAsync with duration mode passes through to domain service")]
+        public async Task SetHeatingTemperatureCelsiusAsync_WithDurationMode_PassesThroughToDomainService()
+        {
+            var expected = new ZoneSummary();
+            var timer = TimeSpan.FromMinutes(15);
+            var (service, mock) = CreateService();
+            mock.Setup(s => s.SetHeatingTemperatureCelsiusAsync(1, 2, 20.5, DurationModes.Timer, timer, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expected);
+
+            var result = await service.SetHeatingTemperatureCelsiusAsync(1, 2, 20.5, DurationModes.Timer, timer, CancellationToken.None);
+
+            Assert.Same(expected, result);
+            mock.Verify(s => s.SetHeatingTemperatureCelsiusAsync(1, 2, 20.5, DurationModes.Timer, timer, It.IsAny<CancellationToken>()), Times.Once);
+        }
     }
 }

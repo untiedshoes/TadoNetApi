@@ -103,6 +103,25 @@ namespace TadoNetApi.Tests.Infrastructure.Services
         }
 
         /// <summary>
+        /// GetUsersAsync throws ServiceUnavailable when the network request fails.
+        /// </summary>
+        [Fact(DisplayName = "GetUsersAsync throws ServiceUnavailable on network failure")]
+        public async Task GetUsersAsync_ThrowsServiceUnavailable_OnNetworkFailure()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.GetAsync<List<TadoUserResponse>>("homes/1/users", It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new HttpRequestException("Network down"));
+
+            var service = new TadoHomeService(mockHttp.Object);
+
+            var exception = await Assert.ThrowsAsync<TadoApiException>(() =>
+                service.GetUsersAsync(1, CancellationToken.None));
+
+            Assert.Equal(HttpStatusCode.ServiceUnavailable, exception.StatusCode);
+        }
+
+        /// <summary>
         /// GetAirComfortAsync returns mapped air comfort.
         /// </summary>
         [Fact(DisplayName = "GetAirComfortAsync returns mapped air comfort")]
@@ -194,6 +213,24 @@ namespace TadoNetApi.Tests.Infrastructure.Services
         }
 
         /// <summary>
+        /// GetInstallationsAsync returns an empty list when the API payload is null.
+        /// </summary>
+        [Fact(DisplayName = "GetInstallationsAsync returns empty list when API payload is null")]
+        public async Task GetInstallationsAsync_ReturnsEmptyList_WhenApiPayloadIsNull()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.GetAsync<List<TadoInstallationResponse>>("homes/1/installations", It.IsAny<CancellationToken>()))
+                .ReturnsAsync((List<TadoInstallationResponse>?)null);
+
+            var service = new TadoHomeService(mockHttp.Object);
+
+            var installations = await service.GetInstallationsAsync(1, CancellationToken.None);
+
+            Assert.Empty(installations);
+        }
+
+        /// <summary>
         /// GetInstallationAsync returns mapped installation.
         /// </summary>
         [Fact(DisplayName = "GetInstallationAsync returns mapped installation")]
@@ -228,6 +265,24 @@ namespace TadoNetApi.Tests.Infrastructure.Services
             Assert.Equal("COMPLETED", installation.State);
             Assert.Single(installation.Devices);
             Assert.Equal("VA1234567890", installation.Devices[0].SerialNo);
+        }
+
+        /// <summary>
+        /// GetInstallationAsync returns null when the API payload is null.
+        /// </summary>
+        [Fact(DisplayName = "GetInstallationAsync returns null when API payload is null")]
+        public async Task GetInstallationAsync_ReturnsNull_WhenApiPayloadIsNull()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.GetAsync<TadoInstallationResponse>("homes/1/installations/101", It.IsAny<CancellationToken>()))
+                .ReturnsAsync((TadoInstallationResponse?)null);
+
+            var service = new TadoHomeService(mockHttp.Object);
+
+            var installation = await service.GetInstallationAsync(1, 101, CancellationToken.None);
+
+            Assert.Null(installation);
         }
 
         /// <summary>
@@ -275,6 +330,24 @@ namespace TadoNetApi.Tests.Infrastructure.Services
             Assert.Equal("Jane Doe", invitations[0].Inviter?.Name);
             Assert.True(invitations[0].Inviter?.Enabled);
             Assert.Equal("My Home", invitations[0].Inviter?.Home?.Name);
+        }
+
+        /// <summary>
+        /// GetInvitationsAsync returns an empty list when the API payload is null.
+        /// </summary>
+        [Fact(DisplayName = "GetInvitationsAsync returns empty list when API payload is null")]
+        public async Task GetInvitationsAsync_ReturnsEmptyList_WhenApiPayloadIsNull()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.GetAsync<List<TadoInvitationResponse>>("homes/1/invitations", It.IsAny<CancellationToken>()))
+                .ReturnsAsync((List<TadoInvitationResponse>?)null);
+
+            var service = new TadoHomeService(mockHttp.Object);
+
+            var invitations = await service.GetInvitationsAsync(1, CancellationToken.None);
+
+            Assert.Empty(invitations);
         }
 
         /// <summary>
@@ -830,6 +903,334 @@ namespace TadoNetApi.Tests.Infrastructure.Services
 
             var exception = await Assert.ThrowsAsync<TadoApiException>(() =>
                 service.GetUsersAsync(homeId: 1, CancellationToken.None));
+
+            Assert.Equal(HttpStatusCode.ServiceUnavailable, exception.StatusCode);
+        }
+
+        /// <summary>
+        /// GetHomeStateAsync returns mapped home state when payload exists.
+        /// </summary>
+        [Fact(DisplayName = "GetHomeStateAsync returns mapped home state")]
+        public async Task GetHomeStateAsync_ReturnsMappedHomeState()
+        {
+            var mockHttp = MockTadoHttpClient.CreateGet(new TadoHomeStateResponse
+            {
+                Presence = "HOME"
+            });
+
+            var service = new TadoHomeService(mockHttp.Object);
+
+            var state = await service.GetHomeStateAsync(1, CancellationToken.None);
+
+            Assert.NotNull(state);
+            Assert.Equal("HOME", state!.Presence);
+        }
+
+        /// <summary>
+        /// GetHomeStateAsync returns null when API payload is null.
+        /// </summary>
+        [Fact(DisplayName = "GetHomeStateAsync returns null when API payload is null")]
+        public async Task GetHomeStateAsync_ReturnsNull_WhenApiPayloadIsNull()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.GetAsync<TadoHomeStateResponse>("homes/1/state", It.IsAny<CancellationToken>()))
+                .ReturnsAsync((TadoHomeStateResponse?)null);
+
+            var service = new TadoHomeService(mockHttp.Object);
+
+            var state = await service.GetHomeStateAsync(1, CancellationToken.None);
+
+            Assert.Null(state);
+        }
+
+        /// <summary>
+        /// GetIncidentDetectionAsync throws NotFound when API returns null payload.
+        /// </summary>
+        [Fact(DisplayName = "GetIncidentDetectionAsync throws NotFound when API payload is null")]
+        public async Task GetIncidentDetectionAsync_ThrowsNotFound_WhenApiPayloadIsNull()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.GetAsync<TadoIncidentDetectionResponse>("homes/1/incidentDetection", It.IsAny<CancellationToken>()))
+                .ReturnsAsync((TadoIncidentDetectionResponse?)null);
+
+            var service = new TadoHomeService(mockHttp.Object);
+
+            var exception = await Assert.ThrowsAsync<TadoApiException>(() =>
+                service.GetIncidentDetectionAsync(1, CancellationToken.None));
+
+            Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
+        }
+
+        /// <summary>
+        /// GetHeatingSystemAsync throws NotFound when API returns null payload.
+        /// </summary>
+        [Fact(DisplayName = "GetHeatingSystemAsync throws NotFound when API payload is null")]
+        public async Task GetHeatingSystemAsync_ThrowsNotFound_WhenApiPayloadIsNull()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.GetAsync<TadoHeatingSystemResponse>("homes/1/heatingSystem", It.IsAny<CancellationToken>()))
+                .ReturnsAsync((TadoHeatingSystemResponse?)null);
+
+            var service = new TadoHomeService(mockHttp.Object);
+
+            var exception = await Assert.ThrowsAsync<TadoApiException>(() =>
+                service.GetHeatingSystemAsync(1, CancellationToken.None));
+
+            Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
+        }
+
+        /// <summary>
+        /// GetFlowTemperatureOptimisationAsync throws NotFound when API returns null payload.
+        /// </summary>
+        [Fact(DisplayName = "GetFlowTemperatureOptimisationAsync throws NotFound when API payload is null")]
+        public async Task GetFlowTemperatureOptimisationAsync_ThrowsNotFound_WhenApiPayloadIsNull()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.GetAsync<TadoFlowTemperatureOptimisationResponse>("homes/1/flowTemperatureOptimization", It.IsAny<CancellationToken>()))
+                .ReturnsAsync((TadoFlowTemperatureOptimisationResponse?)null);
+
+            var service = new TadoHomeService(mockHttp.Object);
+
+            var exception = await Assert.ThrowsAsync<TadoApiException>(() =>
+                service.GetFlowTemperatureOptimisationAsync(1, CancellationToken.None));
+
+            Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
+        }
+
+        /// <summary>
+        /// SendInvitationAsync throws NotFound when API returns an empty invitation response.
+        /// </summary>
+        [Fact(DisplayName = "SendInvitationAsync throws NotFound when API response is empty")]
+        public async Task SendInvitationAsync_ThrowsNotFound_WhenApiResponseIsEmpty()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.PostAsync<SendInvitationRequest, TadoInvitationResponse>(
+                    "homes/1/invitations",
+                    It.IsAny<SendInvitationRequest>(),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync((TadoInvitationResponse?)null);
+
+            var service = new TadoHomeService(mockHttp.Object);
+
+            var exception = await Assert.ThrowsAsync<TadoApiException>(() =>
+                service.SendInvitationAsync(1, "invitee@example.com", CancellationToken.None));
+
+            Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
+        }
+
+        /// <summary>
+        /// SetHomeDetailsAsync rejects null home details payload.
+        /// </summary>
+        [Fact(DisplayName = "SetHomeDetailsAsync rejects null home details payload")]
+        public async Task SetHomeDetailsAsync_RejectsNullHomeDetailsPayload()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            var service = new TadoHomeService(mockHttp.Object);
+
+            await Assert.ThrowsAsync<ArgumentNullException>(() =>
+                service.SetHomeDetailsAsync(1, null!, CancellationToken.None));
+        }
+
+        /// <summary>
+        /// DeleteInvitationAsync rejects blank invitation token.
+        /// </summary>
+        [Fact(DisplayName = "DeleteInvitationAsync rejects blank invitation token")]
+        public async Task DeleteInvitationAsync_RejectsBlankInvitationToken()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            var service = new TadoHomeService(mockHttp.Object);
+
+            var exception = await Assert.ThrowsAsync<ArgumentException>(() =>
+                service.DeleteInvitationAsync(1, " ", CancellationToken.None));
+
+            Assert.Equal("invitationToken", exception.ParamName);
+        }
+
+        /// <summary>
+        /// ResendInvitationAsync rejects blank invitation token.
+        /// </summary>
+        [Fact(DisplayName = "ResendInvitationAsync rejects blank invitation token")]
+        public async Task ResendInvitationAsync_RejectsBlankInvitationToken()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            var service = new TadoHomeService(mockHttp.Object);
+
+            var exception = await Assert.ThrowsAsync<ArgumentException>(() =>
+                service.ResendInvitationAsync(1, " ", CancellationToken.None));
+
+            Assert.Equal("invitationToken", exception.ParamName);
+        }
+
+        /// <summary>
+        /// GetHomeAsync returns null when API payload is empty.
+        /// </summary>
+        [Fact(DisplayName = "GetHomeAsync returns null when API payload is empty")]
+        public async Task GetHomeAsync_ReturnsNull_WhenApiPayloadIsEmpty()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.GetAsync<TadoHouseResponse>("homes/1", It.IsAny<CancellationToken>()))
+                .ReturnsAsync((TadoHouseResponse?)null);
+
+            var service = new TadoHomeService(mockHttp.Object);
+
+            var home = await service.GetHomeAsync(1, CancellationToken.None);
+
+            Assert.Null(home);
+        }
+
+        /// <summary>
+        /// GetHomeAsync throws ServiceUnavailable when network request fails.
+        /// </summary>
+        [Fact(DisplayName = "GetHomeAsync throws ServiceUnavailable on network failure")]
+        public async Task GetHomeAsync_ThrowsServiceUnavailable_OnNetworkFailure()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.GetAsync<TadoHouseResponse>("homes/1", It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new HttpRequestException("Network down"));
+
+            var service = new TadoHomeService(mockHttp.Object);
+
+            var exception = await Assert.ThrowsAsync<TadoApiException>(() =>
+                service.GetHomeAsync(1, CancellationToken.None));
+
+            Assert.Equal(HttpStatusCode.ServiceUnavailable, exception.StatusCode);
+        }
+
+        /// <summary>
+        /// GetUsersAsync returns an empty list when API payload is empty.
+        /// </summary>
+        [Fact(DisplayName = "GetUsersAsync returns empty list when API payload is empty")]
+        public async Task GetUsersAsync_ReturnsEmptyList_WhenApiPayloadIsEmpty()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.GetAsync<List<TadoUserResponse>>("homes/1/users", It.IsAny<CancellationToken>()))
+                .ReturnsAsync((List<TadoUserResponse>?)null);
+
+            var service = new TadoHomeService(mockHttp.Object);
+
+            var users = await service.GetUsersAsync(1, CancellationToken.None);
+
+            Assert.Empty(users);
+        }
+
+        /// <summary>
+        /// GetAirComfortAsync throws NotFound when API payload is empty.
+        /// </summary>
+        [Fact(DisplayName = "GetAirComfortAsync throws NotFound when API payload is empty")]
+        public async Task GetAirComfortAsync_ThrowsNotFound_WhenApiPayloadIsEmpty()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.GetAsync<TadoAirComfortResponse>("homes/1/airComfort", It.IsAny<CancellationToken>()))
+                .ReturnsAsync((TadoAirComfortResponse?)null);
+
+            var service = new TadoHomeService(mockHttp.Object);
+
+            var exception = await Assert.ThrowsAsync<TadoApiException>(() =>
+                service.GetAirComfortAsync(1, CancellationToken.None));
+
+            Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
+        }
+
+        /// <summary>
+        /// GetAirComfortAsync throws ServiceUnavailable when network request fails.
+        /// </summary>
+        [Fact(DisplayName = "GetAirComfortAsync throws ServiceUnavailable on network failure")]
+        public async Task GetAirComfortAsync_ThrowsServiceUnavailable_OnNetworkFailure()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.GetAsync<TadoAirComfortResponse>("homes/1/airComfort", It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new HttpRequestException("Network down"));
+
+            var service = new TadoHomeService(mockHttp.Object);
+
+            var exception = await Assert.ThrowsAsync<TadoApiException>(() =>
+                service.GetAirComfortAsync(1, CancellationToken.None));
+
+            Assert.Equal(HttpStatusCode.ServiceUnavailable, exception.StatusCode);
+        }
+
+        /// <summary>
+        /// GetIncidentDetectionAsync throws ServiceUnavailable when network request fails.
+        /// </summary>
+        [Fact(DisplayName = "GetIncidentDetectionAsync throws ServiceUnavailable on network failure")]
+        public async Task GetIncidentDetectionAsync_ThrowsServiceUnavailable_OnNetworkFailure()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.GetAsync<TadoIncidentDetectionResponse>("homes/1/incidentDetection", It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new HttpRequestException("Network down"));
+
+            var service = new TadoHomeService(mockHttp.Object);
+
+            var exception = await Assert.ThrowsAsync<TadoApiException>(() =>
+                service.GetIncidentDetectionAsync(1, CancellationToken.None));
+
+            Assert.Equal(HttpStatusCode.ServiceUnavailable, exception.StatusCode);
+        }
+
+        /// <summary>
+        /// GetHeatingCircuitsAsync throws ServiceUnavailable when network request fails.
+        /// </summary>
+        [Fact(DisplayName = "GetHeatingCircuitsAsync throws ServiceUnavailable on network failure")]
+        public async Task GetHeatingCircuitsAsync_ThrowsServiceUnavailable_OnNetworkFailure()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.GetAsync<List<TadoHeatingCircuitResponse>>("homes/1/heatingCircuits", It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new HttpRequestException("Network down"));
+
+            var service = new TadoHomeService(mockHttp.Object);
+
+            var exception = await Assert.ThrowsAsync<TadoApiException>(() =>
+                service.GetHeatingCircuitsAsync(1, CancellationToken.None));
+
+            Assert.Equal(HttpStatusCode.ServiceUnavailable, exception.StatusCode);
+        }
+
+        /// <summary>
+        /// GetFlowTemperatureOptimisationAsync throws ServiceUnavailable when network request fails.
+        /// </summary>
+        [Fact(DisplayName = "GetFlowTemperatureOptimisationAsync throws ServiceUnavailable on network failure")]
+        public async Task GetFlowTemperatureOptimisationAsync_ThrowsServiceUnavailable_OnNetworkFailure()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.GetAsync<TadoFlowTemperatureOptimisationResponse>("homes/1/flowTemperatureOptimization", It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new HttpRequestException("Network down"));
+
+            var service = new TadoHomeService(mockHttp.Object);
+
+            var exception = await Assert.ThrowsAsync<TadoApiException>(() =>
+                service.GetFlowTemperatureOptimisationAsync(1, CancellationToken.None));
+
+            Assert.Equal(HttpStatusCode.ServiceUnavailable, exception.StatusCode);
+        }
+
+        /// <summary>
+        /// GetHomeStateAsync throws ServiceUnavailable when network request fails.
+        /// </summary>
+        [Fact(DisplayName = "GetHomeStateAsync throws ServiceUnavailable on network failure")]
+        public async Task GetHomeStateAsync_ThrowsServiceUnavailable_OnNetworkFailure()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.GetAsync<TadoHomeStateResponse>("homes/1/state", It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new HttpRequestException("Network down"));
+
+            var service = new TadoHomeService(mockHttp.Object);
+
+            var exception = await Assert.ThrowsAsync<TadoApiException>(() =>
+                service.GetHomeStateAsync(1, CancellationToken.None));
 
             Assert.Equal(HttpStatusCode.ServiceUnavailable, exception.StatusCode);
         }

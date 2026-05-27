@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog, and this project follows Semantic Versioning.
 
+## [1.0.3] - 2026-05-27
+
+### Added
+- Added broad unit-test coverage for application services, infrastructure services, auth flows, HTTP command paths, mappers, converters, exception diagnostics, and request-mapping helpers.
+- Added focused tests for `TadoAuthService`, `TadoHttpClient`, `RetryDelegatingHandler`, `TadoHomeService`, `TadoDeviceService`, and extended `TadoZoneService` command and read-path scenarios.
+- Added missing test coverage for mappers and support types including `CapabilityMapper`, `CommonMapper`, `DeviceMapper`, `ZoneMapper`, `ZoneSummaryMapper`, `HouseMapper`, `DeviceTypeCatalogue`, and overlay request mapping helpers.
+
+### Changed
+- Bumped the package and assembly version metadata to `1.0.3`.
+- Updated the README testing guidance to reflect the current coverage baseline and the test-suite structure that mirrors the main source layout.
+
+### Tests
+- Raised the automated coverage baseline to `97.0%` line coverage and `79.5%` branch coverage from the current unit and integration suite.
+- Standardised new tests around XML summaries, `Fact(DisplayName = ...)`, and folder placement aligned to the production project structure.
+- Excluded local coverage artifacts under `tests/TestResults/` from source control.
+
 ## [1.0.2] - 2026-04-22
 
 ### Added

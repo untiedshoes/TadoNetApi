@@ -700,5 +700,482 @@ namespace TadoNetApi.Tests.Infrastructure.Services
 
             Assert.Equal(HttpStatusCode.ServiceUnavailable, exception.StatusCode);
         }
+
+        /// <summary>
+        /// GetDeviceAsync throws TadoApiException with NotFound when API returns null payload.
+        /// </summary>
+        [Fact(DisplayName = "GetDeviceAsync throws NotFound when API returns null payload")]
+        public async Task GetDeviceAsync_ThrowsNotFound_WhenApiReturnsNullPayload()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.GetAsync<TadoDeviceResponse>("devices/SU123456", It.IsAny<CancellationToken>()))
+                .ReturnsAsync((TadoDeviceResponse?)null);
+
+            var service = new TadoDeviceService(mockHttp.Object);
+
+            var exception = await Assert.ThrowsAsync<TadoApiException>(() =>
+                service.GetDeviceAsync("SU123456", CancellationToken.None));
+
+            Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
+        }
+
+        /// <summary>
+        /// GetDeviceListAsync returns an empty list when API returns null entries.
+        /// </summary>
+        [Fact(DisplayName = "GetDeviceListAsync returns empty list when entries are null")]
+        public async Task GetDeviceListAsync_ReturnsEmptyList_WhenEntriesAreNull()
+        {
+            var mockHttp = MockTadoHttpClient.CreateGet(new TadoDeviceListResponse { Entries = null });
+            var service = new TadoDeviceService(mockHttp.Object);
+
+            var entries = await service.GetDeviceListAsync(1, CancellationToken.None);
+
+            Assert.Empty(entries);
+        }
+
+        /// <summary>
+        /// GetDevicesAsync returns an empty list when the API payload is null.
+        /// </summary>
+        [Fact(DisplayName = "GetDevicesAsync returns empty list when API payload is null")]
+        public async Task GetDevicesAsync_ReturnsEmptyList_WhenApiPayloadIsNull()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.GetAsync<List<TadoDeviceResponse>>("homes/1/devices", It.IsAny<CancellationToken>()))
+                .ReturnsAsync((List<TadoDeviceResponse>?)null);
+
+            var service = new TadoDeviceService(mockHttp.Object);
+
+            var devices = await service.GetDevicesAsync(1, CancellationToken.None);
+
+            Assert.Empty(devices);
+        }
+
+        /// <summary>
+        /// GetMobileDevicesAsync returns an empty list when the API payload is null.
+        /// </summary>
+        [Fact(DisplayName = "GetMobileDevicesAsync returns empty list when API payload is null")]
+        public async Task GetMobileDevicesAsync_ReturnsEmptyList_WhenApiPayloadIsNull()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.GetAsync<List<TadoMobileItemResponse>>("homes/1/mobileDevices", It.IsAny<CancellationToken>()))
+                .ReturnsAsync((List<TadoMobileItemResponse>?)null);
+
+            var service = new TadoDeviceService(mockHttp.Object);
+
+            var devices = await service.GetMobileDevicesAsync(1, CancellationToken.None);
+
+            Assert.Empty(devices);
+        }
+
+        /// <summary>
+        /// GetMobileDevicesAsync returns mapped mobile devices for a home.
+        /// </summary>
+        [Fact(DisplayName = "GetMobileDevicesAsync returns mapped mobile devices")]
+        public async Task GetMobileDevicesAsync_ReturnsMappedMobileDevices()
+        {
+            var response = new List<TadoMobileItemResponse>
+            {
+                new()
+                {
+                    Id = 42,
+                    Name = "Craig's iPhone",
+                    Settings = new TadoMobileSettingsResponse { GeoTrackingEnabled = true }
+                }
+            };
+
+            var mockHttp = MockTadoHttpClient.CreateGet(response);
+            var service = new TadoDeviceService(mockHttp.Object);
+
+            var devices = await service.GetMobileDevicesAsync(1, CancellationToken.None);
+
+            var device = Assert.Single(devices);
+            Assert.Equal(42, device.Id);
+            Assert.Equal("Craig's iPhone", device.Name);
+            Assert.True(device.Settings?.GeoTrackingEnabled);
+        }
+
+        /// <summary>
+        /// GetMobileDeviceSettingsAsync returns mapped settings when payload exists.
+        /// </summary>
+        [Fact(DisplayName = "GetMobileDeviceSettingsAsync returns mapped settings")]
+        public async Task GetMobileDeviceSettingsAsync_ReturnsMappedSettings()
+        {
+            var mockHttp = MockTadoHttpClient.CreateGet(new TadoMobileSettingsResponse
+            {
+                GeoTrackingEnabled = false
+            });
+
+            var service = new TadoDeviceService(mockHttp.Object);
+
+            var settings = await service.GetMobileDeviceSettingsAsync(1, 42, CancellationToken.None);
+
+            Assert.False(settings.GeoTrackingEnabled);
+        }
+
+        /// <summary>
+        /// GetMobileDeviceSettingsAsync throws NotFound when API returns null payload.
+        /// </summary>
+        [Fact(DisplayName = "GetMobileDeviceSettingsAsync throws NotFound when API returns null payload")]
+        public async Task GetMobileDeviceSettingsAsync_ThrowsNotFound_WhenApiReturnsNullPayload()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.GetAsync<TadoMobileSettingsResponse>("homes/1/mobileDevices/42/settings", It.IsAny<CancellationToken>()))
+                .ReturnsAsync((TadoMobileSettingsResponse?)null);
+
+            var service = new TadoDeviceService(mockHttp.Object);
+
+            var exception = await Assert.ThrowsAsync<TadoApiException>(() =>
+                service.GetMobileDeviceSettingsAsync(1, 42, CancellationToken.None));
+
+            Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
+        }
+
+        /// <summary>
+        /// SetDeviceChildLockAsync on device overload returns false when short serial number is missing.
+        /// </summary>
+        [Fact(DisplayName = "SetDeviceChildLockAsync device overload returns false when short serial is missing")]
+        public async Task SetDeviceChildLockAsync_DeviceOverload_ReturnsFalse_WhenShortSerialIsMissing()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            var service = new TadoDeviceService(mockHttp.Object);
+
+            var success = await service.SetDeviceChildLockAsync(new Device { ShortSerialNo = null }, true, CancellationToken.None);
+
+            Assert.False(success);
+            mockHttp.Verify(c => c.SendAsync(
+                It.IsAny<string>(),
+                It.IsAny<HttpMethod>(),
+                It.IsAny<CancellationToken>(),
+                It.IsAny<HttpStatusCode>(),
+                It.IsAny<object?>()), Times.Never);
+        }
+
+        /// <summary>
+        /// SetDeviceChildLockAsync on string overload sends the expected command endpoint and payload.
+        /// </summary>
+        [Fact(DisplayName = "SetDeviceChildLockAsync string overload sends expected command")]
+        public async Task SetDeviceChildLockAsync_StringOverload_SendsExpectedCommand()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.SendAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<HttpMethod>(),
+                    It.IsAny<CancellationToken>(),
+                    It.IsAny<HttpStatusCode>(),
+                    It.IsAny<object?>()))
+                .ReturnsAsync(true);
+
+            var service = new TadoDeviceService(mockHttp.Object);
+
+            var success = await service.SetDeviceChildLockAsync("SU123456", true, CancellationToken.None);
+
+            Assert.True(success);
+            mockHttp.Verify(c => c.SendAsync(
+                    "devices/SU123456/childLock",
+                    HttpMethod.Put,
+                    It.IsAny<CancellationToken>(),
+                    HttpStatusCode.NoContent,
+                    It.Is<object?>(body => body != null && JsonSerializer.Serialize(body).Contains("\"childLockEnabled\":true"))),
+                Times.Once);
+        }
+
+        /// <summary>
+        /// SayHiAsync sends the identify command to the expected endpoint.
+        /// </summary>
+        [Fact(DisplayName = "SayHiAsync sends identify command to expected endpoint")]
+        public async Task SayHiAsync_SendsIdentifyCommand_ToExpectedEndpoint()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.SendAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<HttpMethod>(),
+                    It.IsAny<CancellationToken>(),
+                    It.IsAny<HttpStatusCode>(),
+                    It.IsAny<object?>()))
+                .ReturnsAsync(true);
+
+            var service = new TadoDeviceService(mockHttp.Object);
+
+            var success = await service.SayHiAsync("SU123456", CancellationToken.None);
+
+            Assert.True(success);
+            mockHttp.Verify(c => c.SendAsync(
+                    "devices/SU123456/identify",
+                    HttpMethod.Post,
+                    It.IsAny<CancellationToken>(),
+                    HttpStatusCode.OK,
+                    It.IsAny<object?>()),
+                Times.Once);
+        }
+
+        /// <summary>
+        /// GetZoneTemperatureOffsetAsync throws NotFound when API returns null payload.
+        /// </summary>
+        [Fact(DisplayName = "GetZoneTemperatureOffsetAsync throws NotFound when API returns null payload")]
+        public async Task GetZoneTemperatureOffsetAsync_ThrowsNotFound_WhenApiReturnsNullPayload()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.GetAsync<TadoTemperatureResponse>("devices/1/temperatureOffset", It.IsAny<CancellationToken>()))
+                .ReturnsAsync((TadoTemperatureResponse?)null);
+
+            var service = new TadoDeviceService(mockHttp.Object);
+
+            var exception = await Assert.ThrowsAsync<TadoApiException>(() =>
+                service.GetZoneTemperatureOffsetAsync(1, CancellationToken.None));
+
+            Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
+        }
+
+        /// <summary>
+        /// GetZoneMeasuringDeviceAsync throws NotFound when API returns null payload.
+        /// </summary>
+        [Fact(DisplayName = "GetZoneMeasuringDeviceAsync throws NotFound when API returns null payload")]
+        public async Task GetZoneMeasuringDeviceAsync_ThrowsNotFound_WhenApiReturnsNullPayload()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.GetAsync<TadoDeviceResponse>("homes/1/zones/2/measuringDevice", It.IsAny<CancellationToken>()))
+                .ReturnsAsync((TadoDeviceResponse?)null);
+
+            var service = new TadoDeviceService(mockHttp.Object);
+
+            var exception = await Assert.ThrowsAsync<TadoApiException>(() =>
+                service.GetZoneMeasuringDeviceAsync(1, 2, CancellationToken.None));
+
+            Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
+        }
+
+        /// <summary>
+        /// GetMobileDeviceAsync throws NotFound when API returns null payload.
+        /// </summary>
+        [Fact(DisplayName = "GetMobileDeviceAsync throws NotFound when API returns null payload")]
+        public async Task GetMobileDeviceAsync_ThrowsNotFound_WhenApiReturnsNullPayload()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.GetAsync<TadoMobileItemResponse>("homes/1/mobileDevices/42", It.IsAny<CancellationToken>()))
+                .ReturnsAsync((TadoMobileItemResponse?)null);
+
+            var service = new TadoDeviceService(mockHttp.Object);
+
+            var exception = await Assert.ThrowsAsync<TadoApiException>(() =>
+                service.GetMobileDeviceAsync(1, 42, CancellationToken.None));
+
+            Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
+        }
+
+        /// <summary>
+        /// GetDeviceAsync throws ServiceUnavailable when network request fails.
+        /// </summary>
+        [Fact(DisplayName = "GetDeviceAsync throws ServiceUnavailable on network failure")]
+        public async Task GetDeviceAsync_ThrowsServiceUnavailable_OnNetworkFailure()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.GetAsync<TadoDeviceResponse>("devices/SU123456", It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new HttpRequestException("Network down"));
+
+            var service = new TadoDeviceService(mockHttp.Object);
+
+            var exception = await Assert.ThrowsAsync<TadoApiException>(() =>
+                service.GetDeviceAsync("SU123456", CancellationToken.None));
+
+            Assert.Equal(HttpStatusCode.ServiceUnavailable, exception.StatusCode);
+        }
+
+        /// <summary>
+        /// GetZoneTemperatureOffsetAsync throws ServiceUnavailable when network request fails.
+        /// </summary>
+        [Fact(DisplayName = "GetZoneTemperatureOffsetAsync throws ServiceUnavailable on network failure")]
+        public async Task GetZoneTemperatureOffsetAsync_ThrowsServiceUnavailable_OnNetworkFailure()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.GetAsync<TadoTemperatureResponse>("devices/1/temperatureOffset", It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new HttpRequestException("Network down"));
+
+            var service = new TadoDeviceService(mockHttp.Object);
+
+            var exception = await Assert.ThrowsAsync<TadoApiException>(() =>
+                service.GetZoneTemperatureOffsetAsync(1, CancellationToken.None));
+
+            Assert.Equal(HttpStatusCode.ServiceUnavailable, exception.StatusCode);
+        }
+
+        /// <summary>
+        /// GetZoneMeasuringDeviceAsync throws ServiceUnavailable when network request fails.
+        /// </summary>
+        [Fact(DisplayName = "GetZoneMeasuringDeviceAsync throws ServiceUnavailable on network failure")]
+        public async Task GetZoneMeasuringDeviceAsync_ThrowsServiceUnavailable_OnNetworkFailure()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.GetAsync<TadoDeviceResponse>("homes/1/zones/2/measuringDevice", It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new HttpRequestException("Network down"));
+
+            var service = new TadoDeviceService(mockHttp.Object);
+
+            var exception = await Assert.ThrowsAsync<TadoApiException>(() =>
+                service.GetZoneMeasuringDeviceAsync(1, 2, CancellationToken.None));
+
+            Assert.Equal(HttpStatusCode.ServiceUnavailable, exception.StatusCode);
+        }
+
+        /// <summary>
+        /// GetMobileDeviceAsync throws ServiceUnavailable when network request fails.
+        /// </summary>
+        [Fact(DisplayName = "GetMobileDeviceAsync throws ServiceUnavailable on network failure")]
+        public async Task GetMobileDeviceAsync_ThrowsServiceUnavailable_OnNetworkFailure()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.GetAsync<TadoMobileItemResponse>("homes/1/mobileDevices/42", It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new HttpRequestException("Network down"));
+
+            var service = new TadoDeviceService(mockHttp.Object);
+
+            var exception = await Assert.ThrowsAsync<TadoApiException>(() =>
+                service.GetMobileDeviceAsync(1, 42, CancellationToken.None));
+
+            Assert.Equal(HttpStatusCode.ServiceUnavailable, exception.StatusCode);
+        }
+
+        /// <summary>
+        /// MoveDeviceToZoneAsync omits the force query when force is not provided.
+        /// </summary>
+        [Fact(DisplayName = "MoveDeviceToZoneAsync omits force query when not provided")]
+        public async Task MoveDeviceToZoneAsync_OmitsForceQuery_WhenNotProvided()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.SendAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<HttpMethod>(),
+                    It.IsAny<CancellationToken>(),
+                    It.IsAny<HttpStatusCode>(),
+                    It.IsAny<object?>()))
+                .ReturnsAsync(true);
+
+            var service = new TadoDeviceService(mockHttp.Object);
+
+            var moved = await service.MoveDeviceToZoneAsync(1, 2, "SU1234567890", null, CancellationToken.None);
+
+            Assert.True(moved);
+            mockHttp.Verify(c => c.SendAsync(
+                    "homes/1/zones/2/devices",
+                    HttpMethod.Post,
+                    It.IsAny<CancellationToken>(),
+                    HttpStatusCode.OK,
+                    It.IsAny<object?>()),
+                Times.Once);
+        }
+
+        /// <summary>
+        /// Command methods validate blank device identifiers.
+        /// </summary>
+        [Fact(DisplayName = "Command methods validate blank device identifiers")]
+        public async Task CommandMethods_ValidateBlankDeviceIdentifiers()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            var service = new TadoDeviceService(mockHttp.Object);
+
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                service.SetDeviceChildLockAsync(" ", true, CancellationToken.None));
+
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                service.SayHiAsync(" ", CancellationToken.None));
+
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                service.SetZoneTemperatureOffsetCelsiusAsync(" ", 1.5, CancellationToken.None));
+
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                service.SetZoneTemperatureOffsetFahrenheitAsync(" ", 33.8, CancellationToken.None));
+        }
+
+        /// <summary>
+        /// GetMobileDevicesAsync throws ServiceUnavailable when network request fails.
+        /// </summary>
+        [Fact(DisplayName = "GetMobileDevicesAsync throws ServiceUnavailable on network failure")]
+        public async Task GetMobileDevicesAsync_ThrowsServiceUnavailable_OnNetworkFailure()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.GetAsync<List<TadoMobileItemResponse>>("homes/1/mobileDevices", It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new HttpRequestException("Network down"));
+
+            var service = new TadoDeviceService(mockHttp.Object);
+
+            var exception = await Assert.ThrowsAsync<TadoApiException>(() =>
+                service.GetMobileDevicesAsync(1, CancellationToken.None));
+
+            Assert.Equal(HttpStatusCode.ServiceUnavailable, exception.StatusCode);
+        }
+
+        /// <summary>
+        /// GetMobileDeviceSettingsAsync throws ServiceUnavailable when network request fails.
+        /// </summary>
+        [Fact(DisplayName = "GetMobileDeviceSettingsAsync throws ServiceUnavailable on network failure")]
+        public async Task GetMobileDeviceSettingsAsync_ThrowsServiceUnavailable_OnNetworkFailure()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.GetAsync<TadoMobileSettingsResponse>("homes/1/mobileDevices/42/settings", It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new HttpRequestException("Network down"));
+
+            var service = new TadoDeviceService(mockHttp.Object);
+
+            var exception = await Assert.ThrowsAsync<TadoApiException>(() =>
+                service.GetMobileDeviceSettingsAsync(1, 42, CancellationToken.None));
+
+            Assert.Equal(HttpStatusCode.ServiceUnavailable, exception.StatusCode);
+        }
+
+        /// <summary>
+        /// SetZoneMeasuringDeviceAsync throws NotFound when API returns null payload.
+        /// </summary>
+        [Fact(DisplayName = "SetZoneMeasuringDeviceAsync throws NotFound when API returns null payload")]
+        public async Task SetZoneMeasuringDeviceAsync_ThrowsNotFound_WhenApiReturnsNullPayload()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.PutAsync<SetZoneMeasuringDeviceRequest, TadoDeviceResponse>(
+                    "homes/1/zones/2/measuringDevice",
+                    It.IsAny<SetZoneMeasuringDeviceRequest>(),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync((TadoDeviceResponse?)null);
+
+            var service = new TadoDeviceService(mockHttp.Object);
+
+            var exception = await Assert.ThrowsAsync<TadoApiException>(() =>
+                service.SetZoneMeasuringDeviceAsync(1, 2, "SU123456", CancellationToken.None));
+
+            Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
+        }
+
+        /// <summary>
+        /// GetDeviceListAsync throws ServiceUnavailable when network request fails.
+        /// </summary>
+        [Fact(DisplayName = "GetDeviceListAsync throws ServiceUnavailable on network failure")]
+        public async Task GetDeviceListAsync_ThrowsServiceUnavailable_OnNetworkFailure()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.GetAsync<TadoDeviceListResponse>("homes/1/deviceList", It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new HttpRequestException("Network down"));
+
+            var service = new TadoDeviceService(mockHttp.Object);
+
+            var exception = await Assert.ThrowsAsync<TadoApiException>(() =>
+                service.GetDeviceListAsync(1, CancellationToken.None));
+
+            Assert.Equal(HttpStatusCode.ServiceUnavailable, exception.StatusCode);
+        }
     }
 }

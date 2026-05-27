@@ -273,5 +273,140 @@ namespace TadoNetApi.Tests.Application.Services
             Assert.Equal("123", device.SerialNo);
             mockDeviceService.Verify(s => s.GetDeviceAsync(1, 123, It.IsAny<CancellationToken>()), Times.Once);
         }
+
+        /// <summary>
+        /// Tests that <see cref="DeviceAppService.GetDevicesAsync"/> delegates to the domain service.
+        /// </summary>
+        [Fact(DisplayName = "GetDevicesAsync passes through to domain service")]
+        public async Task GetDevicesAsync_PassesThroughToDomainService()
+        {
+            var expected = new[] { new Device { SerialNo = "S1" } };
+            var mockDeviceService = new Mock<IDeviceService>();
+            mockDeviceService.Setup(s => s.GetDevicesAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(expected);
+            var service = new DeviceAppService(mockDeviceService.Object);
+
+            var result = await service.GetDevicesAsync(1, CancellationToken.None);
+
+            Assert.Single(result);
+            Assert.Equal("S1", result[0].SerialNo);
+            mockDeviceService.Verify(s => s.GetDevicesAsync(1, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        /// <summary>
+        /// Tests that <see cref="DeviceAppService.GetZoneTemperatureOffsetAsync"/> delegates to the domain service.
+        /// </summary>
+        [Fact(DisplayName = "GetZoneTemperatureOffsetAsync passes through to domain service")]
+        public async Task GetZoneTemperatureOffsetAsync_PassesThroughToDomainService()
+        {
+            var expected = new Temperature { Celsius = 1.5 };
+            var mockDeviceService = new Mock<IDeviceService>();
+            mockDeviceService.Setup(s => s.GetZoneTemperatureOffsetAsync(7, It.IsAny<CancellationToken>())).ReturnsAsync(expected);
+            var service = new DeviceAppService(mockDeviceService.Object);
+
+            var result = await service.GetZoneTemperatureOffsetAsync(7, CancellationToken.None);
+
+            Assert.Equal(1.5, result.Celsius);
+            mockDeviceService.Verify(s => s.GetZoneTemperatureOffsetAsync(7, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        /// <summary>
+        /// Tests that <see cref="DeviceAppService.GetMobileDevicesAsync"/> delegates to the domain service.
+        /// </summary>
+        [Fact(DisplayName = "GetMobileDevicesAsync passes through to domain service")]
+        public async Task GetMobileDevicesAsync_PassesThroughToDomainService()
+        {
+            var expected = new[] { new Item { Id = 1, Name = "Phone" } };
+            var mockDeviceService = new Mock<IDeviceService>();
+            mockDeviceService.Setup(s => s.GetMobileDevicesAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(expected);
+            var service = new DeviceAppService(mockDeviceService.Object);
+
+            var result = await service.GetMobileDevicesAsync(1, CancellationToken.None);
+
+            Assert.Single(result);
+            Assert.Equal("Phone", result[0].Name);
+            mockDeviceService.Verify(s => s.GetMobileDevicesAsync(1, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        /// <summary>
+        /// Tests that <see cref="DeviceAppService.GetMobileDeviceSettingsAsync"/> delegates to the domain service.
+        /// </summary>
+        [Fact(DisplayName = "GetMobileDeviceSettingsAsync passes through to domain service")]
+        public async Task GetMobileDeviceSettingsAsync_PassesThroughToDomainService()
+        {
+            var expected = new Settings { GeoTrackingEnabled = false };
+            var mockDeviceService = new Mock<IDeviceService>();
+            mockDeviceService.Setup(s => s.GetMobileDeviceSettingsAsync(1, 2, It.IsAny<CancellationToken>())).ReturnsAsync(expected);
+            var service = new DeviceAppService(mockDeviceService.Object);
+
+            var result = await service.GetMobileDeviceSettingsAsync(1, 2, CancellationToken.None);
+
+            Assert.False(result.GeoTrackingEnabled);
+            mockDeviceService.Verify(s => s.GetMobileDeviceSettingsAsync(1, 2, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        /// <summary>
+        /// Tests that <see cref="DeviceAppService.SetDeviceChildLockAsync(Device, bool, CancellationToken)"/> delegates to the domain service.
+        /// </summary>
+        [Fact(DisplayName = "SetDeviceChildLockAsync device overload passes through to domain service")]
+        public async Task SetDeviceChildLockAsync_DeviceOverload_PassesThroughToDomainService()
+        {
+            var device = new Device { ShortSerialNo = "SU123" };
+            var mockDeviceService = new Mock<IDeviceService>();
+            mockDeviceService.Setup(s => s.SetDeviceChildLockAsync(device, true, It.IsAny<CancellationToken>())).ReturnsAsync(true);
+            var service = new DeviceAppService(mockDeviceService.Object);
+
+            var result = await service.SetDeviceChildLockAsync(device, true, CancellationToken.None);
+
+            Assert.True(result);
+            mockDeviceService.Verify(s => s.SetDeviceChildLockAsync(device, true, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        /// <summary>
+        /// Tests that <see cref="DeviceAppService.SetDeviceChildLockAsync(string, bool, CancellationToken)"/> delegates to the domain service.
+        /// </summary>
+        [Fact(DisplayName = "SetDeviceChildLockAsync string overload passes through to domain service")]
+        public async Task SetDeviceChildLockAsync_StringOverload_PassesThroughToDomainService()
+        {
+            var mockDeviceService = new Mock<IDeviceService>();
+            mockDeviceService.Setup(s => s.SetDeviceChildLockAsync("SU123", false, It.IsAny<CancellationToken>())).ReturnsAsync(true);
+            var service = new DeviceAppService(mockDeviceService.Object);
+
+            var result = await service.SetDeviceChildLockAsync("SU123", false, CancellationToken.None);
+
+            Assert.True(result);
+            mockDeviceService.Verify(s => s.SetDeviceChildLockAsync("SU123", false, It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        /// <summary>
+        /// Tests that <see cref="DeviceAppService.SayHiAsync"/> delegates to the domain service.
+        /// </summary>
+        [Fact(DisplayName = "SayHiAsync passes through to domain service")]
+        public async Task SayHiAsync_PassesThroughToDomainService()
+        {
+            var mockDeviceService = new Mock<IDeviceService>();
+            mockDeviceService.Setup(s => s.SayHiAsync("SU123", It.IsAny<CancellationToken>())).ReturnsAsync(true);
+            var service = new DeviceAppService(mockDeviceService.Object);
+
+            var result = await service.SayHiAsync("SU123", CancellationToken.None);
+
+            Assert.True(result);
+            mockDeviceService.Verify(s => s.SayHiAsync("SU123", It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        /// <summary>
+        /// Tests that <see cref="DeviceAppService.SetZoneTemperatureOffsetCelsiusAsync"/> delegates to the domain service.
+        /// </summary>
+        [Fact(DisplayName = "SetZoneTemperatureOffsetCelsiusAsync passes through to domain service")]
+        public async Task SetZoneTemperatureOffsetCelsiusAsync_PassesThroughToDomainService()
+        {
+            var mockDeviceService = new Mock<IDeviceService>();
+            mockDeviceService.Setup(s => s.SetZoneTemperatureOffsetCelsiusAsync("SU123", 1.25, It.IsAny<CancellationToken>())).ReturnsAsync(true);
+            var service = new DeviceAppService(mockDeviceService.Object);
+
+            var result = await service.SetZoneTemperatureOffsetCelsiusAsync("SU123", 1.25, CancellationToken.None);
+
+            Assert.True(result);
+            mockDeviceService.Verify(s => s.SetZoneTemperatureOffsetCelsiusAsync("SU123", 1.25, It.IsAny<CancellationToken>()), Times.Once);
+        }
     }
 }

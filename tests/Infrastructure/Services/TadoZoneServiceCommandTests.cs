@@ -4,11 +4,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Text.Json;
 using System.Net;
+using System.Reflection;
 using Moq;
 using TadoNetApi.Domain.Entities;
 using TadoNetApi.Domain.Enums;
 using TadoNetApi.Infrastructure.Dtos.Requests;
 using TadoNetApi.Infrastructure.Dtos.Responses;
+using TadoNetApi.Infrastructure.Exceptions;
 using TadoNetApi.Infrastructure.Http;
 using TadoNetApi.Infrastructure.Services;
 using Xunit;
@@ -542,6 +544,107 @@ namespace TadoNetApi.Tests.Infrastructure.Services
         }
 
         /// <summary>
+        /// SetZoneOverlaysAsync validates required overlay fields and blank termination type.
+        /// </summary>
+        [Fact(DisplayName = "SetZoneOverlaysAsync validates missing overlay fields and blank termination type")]
+        public async Task SetZoneOverlaysAsync_ValidatesMissingOverlayFields_AndBlankTerminationType()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            var service = new TadoZoneService(mockHttp.Object);
+
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                service.SetZoneOverlaysAsync(1, new Dictionary<int, Overlay>
+                {
+                    [2] = new()
+                    {
+                        Setting = new Setting
+                        {
+                            Power = PowerStates.On
+                        },
+                        Termination = new Termination { Type = nameof(DurationModes.UntilNextManualChange) }
+                    }
+                }, CancellationToken.None));
+
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                service.SetZoneOverlaysAsync(1, new Dictionary<int, Overlay>
+                {
+                    [2] = new()
+                    {
+                        Setting = new Setting
+                        {
+                            DeviceType = DeviceTypes.Heating
+                        },
+                        Termination = new Termination { Type = nameof(DurationModes.UntilNextManualChange) }
+                    }
+                }, CancellationToken.None));
+
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                service.SetZoneOverlaysAsync(1, new Dictionary<int, Overlay>
+                {
+                    [2] = new()
+                    {
+                        Setting = new Setting
+                        {
+                            DeviceType = DeviceTypes.Heating,
+                            Power = PowerStates.On
+                        }
+                    }
+                }, CancellationToken.None));
+
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                service.SetZoneOverlaysAsync(1, new Dictionary<int, Overlay>
+                {
+                    [2] = new()
+                    {
+                        Setting = new Setting
+                        {
+                            DeviceType = DeviceTypes.Heating,
+                            Power = PowerStates.On
+                        },
+                        Termination = new Termination { Type = " " }
+                    }
+                }, CancellationToken.None));
+        }
+
+        /// <summary>
+        /// SetZoneOverlaysAsync requires positive duration when timer termination is used.
+        /// </summary>
+        [Fact(DisplayName = "SetZoneOverlaysAsync requires positive timer duration for timer terminations")]
+        public async Task SetZoneOverlaysAsync_RequiresPositiveTimerDuration_ForTimerTerminations()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            var service = new TadoZoneService(mockHttp.Object);
+
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                service.SetZoneOverlaysAsync(1, new Dictionary<int, Overlay>
+                {
+                    [2] = new()
+                    {
+                        Setting = new Setting
+                        {
+                            DeviceType = DeviceTypes.Heating,
+                            Power = PowerStates.On
+                        },
+                        Termination = new Termination { Type = nameof(DurationModes.Timer) }
+                    }
+                }, CancellationToken.None));
+
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                service.SetZoneOverlaysAsync(1, new Dictionary<int, Overlay>
+                {
+                    [2] = new()
+                    {
+                        Setting = new Setting
+                        {
+                            DeviceType = DeviceTypes.Heating,
+                            Power = PowerStates.On
+                        },
+                        Termination = new Termination { Type = "TIMER", DurationInSeconds = 0 }
+                    }
+                }, CancellationToken.None));
+        }
+
+        /// <summary>
         /// DeleteZoneOverlaysAsync sends the spec-aligned bulk overlay delete command.
         /// </summary>
         [Fact(DisplayName = "DeleteZoneOverlaysAsync sends the spec-aligned bulk overlay delete command")]
@@ -853,6 +956,92 @@ namespace TadoNetApi.Tests.Infrastructure.Services
         }
 
         /// <summary>
+        /// SetTimetableBlocksForDayTypeAsync validates missing block setting details.
+        /// </summary>
+        [Fact(DisplayName = "SetTimetableBlocksForDayTypeAsync validates missing block setting details")]
+        public async Task SetTimetableBlocksForDayTypeAsync_ValidatesMissingBlockSettingDetails()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            var service = new TadoZoneService(mockHttp.Object);
+
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                service.SetTimetableBlocksForDayTypeAsync(1, 2, 3, "MONDAY",
+                [
+                    new TimetableBlock
+                    {
+                        DayType = "MONDAY",
+                        Start = "06:00",
+                        End = "08:00"
+                    }
+                ], CancellationToken.None));
+
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                service.SetTimetableBlocksForDayTypeAsync(1, 2, 3, "MONDAY",
+                [
+                    new TimetableBlock
+                    {
+                        DayType = "MONDAY",
+                        Start = "06:00",
+                        End = "08:00",
+                        Setting = new Setting
+                        {
+                            Power = PowerStates.On
+                        }
+                    }
+                ], CancellationToken.None));
+
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                service.SetTimetableBlocksForDayTypeAsync(1, 2, 3, "MONDAY",
+                [
+                    new TimetableBlock
+                    {
+                        DayType = "MONDAY",
+                        Start = "06:00",
+                        End = "08:00",
+                        Setting = new Setting
+                        {
+                            DeviceType = DeviceTypes.Heating
+                        }
+                    }
+                ], CancellationToken.None));
+        }
+
+        /// <summary>
+        /// SetTimetableBlocksForDayTypeAsync throws NotFound when API returns null payload.
+        /// </summary>
+        [Fact(DisplayName = "SetTimetableBlocksForDayTypeAsync throws NotFound when API returns null payload")]
+        public async Task SetTimetableBlocksForDayTypeAsync_ThrowsNotFound_WhenApiReturnsNullPayload()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.PutAsync<List<SetTimetableBlockRequest>, List<TadoTimetableBlockResponse>>(
+                    It.IsAny<string>(),
+                    It.IsAny<List<SetTimetableBlockRequest>>(),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync((List<TadoTimetableBlockResponse>?)null);
+
+            var service = new TadoZoneService(mockHttp.Object);
+
+            var exception = await Assert.ThrowsAsync<TadoApiException>(() =>
+                service.SetTimetableBlocksForDayTypeAsync(1, 2, 3, "MONDAY",
+                [
+                    new TimetableBlock
+                    {
+                        DayType = "MONDAY",
+                        Start = "06:00",
+                        End = "08:00",
+                        Setting = new Setting
+                        {
+                            DeviceType = DeviceTypes.Heating,
+                            Power = PowerStates.On
+                        }
+                    }
+                ], CancellationToken.None));
+
+            Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
+        }
+
+        /// <summary>
         /// CreateZoneAsync sends the spec-aligned zone creation command.
         /// </summary>
         [Fact(DisplayName = "CreateZoneAsync sends the spec-aligned zone creation command")]
@@ -1069,6 +1258,67 @@ namespace TadoNetApi.Tests.Infrastructure.Services
         }
 
         /// <summary>
+        /// SetHeatingTemperatureCelsiusAsync returns null when the API returns no summary payload.
+        /// </summary>
+        [Fact(DisplayName = "SetHeatingTemperatureCelsiusAsync returns null when API summary payload is null")]
+        public async Task SetHeatingTemperatureCelsiusAsync_ReturnsNull_WhenApiSummaryPayloadIsNull()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.PutAsync<SetZoneTemperatureRequest, TadoZoneSummaryResponse>(
+                    It.IsAny<string>(),
+                    It.IsAny<SetZoneTemperatureRequest>(),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync((TadoZoneSummaryResponse?)null);
+
+            var service = new TadoZoneService(mockHttp.Object);
+
+            var result = await service.SetHeatingTemperatureCelsiusAsync(1, 2, 20.0, CancellationToken.None);
+
+            Assert.Null(result);
+        }
+
+        /// <summary>
+        /// SetHeatingTemperatureCelsiusAsync rejects undefined duration modes.
+        /// </summary>
+        [Fact(DisplayName = "SetHeatingTemperatureCelsiusAsync rejects undefined duration modes")]
+        public async Task SetHeatingTemperatureCelsiusAsync_RejectsUndefinedDurationModes()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            var service = new TadoZoneService(mockHttp.Object);
+
+            await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
+                service.SetHeatingTemperatureCelsiusAsync(1, 2, 20.0, (DurationModes)999, null, CancellationToken.None));
+        }
+
+        /// <summary>
+        /// SetTemperatureAsync rejects undefined device types when invoked through the private helper.
+        /// </summary>
+        [Fact(DisplayName = "SetTemperatureAsync rejects undefined device types in the private helper")]
+        public async Task SetTemperatureAsync_RejectsUndefinedDeviceTypes_InPrivateHelper()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            var service = new TadoZoneService(mockHttp.Object);
+            var method = typeof(TadoZoneService).GetMethod("SetTemperatureAsync", BindingFlags.Instance | BindingFlags.NonPublic);
+
+            Assert.NotNull(method);
+
+            var task = (Task<ZoneSummary?>)method!.Invoke(service,
+            [
+                1,
+                2,
+                20.0,
+                null,
+                (DeviceTypes)999,
+                DurationModes.UntilNextManualChange,
+                null,
+                CancellationToken.None
+            ])!;
+
+            await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => task);
+        }
+
+        /// <summary>
         /// SetHeatingTemperatureFahrenheitAsync sends a Fahrenheit heating overlay.
         /// </summary>
         [Fact(DisplayName = "SetHeatingTemperatureFahrenheitAsync sends a Fahrenheit heating overlay")]
@@ -1224,6 +1474,146 @@ namespace TadoNetApi.Tests.Infrastructure.Services
         #endregion
 
         #region Validation/Failure Tests
+
+        /// <summary>
+        /// DeleteZoneOverlaysAsync sends a home-level bulk overlay delete command with room query.
+        /// </summary>
+        [Fact(DisplayName = "DeleteZoneOverlaysAsync sends home-level bulk overlay delete command")]
+        public async Task DeleteZoneOverlaysAsync_SendsHomeLevelBulkOverlayDeleteCommand()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.SendAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<HttpMethod>(),
+                    It.IsAny<CancellationToken>(),
+                    It.IsAny<HttpStatusCode>(),
+                    It.IsAny<object?>()))
+                .ReturnsAsync(true);
+
+            var service = new TadoZoneService(mockHttp.Object);
+
+            await service.DeleteZoneOverlaysAsync(1, [2, 3], CancellationToken.None);
+
+            mockHttp.Verify(c => c.SendAsync(
+                    "homes/1/overlay?rooms=2&rooms=3",
+                    HttpMethod.Delete,
+                    It.IsAny<CancellationToken>(),
+                    HttpStatusCode.NoContent,
+                    null),
+                Times.Once);
+        }
+
+        /// <summary>
+        /// DeleteZoneOverlaysAsync validates input list values.
+        /// </summary>
+        [Fact(DisplayName = "DeleteZoneOverlaysAsync validates null empty and non-positive zone IDs")]
+        public async Task DeleteZoneOverlaysAsync_ValidatesNullEmptyAndNonPositiveZoneIds()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            var service = new TadoZoneService(mockHttp.Object);
+
+            await Assert.ThrowsAsync<ArgumentNullException>(() =>
+                service.DeleteZoneOverlaysAsync(1, null!, CancellationToken.None));
+
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                service.DeleteZoneOverlaysAsync(1, [], CancellationToken.None));
+
+            await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
+                service.DeleteZoneOverlaysAsync(1, [0], CancellationToken.None));
+        }
+
+        /// <summary>
+        /// SetAwayConfigurationAsync sends expected command for valid payload.
+        /// </summary>
+        [Fact(DisplayName = "SetAwayConfigurationAsync sends expected command for valid payload")]
+        public async Task SetAwayConfigurationAsync_SendsExpectedCommand_ForValidPayload()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.SendAsync(
+                    It.IsAny<string>(),
+                    It.IsAny<HttpMethod>(),
+                    It.IsAny<CancellationToken>(),
+                    It.IsAny<HttpStatusCode>(),
+                    It.IsAny<object?>()))
+                .ReturnsAsync(true);
+
+            var service = new TadoZoneService(mockHttp.Object);
+
+            await service.SetAwayConfigurationAsync(1, 2, new AwayConfiguration
+            {
+                Type = "HEATING",
+                Setting = new Setting
+                {
+                    DeviceType = DeviceTypes.Heating,
+                    Power = PowerStates.On,
+                    Temperature = new Temperature { Celsius = 16 }
+                }
+            }, CancellationToken.None);
+
+            mockHttp.Verify(c => c.SendAsync(
+                    "homes/1/zones/2/schedule/awayConfiguration",
+                    HttpMethod.Put,
+                    It.IsAny<CancellationToken>(),
+                    HttpStatusCode.NoContent,
+                    It.IsAny<object?>()),
+                Times.Once);
+        }
+
+        /// <summary>
+        /// SetAwayConfigurationAsync validates required setting and power fields.
+        /// </summary>
+        [Fact(DisplayName = "SetAwayConfigurationAsync validates required setting type and power fields")]
+        public async Task SetAwayConfigurationAsync_ValidatesRequiredSettingTypeAndPowerFields()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            var service = new TadoZoneService(mockHttp.Object);
+
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                service.SetAwayConfigurationAsync(1, 2, new AwayConfiguration { Type = "HEATING", Setting = null! }, CancellationToken.None));
+
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                service.SetAwayConfigurationAsync(1, 2, new AwayConfiguration { Type = "HEATING", Setting = new Setting { Power = PowerStates.On } }, CancellationToken.None));
+
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                service.SetAwayConfigurationAsync(1, 2, new AwayConfiguration { Type = "HEATING", Setting = new Setting { DeviceType = DeviceTypes.Heating } }, CancellationToken.None));
+        }
+
+        /// <summary>
+        /// SetHeatingCircuitAsync throws NotFound when API returns null payload.
+        /// </summary>
+        [Fact(DisplayName = "SetHeatingCircuitAsync throws NotFound when API returns null payload")]
+        public async Task SetHeatingCircuitAsync_ThrowsNotFound_WhenApiReturnsNullPayload()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.PutAsync<SetHeatingCircuitRequest?, TadoZoneControlResponse>(
+                    It.IsAny<string>(),
+                    It.IsAny<SetHeatingCircuitRequest?>(),
+                    It.IsAny<CancellationToken>()))
+                .ReturnsAsync((TadoZoneControlResponse?)null);
+
+            var service = new TadoZoneService(mockHttp.Object);
+
+            var exception = await Assert.ThrowsAsync<TadoApiException>(() =>
+                service.SetHeatingCircuitAsync(1, 2, null, CancellationToken.None));
+
+            Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
+        }
+
+        /// <summary>
+        /// CreateZoneAsync rejects blank device serial numbers in the payload.
+        /// </summary>
+        [Fact(DisplayName = "CreateZoneAsync rejects blank device serial numbers in payload")]
+        public async Task CreateZoneAsync_RejectsBlankDeviceSerialNumbers_InPayload()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            var service = new TadoZoneService(mockHttp.Object);
+
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                service.CreateZoneAsync(1, "HEATING", ["SU123", " "], null, CancellationToken.None));
+        }
 
         #endregion
     }

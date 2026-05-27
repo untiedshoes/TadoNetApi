@@ -177,5 +177,95 @@ namespace TadoNetApi.Tests.Infrastructure.Services
 
             Assert.Equal(HttpStatusCode.ServiceUnavailable, exception.StatusCode);
         }
+
+        /// <summary>
+        /// GetBoilerMaxOutputTemperatureAsync returns null when API payload is null.
+        /// </summary>
+        [Fact(DisplayName = "GetBoilerMaxOutputTemperatureAsync returns null when API payload is null")]
+        public async Task GetBoilerMaxOutputTemperatureAsync_ReturnsNull_WhenApiPayloadIsNull()
+        {
+            var mockHttp = new Mock<IPublicTadoHttpClient>();
+            mockHttp
+                .Setup(c => c.GetAsync<TadoBoilerMaxOutputTemperatureResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((TadoBoilerMaxOutputTemperatureResponse?)null);
+
+            var service = new TadoBoilerByBridgeService(mockHttp.Object);
+
+            var result = await service.GetBoilerMaxOutputTemperatureAsync("IB3328595968", "1234", CancellationToken.None);
+
+            Assert.Null(result);
+        }
+
+        /// <summary>
+        /// GetBoilerWiringInstallationStateAsync returns null when API payload is null.
+        /// </summary>
+        [Fact(DisplayName = "GetBoilerWiringInstallationStateAsync returns null when API payload is null")]
+        public async Task GetBoilerWiringInstallationStateAsync_ReturnsNull_WhenApiPayloadIsNull()
+        {
+            var mockHttp = new Mock<IPublicTadoHttpClient>();
+            mockHttp
+                .Setup(c => c.GetAsync<TadoBoilerWiringInstallationStateResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((TadoBoilerWiringInstallationStateResponse?)null);
+
+            var service = new TadoBoilerByBridgeService(mockHttp.Object);
+
+            var result = await service.GetBoilerWiringInstallationStateAsync("IB3328595968", "1234", CancellationToken.None);
+
+            Assert.Null(result);
+        }
+
+        /// <summary>
+        /// GetBoilerMaxOutputTemperatureAsync throws ServiceUnavailable when network fails.
+        /// </summary>
+        [Fact(DisplayName = "GetBoilerMaxOutputTemperatureAsync throws ServiceUnavailable when network fails")]
+        public async Task GetBoilerMaxOutputTemperatureAsync_ThrowsServiceUnavailable_WhenNetworkFails()
+        {
+            var mockHttp = new Mock<IPublicTadoHttpClient>();
+            mockHttp
+                .Setup(c => c.GetAsync<TadoBoilerMaxOutputTemperatureResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new HttpRequestException("Network failed"));
+
+            var service = new TadoBoilerByBridgeService(mockHttp.Object);
+
+            var exception = await Assert.ThrowsAsync<TadoApiException>(() =>
+                service.GetBoilerMaxOutputTemperatureAsync("IB3328595968", "1234", CancellationToken.None));
+
+            Assert.Equal(HttpStatusCode.ServiceUnavailable, exception.StatusCode);
+        }
+
+        /// <summary>
+        /// GetBoilerWiringInstallationStateAsync throws ServiceUnavailable when network fails.
+        /// </summary>
+        [Fact(DisplayName = "GetBoilerWiringInstallationStateAsync throws ServiceUnavailable when network fails")]
+        public async Task GetBoilerWiringInstallationStateAsync_ThrowsServiceUnavailable_WhenNetworkFails()
+        {
+            var mockHttp = new Mock<IPublicTadoHttpClient>();
+            mockHttp
+                .Setup(c => c.GetAsync<TadoBoilerWiringInstallationStateResponse>(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new HttpRequestException("Network failed"));
+
+            var service = new TadoBoilerByBridgeService(mockHttp.Object);
+
+            var exception = await Assert.ThrowsAsync<TadoApiException>(() =>
+                service.GetBoilerWiringInstallationStateAsync("IB3328595968", "1234", CancellationToken.None));
+
+            Assert.Equal(HttpStatusCode.ServiceUnavailable, exception.StatusCode);
+        }
+
+        /// <summary>
+        /// Service methods validate bridge and auth key before building endpoint.
+        /// </summary>
+        [Fact(DisplayName = "BoilerByBridge service validates bridge and auth key")]
+        public async Task BoilerByBridgeService_ValidatesBridgeAndAuthKey()
+        {
+            var mockHttp = new Mock<IPublicTadoHttpClient>();
+            var service = new TadoBoilerByBridgeService(mockHttp.Object);
+
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                service.GetBoilerInfoAsync(" ", "1234", CancellationToken.None));
+
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                service.GetBoilerInfoAsync("IB3328595968", " ", CancellationToken.None));
+        }
     }
 }

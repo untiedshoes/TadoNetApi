@@ -453,5 +453,130 @@ namespace TadoNetApi.Tests.Infrastructure.Services
             Assert.Equal("HEATING", dayReport.ZoneType);
             mockHttp.VerifyAll();
         }
+
+        /// <summary>
+        /// GetActiveTimetableTypeAsync throws NotFound when API returns null payload.
+        /// </summary>
+        [Fact(DisplayName = "GetActiveTimetableTypeAsync throws NotFound when API returns null payload")]
+        public async Task GetActiveTimetableTypeAsync_ThrowsNotFound_WhenApiReturnsNullPayload()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.GetAsync<TadoTimetableTypeResponse>("homes/1/zones/2/schedule/activeTimetable", It.IsAny<CancellationToken>()))
+                .ReturnsAsync((TadoTimetableTypeResponse?)null);
+
+            var service = new TadoZoneService(mockHttp.Object);
+
+            var exception = await Assert.ThrowsAsync<TadoApiException>(() =>
+                service.GetActiveTimetableTypeAsync(1, 2, CancellationToken.None));
+
+            Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
+        }
+
+        /// <summary>
+        /// GetZoneTimetablesAsync returns empty list when API payload is null.
+        /// </summary>
+        [Fact(DisplayName = "GetZoneTimetablesAsync returns empty list when API payload is null")]
+        public async Task GetZoneTimetablesAsync_ReturnsEmptyList_WhenApiPayloadIsNull()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.GetAsync<List<TadoTimetableTypeResponse>>("homes/1/zones/2/schedule/timetables", It.IsAny<CancellationToken>()))
+                .ReturnsAsync((List<TadoTimetableTypeResponse>?)null);
+
+            var service = new TadoZoneService(mockHttp.Object);
+
+            var result = await service.GetZoneTimetablesAsync(1, 2, CancellationToken.None);
+
+            Assert.Empty(result);
+        }
+
+        /// <summary>
+        /// GetZoneTimetableAsync throws NotFound when API returns null payload.
+        /// </summary>
+        [Fact(DisplayName = "GetZoneTimetableAsync throws NotFound when API returns null payload")]
+        public async Task GetZoneTimetableAsync_ThrowsNotFound_WhenApiReturnsNullPayload()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.GetAsync<TadoTimetableTypeResponse>("homes/1/zones/2/schedule/timetables/3", It.IsAny<CancellationToken>()))
+                .ReturnsAsync((TadoTimetableTypeResponse?)null);
+
+            var service = new TadoZoneService(mockHttp.Object);
+
+            var exception = await Assert.ThrowsAsync<TadoApiException>(() =>
+                service.GetZoneTimetableAsync(1, 2, 3, CancellationToken.None));
+
+            Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
+        }
+
+        /// <summary>
+        /// GetZoneTimetableBlocksAsync returns empty list when API payload is null.
+        /// </summary>
+        [Fact(DisplayName = "GetZoneTimetableBlocksAsync returns empty list when API payload is null")]
+        public async Task GetZoneTimetableBlocksAsync_ReturnsEmptyList_WhenApiPayloadIsNull()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.GetAsync<List<TadoTimetableBlockResponse>>("homes/1/zones/2/schedule/timetables/3/blocks", It.IsAny<CancellationToken>()))
+                .ReturnsAsync((List<TadoTimetableBlockResponse>?)null);
+
+            var service = new TadoZoneService(mockHttp.Object);
+
+            var result = await service.GetZoneTimetableBlocksAsync(1, 2, 3, CancellationToken.None);
+
+            Assert.Empty(result);
+        }
+
+        /// <summary>
+        /// GetTimetableBlocksByDayTypeAsync validates day type input.
+        /// </summary>
+        [Fact(DisplayName = "GetTimetableBlocksByDayTypeAsync validates day type input")]
+        public async Task GetTimetableBlocksByDayTypeAsync_ValidatesDayTypeInput()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            var service = new TadoZoneService(mockHttp.Object);
+
+            await Assert.ThrowsAsync<ArgumentException>(() =>
+                service.GetTimetableBlocksByDayTypeAsync(1, 2, 3, " ", CancellationToken.None));
+        }
+
+        /// <summary>
+        /// GetTimetableBlocksByDayTypeAsync throws ServiceUnavailable when network request fails.
+        /// </summary>
+        [Fact(DisplayName = "GetTimetableBlocksByDayTypeAsync throws ServiceUnavailable on network failure")]
+        public async Task GetTimetableBlocksByDayTypeAsync_ThrowsServiceUnavailable_OnNetworkFailure()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.GetAsync<List<TadoTimetableBlockResponse>>("homes/1/zones/2/schedule/timetables/3/blocks/MONDAY", It.IsAny<CancellationToken>()))
+                .ThrowsAsync(new HttpRequestException("network down"));
+
+            var service = new TadoZoneService(mockHttp.Object);
+
+            var exception = await Assert.ThrowsAsync<TadoApiException>(() =>
+                service.GetTimetableBlocksByDayTypeAsync(1, 2, 3, "MONDAY", CancellationToken.None));
+
+            Assert.Equal(HttpStatusCode.ServiceUnavailable, exception.StatusCode);
+        }
+
+        /// <summary>
+        /// GetZoneDayReportAsync throws NotFound when API payload is null.
+        /// </summary>
+        [Fact(DisplayName = "GetZoneDayReportAsync throws NotFound when API payload is null")]
+        public async Task GetZoneDayReportAsync_ThrowsNotFound_WhenApiPayloadIsNull()
+        {
+            var mockHttp = new Mock<ITadoHttpClient>();
+            mockHttp
+                .Setup(c => c.GetAsync<TadoZoneDayReportResponse>("homes/1/zones/2/dayReport", It.IsAny<CancellationToken>()))
+                .ReturnsAsync((TadoZoneDayReportResponse?)null);
+
+            var service = new TadoZoneService(mockHttp.Object);
+
+            var exception = await Assert.ThrowsAsync<TadoApiException>(() =>
+                service.GetZoneDayReportAsync(1, 2, cancellationToken: CancellationToken.None));
+
+            Assert.Equal(HttpStatusCode.NotFound, exception.StatusCode);
+        }
     }
 }
